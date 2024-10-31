@@ -4,11 +4,36 @@
 
 @* <h3>Template 1</h3> *@
 
-<footer class="text-white py-4" style="background-color:@BackgroundColor;">
+<footer class="text-white py-4 footer-template" style="background-color:@BackgroundColor;">
     <div class="container">
-        <div class="text-center mb-3 mb-md-0" style="color:@TextColor;">
-            <small class="d-block">@TextInput1</small>
-            <small class="d-block">@TextInput2</small>
+        <h1 class="footer-heading1" style="color:@TextColor;">@TextInput1</h1>
+
+        <div class="text-right" style="color:@TextColor;">
+            @if (!string.IsNullOrEmpty(TextInput2))
+            {
+                string delimiter = ",";
+
+                // Split the string using the specified delimiter
+                string[] links = TextInput2.Split(new string[] { delimiter }, StringSplitOptions.None);
+
+                foreach (var link in links)
+                {
+                    string linkdelimiter = "=";
+                    string[] linkAndUrl = link.Split(new string[] { linkdelimiter }, StringSplitOptions.None);
+
+                    // Ensure linkAndUrl has at least two elements before accessing them
+                    if (linkAndUrl.Length >= 2 && !string.IsNullOrEmpty(linkAndUrl[0]) && !string.IsNullOrEmpty(linkAndUrl[1]))
+                    {
+                        <small class="d-block footer-template-link">
+                            <a href="@linkAndUrl[1]" style="text-decoration: none; color: inherit;">@linkAndUrl[0]</a>
+                        </small>
+                    }
+                    else
+                    {
+                        <small class="d-block footer-template-small">@link</small>
+                    }
+                }
+            }
         </div>
     </div>
 </footer>
