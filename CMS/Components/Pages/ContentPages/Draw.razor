@@ -1,0 +1,2897 @@
+﻿@page "/content/draw"
+
+@* <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixel Painter</title>
+    <style>
+        body {
+            background-color: white; /* Set background color to white */
+            margin: 0; /* Remove default margin */
+            padding: 0; /* Remove default padding */
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(100, 1px); /* 100 columns of 1px */
+            grid-template-rows: repeat(100, 1px); /* 100 rows of 1px */
+        }
+
+        .pixel {
+            width: 1px; /* Set pixel size to 1px */
+            height: 1px; /* Set pixel size to 1px */
+            border: none; /* Remove border for clarity */
+            background-color: white; /* Pixel color */
+            box-sizing: border-box; /* Ensure borders are included in the size */
+        }
+    </style>
+</head>
+<body>
+    <div class="grid" id="pixelGrid"></div>
+    <input type="color" id="colorPicker" value="#000000">
+    <select id="brushSize">
+        <option value="1">Brush Size: 1px</option>
+        <option value="2">Brush Size: 2px</option>
+        <option value="3">Brush Size: 3px</option>
+        <option value="5">Brush Size: 5px</option>
+    </select>
+    <button id="clearButton">Clear</button>
+
+    <script>
+        const grid = document.getElementById('pixelGrid');
+        const colorPicker = document.getElementById('colorPicker');
+        const brushSizeSelector = document.getElementById('brushSize');
+        const clearButton = document.getElementById('clearButton');
+        let isPainting = false;
+
+        // Function to create the grid
+        function createGrid() {
+            for (let i = 0; i < 10000; i++) { // 100x100 grid
+                const pixel = document.createElement('div');
+                pixel.classList.add('pixel');
+                grid.appendChild(pixel);
+            }
+        }
+
+        // Function to paint a pixel
+        function paintPixels(x, y) {
+            const brushSize = parseInt(brushSizeSelector.value);
+            const index = y * 100 + x; // Calculate the index based on grid size
+
+            for (let r = 0; r < brushSize; r++) {
+                for (let c = 0; c < brushSize; c++) {
+                    const targetRow = y + r;
+                    const targetCol = x + c;
+                    const targetIndex = targetRow * 100 + targetCol;
+                    const targetPixel = grid.children[targetIndex];
+
+                    if (targetPixel) {
+                        targetPixel.style.backgroundColor = colorPicker.value;
+                    }
+                }
+            }
+        }
+
+        // Mouse events for painting
+        grid.addEventListener('mousedown', (e) => {
+            isPainting = true;
+            const pixel = e.target;
+            const x = Array.from(grid.children).indexOf(pixel) % 100; // Calculate x from index
+            const y = Math.floor(Array.from(grid.children).indexOf(pixel) / 100); // Calculate y from index
+            paintPixels(x, y);
+        });
+
+        grid.addEventListener('mousemove', (e) => {
+            if (isPainting) {
+                const pixel = e.target;
+                const x = Array.from(grid.children).indexOf(pixel) % 100; // Calculate x from index
+                const y = Math.floor(Array.from(grid.children).indexOf(pixel) / 100); // Calculate y from index
+                paintPixels(x, y);
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            isPainting = false;
+        });
+
+        clearButton.addEventListener('click', () => {
+            const pixels = document.querySelectorAll('.pixel');
+            pixels.forEach(pixel => {
+                pixel.style.backgroundColor = 'white';
+            });
+        });
+
+        createGrid();
+    </script>
+</body>
+</html> *@
+
+<!--Vanilla JS v1-->
+@* <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Drawing App</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+            cursor: crosshair;
+        }
+    </style>
+</head>
+<body>
+    <input type="color" id="colorPicker" value="#000000">
+    <canvas id="drawingCanvas" width="500" height="500"></canvas>
+
+    <script>
+        const canvas = document.getElementById('drawingCanvas');
+        const ctx = canvas.getContext('2d');
+        const colorPicker = document.getElementById('colorPicker');
+        let isDrawing = false;
+
+        canvas.addEventListener('mousedown', (e) => {
+            isDrawing = true;
+            ctx.strokeStyle = colorPicker.value;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(e.offsetX, e.offsetY);
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (isDrawing) {
+                ctx.lineTo(e.offsetX, e.offsetY);
+                ctx.stroke();
+            }
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            isDrawing = false;
+            ctx.closePath();
+        });
+
+        canvas.addEventListener('mouseout', () => {
+            isDrawing = false;
+            ctx.closePath();
+        });
+    </script>
+</body>
+</html>
+ *@
+
+<!--Vanilla JS v2 smoother?-->
+@* <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smoother Pixel Drawing</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+            image-rendering: pixelated; /* or 'smooth' */
+        }
+    </style>
+</head>
+<body>
+    <input type="color" id="colorPicker" value="#000000">
+    <canvas id="drawingCanvas" width="500" height="500"></canvas>
+
+    <script>
+        const canvas = document.getElementById('drawingCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Set a higher resolution for smoother edges
+        canvas.style.width = '500px';
+        canvas.style.height = '500px';
+        canvas.width = 1000; // Set higher resolution
+        canvas.height = 1000; // Set higher resolution
+
+        let isDrawing = false;
+
+        canvas.addEventListener('mousedown', (e) => {
+            isDrawing = true;
+            ctx.strokeStyle = document.getElementById('colorPicker').value;
+            ctx.lineWidth = 1; // Keep lineWidth at 1 for pixel-like drawing
+            ctx.beginPath();
+            ctx.moveTo(e.offsetX * 2, e.offsetY * 2); // Scale coordinates
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (isDrawing) {
+                ctx.lineTo(e.offsetX * 2, e.offsetY * 2); // Scale coordinates
+                ctx.stroke();
+            }
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            isDrawing = false;
+            ctx.closePath();
+        });
+
+        canvas.addEventListener('mouseout', () => {
+            isDrawing = false;
+            ctx.closePath();
+        });
+    </script>
+</body>
+</html> *@
+
+<!--Vanilla JS v3 smoother?+brush size-->
+@* <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixel Painter with Brush Size</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+            image-rendering: pixelated;
+        }
+    </style>
+</head>
+<body>
+    <input type="color" id="colorPicker" value="#000000">
+    <select id="brushSize">
+        <option value="1">Brush Size: 1px</option>
+        <option value="2">Brush Size: 2px</option>
+        <option value="3">Brush Size: 3px</option>
+        <option value="5">Brush Size: 5px</option>
+        <option value="10">Brush Size: 10px</option>
+    </select>
+    <canvas id="drawingCanvas" width="500" height="500"></canvas>
+
+    <script>
+        const canvas = document.getElementById('drawingCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Set a higher resolution for smoother edges
+        canvas.style.width = '500px';
+        canvas.style.height = '500px';
+        canvas.width = 1000; // Higher resolution for smooth drawing
+        canvas.height = 1000; // Higher resolution for smooth drawing
+
+        let isDrawing = false;
+
+        canvas.addEventListener('mousedown', (e) => {
+            isDrawing = true;
+            ctx.strokeStyle = document.getElementById('colorPicker').value;
+            ctx.lineWidth = parseInt(document.getElementById('brushSize').value); // Get brush size
+            ctx.beginPath();
+            ctx.moveTo(e.offsetX * 2, e.offsetY * 2); // Scale coordinates
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (isDrawing) {
+                ctx.lineTo(e.offsetX * 2, e.offsetY * 2); // Scale coordinates
+                ctx.stroke();
+            }
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            isDrawing = false;
+            ctx.closePath();
+        });
+
+        canvas.addEventListener('mouseout', () => {
+            isDrawing = false;
+            ctx.closePath();
+        });
+    </script>
+</body>
+</html>*@
+
+<!--Vanilla JS v3 smoother?+brush size, even smoother?-->
+@* <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smoother Pixel Painter</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+            image-rendering: pixelated; /* This can be set to 'smooth' if you want to test */
+        }
+    </style>
+</head>
+<body>
+    <input type="color" id="colorPicker" value="#000000">
+    <select id="brushSize">
+        <option value="1">Brush Size: 1px</option>
+        <option value="2">Brush Size: 2px</option>
+        <option value="3">Brush Size: 3px</option>
+        <option value="5">Brush Size: 5px</option>
+        <option value="10">Brush Size: 10px</option>
+    </select>
+    <canvas id="drawingCanvas" width="500" height="500"></canvas>
+
+    <script>
+        const canvas = document.getElementById('drawingCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Set a higher resolution for smoother edges
+        canvas.style.width = '500px';
+        canvas.style.height = '500px';
+        canvas.width = 1000; // Higher resolution for smooth drawing
+        canvas.height = 1000; // Higher resolution for smooth drawing
+
+        let isDrawing = false;
+
+        canvas.addEventListener('mousedown', (e) => {
+            isDrawing = true;
+            ctx.strokeStyle = document.getElementById('colorPicker').value;
+            ctx.lineWidth = parseInt(document.getElementById('brushSize').value);
+            ctx.lineJoin = 'round'; // Set line join to round
+            ctx.lineCap = 'round'; // Set line cap to round
+            ctx.beginPath();
+            ctx.moveTo(e.offsetX * 2, e.offsetY * 2); // Scale coordinates
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (isDrawing) {
+                ctx.lineTo(e.offsetX * 2, e.offsetY * 2); // Scale coordinates
+                ctx.stroke();
+            }
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            isDrawing = false;
+            ctx.closePath();
+        });
+
+        canvas.addEventListener('mouseout', () => {
+            isDrawing = false;
+            ctx.closePath();
+        });
+    </script>
+</body>
+</html>
+ *@
+
+<!--Vanilla JS v3 smoother?+brush size, blur?-->
+
+@*<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blurred Pixel Painter</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+            image-rendering: pixelated; /* Change to 'smooth' if you want to test */
+        }
+    </style>
+</head>
+<body>
+    <input type="color" id="colorPicker" value="#000000">
+    <select id="brushSize">
+        <option value="1">Brush Size: 1px</option>
+        <option value="2">Brush Size: 2px</option>
+        <option value="3">Brush Size: 3px</option>
+        <option value="5">Brush Size: 5px</option>
+        <option value="10">Brush Size: 10px</option>
+    </select>
+    <label for="blurAmount">Blur Amount:</label>
+    <input type="number" id="blurAmount" value="2" min="0" max="20" step="1">
+    <button id="clearButton">Clear Canvas</button>
+    <canvas id="drawingCanvas" width="500" height="500"></canvas>
+
+     <script>
+        const canvas = document.getElementById('drawingCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Set a higher resolution for smoother edges
+        canvas.style.width = '500px';
+        canvas.style.height = '500px';
+        canvas.width = 1000; // Higher resolution for smooth drawing
+        canvas.height = 1000; // Higher resolution for smooth drawing
+
+        let isDrawing = false;
+
+        canvas.addEventListener('mousedown', (e) => {
+            isDrawing = true;
+            ctx.strokeStyle = document.getElementById('colorPicker').value;
+            ctx.lineWidth = parseInt(document.getElementById('brushSize').value);
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            ctx.moveTo(e.offsetX * 2, e.offsetY * 2); // Scale coordinates
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (isDrawing) {
+                const blurAmount = document.getElementById('blurAmount').value;
+                ctx.filter = `blur(${blurAmount}px)`; // Set blur amount
+                ctx.lineTo(e.offsetX * 2, e.offsetY * 2); // Scale coordinates
+                ctx.stroke();
+            }
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            isDrawing = false;
+            ctx.closePath();
+            ctx.filter = 'none'; // Reset filter after drawing
+        });
+
+        canvas.addEventListener('mouseout', () => {
+            isDrawing = false;
+            ctx.closePath();
+            ctx.filter = 'none'; // Reset filter after drawing
+        });
+
+        document.getElementById('clearButton').addEventListener('click', () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
+        });
+
+    </script>
+</body>
+</html> *@
+
+<!--Vanilla JS v4 smoother?+brush size, pen ambitions-->
+
+@*     <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Blurred Pixel Painter</title>
+        <style>
+            canvas {
+                border: 1px solid black;
+                image-rendering: pixelated;
+            }
+        </style>
+    </head>
+    <body>
+        <input type="color" id="colorPicker" value="#000000">
+        <select id="brushSize">
+            <option value="1">Brush Size: 1px</option>
+            <option value="2">Brush Size: 2px</option>
+            <option value="3">Brush Size: 3px</option>
+            <option value="5">Brush Size: 5px</option>
+            <option value="10">Brush Size: 10px</option>
+        </select>
+        <button id="clearButton">Clear Canvas</button>
+        <canvas id="drawingCanvas" width="500" height="500"></canvas>
+
+        <script>
+            const canvas = document.getElementById('drawingCanvas');
+            const ctx = canvas.getContext('2d');
+
+            // Higher resolution for smooth drawing
+            canvas.style.width = '500px';
+            canvas.style.height = '500px';
+            canvas.width = 1000;
+            canvas.height = 1000;
+
+            let isDrawing = false;
+            let lastX = 0;
+            let lastY = 0;
+
+            canvas.addEventListener('mousedown', (e) => {
+                isDrawing = true;
+                ctx.strokeStyle = document.getElementById('colorPicker').value;
+                ctx.lineWidth = parseInt(document.getElementById('brushSize').value);
+                ctx.lineJoin = 'round';
+                ctx.lineCap = 'round';
+                [lastX, lastY] = [e.offsetX * 2, e.offsetY * 2];
+            });
+
+            canvas.addEventListener('mousemove', (e) => {
+                if (!isDrawing) return;
+
+                const x = e.offsetX * 2;
+                const y = e.offsetY * 2;
+
+                ctx.beginPath();
+                ctx.moveTo(lastX, lastY);
+                ctx.lineTo(x, y);
+                ctx.stroke();
+
+                [lastX, lastY] = [x, y]; // Update lastX and lastY
+            });
+
+            canvas.addEventListener('mouseup', () => {
+                isDrawing = false;
+                ctx.closePath();
+            });
+
+            canvas.addEventListener('mouseout', () => {
+                isDrawing = false;
+                ctx.closePath();
+            });
+
+            document.getElementById('clearButton').addEventListener('click', () => {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            });
+        </script>
+    </body>
+</html> *@
+
+<!--Vanilla JS v4 smoother?+brush size, touch support-->
+
+@* <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blurred Pixel Painter</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+            image-rendering: pixelated;
+            touch-action: none; /* Prevents scrolling when touching the canvas */
+        }
+    </style>
+</head>
+<body>
+    <input type="color" id="colorPicker" value="#000000">
+    <select id="brushSize">
+        <option value="1">Brush Size: 1px</option>
+        <option value="2">Brush Size: 2px</option>
+        <option value="3">Brush Size: 3px</option>
+        <option value="5">Brush Size: 5px</option>
+        <option value="10">Brush Size: 10px</option>
+    </select>
+    <button id="clearButton">Clear Canvas</button>
+    <canvas id="drawingCanvas" width="500" height="500"></canvas>
+
+    <script>
+        const canvas = document.getElementById('drawingCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Higher resolution for smooth drawing
+        canvas.style.width = '500px';
+        canvas.style.height = '500px';
+        canvas.width = 1000;
+        canvas.height = 1000;
+
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+
+        function getCoordinates(e) {
+            const rect = canvas.getBoundingClientRect();
+            const x = (e.clientX || e.touches[0].clientX) - rect.left;
+            const y = (e.clientY || e.touches[0].clientY) - rect.top;
+            return [x * 2, y * 2]; // Scale for higher resolution
+        }
+
+        function startDrawing(e) {
+            isDrawing = true;
+            [lastX, lastY] = getCoordinates(e);
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+
+            const [x, y] = getCoordinates(e);
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            [lastX, lastY] = [x, y]; // Update lastX and lastY
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+            ctx.closePath();
+        }
+
+        // Mouse events
+        canvas.addEventListener('mousedown', (e) => {
+            ctx.strokeStyle = document.getElementById('colorPicker').value;
+            ctx.lineWidth = parseInt(document.getElementById('brushSize').value);
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+            startDrawing(e);
+        });
+
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+
+        // Touch events
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault(); // Prevent scrolling
+            ctx.strokeStyle = document.getElementById('colorPicker').value;
+            ctx.lineWidth = parseInt(document.getElementById('brushSize').value);
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+            startDrawing(e);
+        });
+
+        canvas.addEventListener('touchmove', draw);
+        canvas.addEventListener('touchend', stopDrawing);
+        canvas.addEventListener('touchcancel', stopDrawing);
+
+        document.getElementById('clearButton').addEventListener('click', () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        });
+    </script>
+</body>
+</html>
+ *@
+
+<!--Vanilla JS v2.1 smoother?+brush size, touch support,save as image.png -->
+
+@* <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blurred Pixel Painter</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+            image-rendering: pixelated;
+            touch-action: none; /* Prevents scrolling when touching the canvas */
+        }
+    </style>
+</head>
+<body>
+    <input type="color" id="colorPicker" value="#000000">
+    <select id="brushSize">
+        <option value="1">Brush Size: 1px</option>
+        <option value="2">Brush Size: 2px</option>
+        <option value="3">Brush Size: 3px</option>
+        <option value="5">Brush Size: 5px</option>
+        <option value="10">Brush Size: 10px</option>
+    </select>
+    <button id="clearButton">Clear Canvas</button>
+    <button id="saveButton">Save Image</button>
+    <canvas id="drawingCanvas" width="500" height="500"></canvas>
+
+    <script>
+        const canvas = document.getElementById('drawingCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Higher resolution for smooth drawing
+        canvas.style.width = '500px';
+        canvas.style.height = '500px';
+        canvas.width = 1000;
+        canvas.height = 1000;
+
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+
+        function getCoordinates(e) {
+            const rect = canvas.getBoundingClientRect();
+            const x = (e.clientX || e.touches[0].clientX) - rect.left;
+            const y = (e.clientY || e.touches[0].clientY) - rect.top;
+            return [x * 2, y * 2]; // Scale for higher resolution
+        }
+
+        function startDrawing(e) {
+            isDrawing = true;
+            [lastX, lastY] = getCoordinates(e);
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+
+            const [x, y] = getCoordinates(e);
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            [lastX, lastY] = [x, y]; // Update lastX and lastY
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+            ctx.closePath();
+        }
+
+        // Mouse events
+        canvas.addEventListener('mousedown', (e) => {
+            ctx.strokeStyle = document.getElementById('colorPicker').value;
+            ctx.lineWidth = parseInt(document.getElementById('brushSize').value);
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+            startDrawing(e);
+        });
+
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+
+        // Touch events
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault(); // Prevent scrolling
+            ctx.strokeStyle = document.getElementById('colorPicker').value;
+            ctx.lineWidth = parseInt(document.getElementById('brushSize').value);
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+            startDrawing(e);
+        });
+
+        canvas.addEventListener('touchmove', draw);
+        canvas.addEventListener('touchend', stopDrawing);
+        canvas.addEventListener('touchcancel', stopDrawing);
+
+        document.getElementById('clearButton').addEventListener('click', () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        });
+
+        document.getElementById('saveButton').addEventListener('click', () => {
+            const link = document.createElement('a');
+            link.download = 'drawing.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        });
+    </script>
+</body>
+</html> *@
+
+<!--Vanilla JS v2.2 smoother?+brush size, touch support,save as image.png,undo/redo,line smoothing, save color and size  -->
+
+@* <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blurred Pixel Painter</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+            image-rendering: pixelated;
+            touch-action: none; /* Prevents scrolling when touching the canvas */
+        }
+    </style>
+</head>
+<body>
+    <input type="color" id="colorPicker" value="#000000">
+    <select id="brushSize">
+        <option value="1">Brush Size: 1px</option>
+        <option value="2">Brush Size: 2px</option>
+        <option value="3">Brush Size: 3px</option>
+        <option value="5">Brush Size: 5px</option>
+        <option value="10">Brush Size: 10px</option>
+    </select>
+    <button id="clearButton">Clear Canvas</button>
+    <button id="saveButton">Save Image</button>
+    <button id="undoButton">Undo</button>
+    <button id="redoButton">Redo</button>
+    <canvas id="drawingCanvas" width="500" height="500"></canvas>
+
+    <script>
+        const canvas = document.getElementById('drawingCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Higher resolution for smooth drawing
+        canvas.style.width = '500px';
+        canvas.style.height = '500px';
+        canvas.width = 1000;
+        canvas.height = 1000;
+
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+        let undoStack = [];
+        let redoStack = [];
+
+        function getCoordinates(e) {
+            const rect = canvas.getBoundingClientRect();
+            const x = (e.clientX || e.touches[0].clientX) - rect.left;
+            const y = (e.clientY || e.touches[0].clientY) - rect.top;
+            return [x * 2, y * 2]; // Scale for higher resolution
+        }
+
+        function startDrawing(e) {
+            isDrawing = true;
+            [lastX, lastY] = getCoordinates(e);
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+
+            const [x, y] = getCoordinates(e);
+            ctx.quadraticCurveTo(lastX, lastY, (lastX + x) / 2, (lastY + y) / 2);
+            ctx.stroke();
+            [lastX, lastY] = [x, y]; // Update lastX and lastY
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+            ctx.closePath();
+            saveState(); // Save the current state for undo/redo
+        }
+
+        function saveState() {
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            undoStack.push(imageData);
+            redoStack = []; // Clear redo stack on new action
+        }
+
+        function undo() {
+            if (undoStack.length > 0) {
+                redoStack.push(undoStack.pop());
+                if (undoStack.length > 0) {
+                    ctx.putImageData(undoStack[undoStack.length - 1], 0, 0);
+                } else {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }
+            }
+        }
+
+        function redo() {
+            if (redoStack.length > 0) {
+                const imageData = redoStack.pop();
+                undoStack.push(imageData);
+                ctx.putImageData(imageData, 0, 0);
+            }
+        }
+
+        function loadBrushSettings() {
+            const color = localStorage.getItem('brushColor') || '#000000';
+            const size = localStorage.getItem('brushSize') || '1';
+            document.getElementById('colorPicker').value = color;
+            document.getElementById('brushSize').value = size;
+            ctx.strokeStyle = color;
+            ctx.lineWidth = parseInt(size);
+        }
+
+        function saveBrushSettings() {
+            const color = document.getElementById('colorPicker').value;
+            const size = document.getElementById('brushSize').value;
+            localStorage.setItem('brushColor', color);
+            localStorage.setItem('brushSize', size);
+        }
+
+        // Initialize brush settings on load
+        loadBrushSettings();
+
+        // Mouse events
+        canvas.addEventListener('mousedown', (e) => {
+            ctx.strokeStyle = document.getElementById('colorPicker').value;
+            ctx.lineWidth = parseInt(document.getElementById('brushSize').value);
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+            startDrawing(e);
+        });
+
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', () => {
+            stopDrawing();
+            saveBrushSettings(); // Save settings after drawing
+        });
+        canvas.addEventListener('mouseout', stopDrawing);
+
+        // Touch events
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault(); // Prevent scrolling
+            ctx.strokeStyle = document.getElementById('colorPicker').value;
+            ctx.lineWidth = parseInt(document.getElementById('brushSize').value);
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+            startDrawing(e);
+        });
+
+        canvas.addEventListener('touchmove', draw);
+        canvas.addEventListener('touchend', () => {
+            stopDrawing();
+            saveBrushSettings(); // Save settings after drawing
+        });
+        canvas.addEventListener('touchcancel', stopDrawing);
+
+        document.getElementById('clearButton').addEventListener('click', () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            undoStack = []; // Clear the undo stack
+            redoStack = []; // Clear the redo stack
+        });
+
+        document.getElementById('saveButton').addEventListener('click', () => {
+            const link = document.createElement('a');
+            link.download = 'drawing.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        });
+
+        document.getElementById('undoButton').addEventListener('click', undo);
+        document.getElementById('redoButton').addEventListener('click', redo);
+    </script>
+</body>
+</html> *@
+
+<!--Vanilla JS v2.3 smoother?+brush size, touch support,save as image.png,undo/redo,line smoothing, save color and size, save image, load image  -->
+
+@* <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blurred Pixel Painter</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+            image-rendering: pixelated;
+            touch-action: none; /* Prevents scrolling when touching the canvas */
+        }
+    </style>
+</head>
+<body>
+    <input type="color" id="colorPicker" value="#000000">
+    <select id="brushSize">
+        <option value="1">Brush Size: 1px</option>
+        <option value="2">Brush Size: 2px</option>
+        <option value="3">Brush Size: 3px</option>
+        <option value="5">Brush Size: 5px</option>
+        <option value="10">Brush Size: 10px</option>
+    </select>
+    <button id="clearButton">Clear Canvas</button>
+    <button id="saveButton">Save Image</button>
+    <button id="undoButton">Undo</button>
+    <button id="redoButton">Redo</button>
+    <input type="file" id="fileInput" accept="image/*">
+    <canvas id="drawingCanvas" width="500" height="500"></canvas>
+
+    <script>
+        const canvas = document.getElementById('drawingCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Higher resolution for smooth drawing
+        canvas.style.width = '500px';
+        canvas.style.height = '500px';
+        canvas.width = 1000;
+        canvas.height = 1000;
+
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+        let undoStack = [];
+        let redoStack = [];
+
+        function getCoordinates(e) {
+            const rect = canvas.getBoundingClientRect();
+            const x = (e.clientX || e.touches[0].clientX) - rect.left;
+            const y = (e.clientY || e.touches[0].clientY) - rect.top;
+            return [x * 2, y * 2]; // Scale for higher resolution
+        }
+
+        function startDrawing(e) {
+            isDrawing = true;
+            [lastX, lastY] = getCoordinates(e);
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+
+            const [x, y] = getCoordinates(e);
+            ctx.quadraticCurveTo(lastX, lastY, (lastX + x) / 2, (lastY + y) / 2);
+            ctx.stroke();
+            [lastX, lastY] = [x, y]; // Update lastX and lastY
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+            ctx.closePath();
+            saveState(); // Save the current state for undo/redo
+        }
+
+        function saveState() {
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            undoStack.push(imageData);
+            redoStack = []; // Clear redo stack on new action
+        }
+
+        function undo() {
+            if (undoStack.length > 0) {
+                redoStack.push(undoStack.pop());
+                if (undoStack.length > 0) {
+                    ctx.putImageData(undoStack[undoStack.length - 1], 0, 0);
+                } else {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }
+            }
+        }
+
+        function redo() {
+            if (redoStack.length > 0) {
+                const imageData = redoStack.pop();
+                undoStack.push(imageData);
+                ctx.putImageData(imageData, 0, 0);
+            }
+        }
+
+        function loadBrushSettings() {
+            const color = localStorage.getItem('brushColor') || '#000000';
+            const size = localStorage.getItem('brushSize') || '1';
+            document.getElementById('colorPicker').value = color;
+            document.getElementById('brushSize').value = size;
+            ctx.strokeStyle = color;
+            ctx.lineWidth = parseInt(size);
+        }
+
+        function saveBrushSettings() {
+            const color = document.getElementById('colorPicker').value;
+            const size = document.getElementById('brushSize').value;
+            localStorage.setItem('brushColor', color);
+            localStorage.setItem('brushSize', size);
+        }
+
+        function loadImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const img = new Image();
+                    img.onload = function () {
+                        ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height); // Draw uploaded image
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Initialize brush settings on load
+        loadBrushSettings();
+
+        // Mouse events
+        canvas.addEventListener('mousedown', (e) => {
+            ctx.strokeStyle = document.getElementById('colorPicker').value;
+            ctx.lineWidth = parseInt(document.getElementById('brushSize').value);
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+            startDrawing(e);
+        });
+
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', () => {
+            stopDrawing();
+            saveBrushSettings(); // Save settings after drawing
+        });
+        canvas.addEventListener('mouseout', stopDrawing);
+
+        // Touch events
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault(); // Prevent scrolling
+            ctx.strokeStyle = document.getElementById('colorPicker').value;
+            ctx.lineWidth = parseInt(document.getElementById('brushSize').value);
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+            startDrawing(e);
+        });
+
+        canvas.addEventListener('touchmove', draw);
+        canvas.addEventListener('touchend', () => {
+            stopDrawing();
+            saveBrushSettings(); // Save settings after drawing
+        });
+        canvas.addEventListener('touchcancel', stopDrawing);
+
+        document.getElementById('clearButton').addEventListener('click', () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            undoStack = []; // Clear the undo stack
+            redoStack = []; // Clear the redo stack
+        });
+
+        document.getElementById('saveButton').addEventListener('click', () => {
+            const link = document.createElement('a');
+            link.download = 'drawing.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        });
+
+        document.getElementById('undoButton').addEventListener('click', undo);
+        document.getElementById('redoButton').addEventListener('click', redo);
+        document.getElementById('fileInput').addEventListener('change', loadImage);
+    </script>
+</body>
+</html> *@
+
+<!--Vanilla JS 2.4 smoother?+brush size, touch support,save as image.png,undo/redo,line smoothing, save color and size, save image,
+load image, smoothing Implemented  -->
+
+@* <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smooth Pixel Painter</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+            image-rendering: pixelated;
+            touch-action: none; /* Prevents scrolling when touching the canvas */
+        }
+    </style>
+</head>
+<body>
+    <input type="color" id="colorPicker" value="#000000">
+    <select id="brushSize">
+        <option value="1">Brush Size: 1px</option>
+        <option value="2">Brush Size: 2px</option>
+        <option value="3">Brush Size: 3px</option>
+        <option value="5">Brush Size: 5px</option>
+        <option value="10">Brush Size: 10px</option>
+    </select>
+    <button id="clearButton">Clear Canvas</button>
+    <button id="saveButton">Save Image</button>
+    <button id="undoButton">Undo</button>
+    <button id="redoButton">Redo</button>
+    <input type="file" id="fileInput" accept="image/*">
+    <canvas id="drawingCanvas" width="500" height="500"></canvas>
+
+    <script>
+        const canvas = document.getElementById('drawingCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Higher resolution for smooth drawing
+        canvas.style.width = '500px';
+        canvas.style.height = '500px';
+        canvas.width = 1000;
+        canvas.height = 1000;
+
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+        let undoStack = [];
+        let redoStack = [];
+        const points = []; // Store points for drawing
+
+        function getCoordinates(e) {
+            const rect = canvas.getBoundingClientRect();
+            const x = (e.clientX || e.touches[0].clientX) - rect.left;
+            const y = (e.clientY || e.touches[0].clientY) - rect.top;
+            return [x * 2, y * 2]; // Scale for higher resolution
+        }
+
+        function startDrawing(e) {
+            isDrawing = true;
+            [lastX, lastY] = getCoordinates(e);
+            points.push({ x: lastX, y: lastY });
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+
+            const [x, y] = getCoordinates(e);
+            addIntermediatePoints(lastX, lastY, x, y);
+            [lastX, lastY] = [x, y]; // Update lastX and lastY
+        }
+
+        function addIntermediatePoints(x1, y1, x2, y2) {
+            const distance = Math.hypot(x2 - x1, y2 - y1);
+            const steps = Math.ceil(distance / 5); // Adjust for desired smoothness
+            for (let i = 0; i <= steps; i++) {
+                const t = i / steps;
+                const x = x1 + (x2 - x1) * t;
+                const y = y1 + (y2 - y1) * t;
+                drawLine(x, y);
+            }
+        }
+
+        function drawLine(x, y) {
+            ctx.strokeStyle = document.getElementById('colorPicker').value;
+            ctx.lineWidth = parseInt(document.getElementById('brushSize').value);
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+            ctx.lineTo(x, y);
+            ctx.stroke();
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+            ctx.closePath();
+            saveState(); // Save the current state for undo/redo
+            points.length = 0; // Clear points after drawing
+        }
+
+        function saveState() {
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            undoStack.push(imageData);
+            redoStack = []; // Clear redo stack on new action
+        }
+
+        function undo() {
+            if (undoStack.length > 0) {
+                redoStack.push(undoStack.pop());
+                if (undoStack.length > 0) {
+                    ctx.putImageData(undoStack[undoStack.length - 1], 0, 0);
+                } else {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }
+            }
+        }
+
+        function redo() {
+            if (redoStack.length > 0) {
+                const imageData = redoStack.pop();
+                undoStack.push(imageData);
+                ctx.putImageData(imageData, 0, 0);
+            }
+        }
+
+        function loadBrushSettings() {
+            const color = localStorage.getItem('brushColor') || '#000000';
+            const size = localStorage.getItem('brushSize') || '1';
+            document.getElementById('colorPicker').value = color;
+            document.getElementById('brushSize').value = size;
+            ctx.strokeStyle = color;
+            ctx.lineWidth = parseInt(size);
+        }
+
+        function saveBrushSettings() {
+            const color = document.getElementById('colorPicker').value;
+            const size = document.getElementById('brushSize').value;
+            localStorage.setItem('brushColor', color);
+            localStorage.setItem('brushSize', size);
+        }
+
+        function loadImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const img = new Image();
+                    img.onload = function () {
+                        ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height); // Draw uploaded image
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Initialize brush settings on load
+        loadBrushSettings();
+
+        // Mouse events
+        canvas.addEventListener('mousedown', (e) => {
+            ctx.beginPath(); // Start a new path for drawing
+            startDrawing(e);
+        });
+
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+
+        // Touch events
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault(); // Prevent scrolling
+            ctx.beginPath(); // Start a new path for drawing
+            startDrawing(e);
+        });
+
+        canvas.addEventListener('touchmove', draw);
+        canvas.addEventListener('touchend', stopDrawing);
+        canvas.addEventListener('touchcancel', stopDrawing);
+
+        document.getElementById('clearButton').addEventListener('click', () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            undoStack = []; // Clear the undo stack
+            redoStack = []; // Clear the redo stack
+        });
+
+        document.getElementById('saveButton').addEventListener('click', () => {
+            const link = document.createElement('a');
+            link.download = 'drawing.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        });
+
+        document.getElementById('undoButton').addEventListener('click', undo);
+        document.getElementById('redoButton').addEventListener('click', redo);
+        document.getElementById('fileInput').addEventListener('change', loadImage);
+    </script>
+</body>
+</html> *@
+
+<!--Vanilla JS v2.5 smoother?+brush size, touch support,save as image.png,undo/redo,line smoothing, save color and size, save image,
+load image, no smoothing  -->
+
+@* <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Basic Pixel Painter</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+            image-rendering: pixelated;
+            touch-action: none; /* Prevents scrolling when touching the canvas */
+        }
+    </style>
+</head>
+<body>
+    <input type="color" id="colorPicker" value="#000000">
+    <select id="brushSize">
+        <option value="1">Brush Size: 1px</option>
+        <option value="2">Brush Size: 2px</option>
+        <option value="3">Brush Size: 3px</option>
+        <option value="5">Brush Size: 5px</option>
+        <option value="10">Brush Size: 10px</option>
+    </select>
+    <button id="clearButton">Clear Canvas</button>
+    <button id="saveButton">Save Image</button>
+    <input type="file" id="fileInput" accept="image/*">
+    <canvas id="drawingCanvas" width="500" height="500"></canvas>
+
+    <script>
+        const canvas = document.getElementById('drawingCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Higher resolution for smooth drawing
+        canvas.style.width = '500px';
+        canvas.style.height = '500px';
+        canvas.width = 1000;
+        canvas.height = 1000;
+
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+
+        function getCoordinates(e) {
+            const rect = canvas.getBoundingClientRect();
+            const x = (e.clientX || e.touches[0].clientX) - rect.left;
+            const y = (e.clientY || e.touches[0].clientY) - rect.top;
+            return [x * 2, y * 2]; // Scale for higher resolution
+        }
+
+        function startDrawing(e) {
+            isDrawing = true;
+            [lastX, lastY] = getCoordinates(e);
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+
+            const [x, y] = getCoordinates(e);
+            ctx.strokeStyle = document.getElementById('colorPicker').value;
+            ctx.lineWidth = parseInt(document.getElementById('brushSize').value);
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            [lastX, lastY] = [x, y]; // Update lastX and lastY
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+            ctx.closePath();
+        }
+
+        // Mouse events
+        canvas.addEventListener('mousedown', (e) => {
+            startDrawing(e);
+        });
+
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+
+        // Touch events
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault(); // Prevent scrolling
+            startDrawing(e);
+        });
+
+        canvas.addEventListener('touchmove', draw);
+        canvas.addEventListener('touchend', stopDrawing);
+        canvas.addEventListener('touchcancel', stopDrawing);
+
+        document.getElementById('clearButton').addEventListener('click', () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        });
+
+        document.getElementById('saveButton').addEventListener('click', () => {
+            const link = document.createElement('a');
+            link.download = 'drawing.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        });
+
+        document.getElementById('fileInput').addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const img = new Image();
+                    img.onload = function () {
+                        ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height); // Draw uploaded image
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    </script>
+</body>
+</html> *@
+
+<!--Vanilla JS v2.5 smoother?+brush size, touch support,save as image.png,undo/redo,line smoothing, save color and size, save image,
+load image, jitter reduze stabilization  -->
+
+@* <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smooth Pixel Painter</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+            image-rendering: pixelated;
+            touch-action: none; /* Prevents scrolling when touching the canvas */
+        }
+    </style>
+</head>
+<body>
+    <input type="color" id="colorPicker" value="#000000">
+    <select id="brushSize">
+        <option value="1">Brush Size: 1px</option>
+        <option value="2">Brush Size: 2px</option>
+        <option value="3">Brush Size: 3px</option>
+        <option value="5">Brush Size: 5px</option>
+        <option value="10">Brush Size: 10px</option>
+    </select>
+    <button id="clearButton">Clear Canvas</button>
+    <button id="saveButton">Save Image</button>
+    <input type="file" id="fileInput" accept="image/*">
+    <canvas id="drawingCanvas" width="500" height="500"></canvas>
+
+    <script>
+        const canvas = document.getElementById('drawingCanvas');
+        const ctx = canvas.getContext('2d');
+
+        canvas.style.width = '500px';
+        canvas.style.height = '500px';
+        canvas.width = 1000;
+        canvas.height = 1000;
+
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+        const recentPoints = []; // Store recent points for smoothing
+
+        function getCoordinates(e) {
+            const rect = canvas.getBoundingClientRect();
+            const x = (e.clientX || e.touches[0].clientX) - rect.left;
+            const y = (e.clientY || e.touches[0].clientY) - rect.top;
+            return [x * 2, y * 2]; // Scale for higher resolution
+        }
+
+        function startDrawing(e) {
+            isDrawing = true;
+            [lastX, lastY] = getCoordinates(e);
+            recentPoints.push({ x: lastX, y: lastY });
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+
+            const [x, y] = getCoordinates(e);
+            recentPoints.push({ x, y });
+
+            // Limit the size of the recentPoints array
+            if (recentPoints.length > 3) {
+                recentPoints.shift(); // Remove the oldest point
+            }
+
+            // Average out the points for smoother drawing
+            const avgX = recentPoints.reduce((sum, point) => sum + point.x, 0) / recentPoints.length;
+            const avgY = recentPoints.reduce((sum, point) => sum + point.y, 0) / recentPoints.length;
+
+            ctx.strokeStyle = document.getElementById('colorPicker').value;
+            ctx.lineWidth = parseInt(document.getElementById('brushSize').value);
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(avgX, avgY);
+            ctx.stroke();
+
+            // Update lastX and lastY to the averaged position
+            [lastX, lastY] = [avgX, avgY];
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+            ctx.closePath();
+            recentPoints.length = 0; // Clear recent points after drawing
+        }
+
+        // Mouse events
+        canvas.addEventListener('mousedown', (e) => {
+            startDrawing(e);
+        });
+
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+
+        // Touch events
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault(); // Prevent scrolling
+            startDrawing(e);
+        });
+
+        canvas.addEventListener('touchmove', draw);
+        canvas.addEventListener('touchend', stopDrawing);
+        canvas.addEventListener('touchcancel', stopDrawing);
+
+        document.getElementById('clearButton').addEventListener('click', () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        });
+
+        document.getElementById('saveButton').addEventListener('click', () => {
+            const link = document.createElement('a');
+            link.download = 'drawing.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        });
+
+        document.getElementById('fileInput').addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const img = new Image();
+                    img.onload = function () {
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    </script>
+</body>
+</html> *@
+
+<!--Best, GOOD painting experience and look-->
+
+<!--Vanilla JS v2.6 smoother?+brush size, touch support,save as image.png,undo/redo,line smoothing, save color and size, save image,
+load image, jitter reduze stabilization, higer Resolution, smoothing: -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smooth Painter</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+            touch-action: none; /* Prevents scrolling when touching the canvas */
+        }
+    </style>
+</head>
+<body>
+    <input type="color" id="colorPicker" value="#000000">
+    <select id="brushSize">
+        <option value="1">Brush Size: 1px</option>
+        <option value="2">Brush Size: 2px</option>
+        <option value="3">Brush Size: 3px</option>
+        <option value="5">Brush Size: 5px</option>
+        <option value="10">Brush Size: 10px</option>
+    </select>
+    <button id="clearButton">Clear Canvas</button>
+    <button id="saveButton">Save Image</button>
+    <input type="file" id="fileInput" accept="image/*">
+    <canvas id="drawingCanvas" width="1000" height="1000"></canvas>
+
+    <script>
+        const canvas = document.getElementById('drawingCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Displayed size of the canvas
+        const displayWidth = 500;
+        const displayHeight = 500;
+        canvas.style.width = `${displayWidth}px`;
+        canvas.style.height = `${displayHeight}px`;
+
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+        const recentPoints = []; // Store recent points for smoothing
+
+        function getCoordinates(e) {
+            const rect = canvas.getBoundingClientRect();
+            const x = (e.clientX || e.touches[0].clientX) - rect.left;
+            const y = (e.clientY || e.touches[0].clientY) - rect.top;
+            return [x * (canvas.width / displayWidth), y * (canvas.height / displayHeight)]; // Scale for higher resolution
+        }
+
+        function startDrawing(e) {
+            isDrawing = true;
+            [lastX, lastY] = getCoordinates(e);
+            recentPoints.push({ x: lastX, y: lastY });
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+
+            const [x, y] = getCoordinates(e);
+            recentPoints.push({ x, y });
+
+            // Limit the size of the recentPoints array
+            if (recentPoints.length > 5) {
+                recentPoints.shift(); // Remove the oldest point
+            }
+
+            // Average out the points for smoother drawing
+            const avgX = recentPoints.reduce((sum, point) => sum + point.x, 0) / recentPoints.length;
+            const avgY = recentPoints.reduce((sum, point) => sum + point.y, 0) / recentPoints.length;
+
+            ctx.strokeStyle = document.getElementById('colorPicker').value;
+            ctx.lineWidth = parseInt(document.getElementById('brushSize').value);
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(avgX, avgY);
+            ctx.stroke();
+
+            // Update lastX and lastY to the averaged position
+            [lastX, lastY] = [avgX, avgY];
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+            ctx.closePath();
+            recentPoints.length = 0; // Clear recent points after drawing
+        }
+
+        // Mouse events
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+
+        // Touch events
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault(); // Prevent scrolling
+            startDrawing(e);
+        });
+        canvas.addEventListener('touchmove', draw);
+        canvas.addEventListener('touchend', stopDrawing);
+        canvas.addEventListener('touchcancel', stopDrawing);
+
+        document.getElementById('clearButton').addEventListener('click', () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        });
+
+        document.getElementById('saveButton').addEventListener('click', () => {
+            const link = document.createElement('a');
+            link.download = 'drawing.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        });
+
+        document.getElementById('fileInput').addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const img = new Image();
+                    img.onload = function () {
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    </script>
+</body>
+</html>
+
+
+ <!-- second best, pretty clean lines but some glitch in start/end-->
+
+<!--Vanilla JS v2.7 smoother?+brush size, touch support,save as image.png,undo/redo,line smoothing, save color and size, save image,
+load image, jitter reduze stabilization, higer Resolution, smoothing, vector: -->
+
+@* <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smooth Vector Painter</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+            touch-action: none; /* Prevents scrolling when touching the canvas */
+        }
+    </style>
+</head>
+<body>
+    <input type="color" id="colorPicker" value="#000000">
+    <select id="brushSize">
+        <option value="1">Brush Size: 1px</option>
+        <option value="2">Brush Size: 2px</option>
+        <option value="3">Brush Size: 3px</option>
+        <option value="5">Brush Size: 5px</option>
+        <option value="10">Brush Size: 10px</option>
+    </select>
+    <button id="clearButton">Clear Canvas</button>
+    <button id="saveButton">Save Image</button>
+    <input type="file" id="fileInput" accept="image/*">
+    <canvas id="drawingCanvas" width="1000" height="1000"></canvas>
+
+    <script>
+        const canvas = document.getElementById('drawingCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const displayWidth = 500;
+        const displayHeight = 500;
+        canvas.style.width = `${displayWidth}px`;
+        canvas.style.height = `${displayHeight}px`;
+
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+        const lines = []; // Store lines as vector data
+
+        function getCoordinates(e) {
+            const rect = canvas.getBoundingClientRect();
+            const x = (e.clientX || e.touches[0].clientX) - rect.left;
+            const y = (e.clientY || e.touches[0].clientY) - rect.top;
+            return [x * (canvas.width / displayWidth), y * (canvas.height / displayHeight)];
+        }
+
+        function startDrawing(e) {
+            isDrawing = true;
+            [lastX, lastY] = getCoordinates(e);
+            lines.push({ color: ctx.strokeStyle, size: ctx.lineWidth, points: [{ x: lastX, y: lastY }] });
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+
+            const [x, y] = getCoordinates(e);
+            const currentLine = lines[lines.length - 1];
+            currentLine.points.push({ x, y });
+
+            // Clear and redraw all lines
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            lines.forEach(line => {
+                ctx.strokeStyle = line.color;
+                ctx.lineWidth = line.size;
+                ctx.beginPath();
+
+                const points = line.points;
+                ctx.moveTo(points[0].x, points[0].y);
+
+                // Use quadratic Bezier curves for smoother drawing
+                for (let i = 1; i < points.length - 1; i++) {
+                    const midX = (points[i].x + points[i + 1].x) / 2;
+                    const midY = (points[i].y + points[i + 1].y) / 2;
+                    ctx.quadraticCurveTo(points[i].x, points[i].y, midX, midY);
+                }
+
+                ctx.lineTo(points[points.length - 1].x, points[points.length - 1].y);
+                ctx.stroke();
+            });
+
+            lastX = x;
+            lastY = y;
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+            ctx.closePath();
+        }
+
+        // Mouse events
+        canvas.addEventListener('mousedown', (e) => {
+            ctx.strokeStyle = document.getElementById('colorPicker').value;
+            ctx.lineWidth = parseInt(document.getElementById('brushSize').value);
+            startDrawing(e);
+        });
+
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+
+        // Touch events
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault(); // Prevent scrolling
+            ctx.strokeStyle = document.getElementById('colorPicker').value;
+            ctx.lineWidth = parseInt(document.getElementById('brushSize').value);
+            startDrawing(e);
+        });
+        canvas.addEventListener('touchmove', draw);
+        canvas.addEventListener('touchend', stopDrawing);
+        canvas.addEventListener('touchcancel', stopDrawing);
+
+        document.getElementById('clearButton').addEventListener('click', () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            lines.length = 0; // Clear stored lines
+        });
+
+        document.getElementById('saveButton').addEventListener('click', () => {
+            const link = document.createElement('a');
+            link.download = 'drawing.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        });
+
+        document.getElementById('fileInput').addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const img = new Image();
+                    img.onload = function () {
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    </script>
+</body>
+</html> *@
+
+
+<!--Third best, compromize-->
+<!--Vanilla JS v2.8 smoother?+brush size, touch support,save as image.png,undo/redo,line smoothing, save color and size, save image,
+load image, jitter reduze stabilization, higer Resolution, smoothing, vector, less edgy, bézier curve: -->
+
+@* <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smooth Vector Painter</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+            touch-action: none; /* Prevents scrolling when touching the canvas */
+        }
+    </style>
+</head>
+<body>
+    <input type="color" id="colorPicker" value="#000000">
+    <select id="brushSize">
+        <option value="1">Brush Size: 1px</option>
+        <option value="2">Brush Size: 2px</option>
+        <option value="3">Brush Size: 3px</option>
+        <option value="5">Brush Size: 5px</option>
+        <option value="10">Brush Size: 10px</option>
+    </select>
+    <button id="clearButton">Clear Canvas</button>
+    <button id="saveButton">Save Image</button>
+    <input type="file" id="fileInput" accept="image/*">
+    <canvas id="drawingCanvas" width="1000" height="1000"></canvas>
+
+    <script>
+        const canvas = document.getElementById('drawingCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const displayWidth = 500;
+        const displayHeight = 500;
+        canvas.style.width = `${displayWidth}px`;
+        canvas.style.height = `${displayHeight}px`;
+
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+        const lines = []; // Store lines as vector data
+
+        function getCoordinates(e) {
+            const rect = canvas.getBoundingClientRect();
+            const x = (e.clientX || e.touches[0].clientX) - rect.left;
+            const y = (e.clientY || e.touches[0].clientY) - rect.top;
+            return [x * (canvas.width / displayWidth), y * (canvas.height / displayHeight)];
+        }
+
+        function startDrawing(e) {
+            isDrawing = true;
+            [lastX, lastY] = getCoordinates(e);
+            lines.push({ color: ctx.strokeStyle, size: ctx.lineWidth, points: [{ x: lastX, y: lastY }] });
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+
+            const [x, y] = getCoordinates(e);
+            const currentLine = lines[lines.length - 1];
+            currentLine.points.push({ x, y });
+
+            // Clear and redraw all lines
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            lines.forEach(line => {
+                ctx.strokeStyle = line.color;
+                ctx.lineWidth = line.size;
+                ctx.beginPath();
+
+                const points = line.points;
+                ctx.moveTo(points[0].x, points[0].y);
+
+                // Use quadratic Bezier curves for smoother drawing
+                for (let i = 1; i < points.length - 1; i++) {
+                    const midX = (points[i].x + points[i + 1].x) / 2;
+                    const midY = (points[i].y + points[i + 1].y) / 2;
+                    ctx.quadraticCurveTo(points[i].x, points[i].y, midX, midY);
+                }
+
+                ctx.lineTo(points[points.length - 1].x, points[points.length - 1].y);
+                ctx.stroke();
+            });
+
+            lastX = x;
+            lastY = y;
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+            ctx.closePath();
+        }
+
+        // Mouse events
+        canvas.addEventListener('mousedown', (e) => {
+            ctx.strokeStyle = document.getElementById('colorPicker').value;
+            ctx.lineWidth = parseInt(document.getElementById('brushSize').value);
+            startDrawing(e);
+        });
+
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+
+        // Touch events
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault(); // Prevent scrolling
+            ctx.strokeStyle = document.getElementById('colorPicker').value;
+            ctx.lineWidth = parseInt(document.getElementById('brushSize').value);
+            startDrawing(e);
+        });
+        canvas.addEventListener('touchmove', draw);
+        canvas.addEventListener('touchend', stopDrawing);
+        canvas.addEventListener('touchcancel', stopDrawing);
+
+        document.getElementById('clearButton').addEventListener('click', () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            lines.length = 0; // Clear stored lines
+        });
+
+        document.getElementById('saveButton').addEventListener('click', () => {
+            const link = document.createElement('a');
+            link.download = 'drawing.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        });
+
+        document.getElementById('fileInput').addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const img = new Image();
+                    img.onload = function () {
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    </script>
+</body>
+</html>  *@
+
+<!--Vanilla JS v2.9 smoother?+brush size, touch support,save as image.png,undo/redo,line smoothing, save color and size, save image,
+load image, jitter reduze stabilization, higer Resolution, smoothing, vector, less edgy, soft, little to fuzzy: -->
+@* <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smooth Vector Painter</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+            touch-action: none; /* Prevents scrolling when touching the canvas */
+        }
+    </style>
+</head>
+<body>
+    <input type="color" id="colorPicker" value="#000000">
+    <select id="brushSize">
+        <option value="1">Brush Size: 1px</option>
+        <option value="2">Brush Size: 2px</option>
+        <option value="3">Brush Size: 3px</option>
+        <option value="5">Brush Size: 5px</option>
+        <option value="10">Brush Size: 10px</option>
+    </select>
+    <button id="clearButton">Clear Canvas</button>
+    <button id="saveButton">Save Image</button>
+    <input type="file" id="fileInput" accept="image/*">
+    <canvas id="drawingCanvas" width="500" height="500"></canvas>
+
+    <script>
+        const canvas = document.getElementById('drawingCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+        const recentPoints = [];
+
+        function getCoordinates(e) {
+            const rect = canvas.getBoundingClientRect();
+            const x = (e.clientX || e.touches[0].clientX) - rect.left;
+            const y = (e.clientY || e.touches[0].clientY) - rect.top;
+            return [x, y];
+        }
+
+        function startDrawing(e) {
+            isDrawing = true;
+            [lastX, lastY] = getCoordinates(e);
+            recentPoints.length = 0; // Clear previous points
+            recentPoints.push({ x: lastX, y: lastY });
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+
+            const [x, y] = getCoordinates(e);
+            recentPoints.push({ x, y });
+
+            // Limit the number of recent points
+            if (recentPoints.length > 5) {
+                recentPoints.shift(); // Remove the oldest point
+            }
+
+            // Calculate average position for stabilization
+            const avgX = recentPoints.reduce((sum, p) => sum + p.x, 0) / recentPoints.length;
+            const avgY = recentPoints.reduce((sum, p) => sum + p.y, 0) / recentPoints.length;
+
+            ctx.strokeStyle = document.getElementById('colorPicker').value;
+            ctx.lineWidth = parseInt(document.getElementById('brushSize').value);
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(avgX, avgY);
+            ctx.stroke();
+
+            [lastX, lastY] = [avgX, avgY]; // Update last position
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+            ctx.closePath();
+        }
+
+        // Mouse events
+        canvas.addEventListener('mousedown', (e) => startDrawing(e));
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+
+        // Touch events
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault(); // Prevent scrolling
+            startDrawing(e);
+        });
+        canvas.addEventListener('touchmove', draw);
+        canvas.addEventListener('touchend', stopDrawing);
+        canvas.addEventListener('touchcancel', stopDrawing);
+
+        document.getElementById('clearButton').addEventListener('click', () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        });
+
+        document.getElementById('saveButton').addEventListener('click', () => {
+            const link = document.createElement('a');
+            link.download = 'drawing.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        });
+
+        document.getElementById('fileInput').addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const img = new Image();
+                    img.onload = function () {
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    </script>
+</body>
+</html> *@
+
+<!--Investigate if better feeling then 2.7? fourt best nice feeling, results less good, option for thebest whitout vector feel-->
+
+<!--Vanilla JS v2.10 smoother?+brush size, touch support,save as image.png,undo/redo,line smoothing, save color and size, save image,
+load image, jitter reduze stabilization, higer Resolution, smoothing, vector, less edgy, soft, liess fuzzy: -->
+@* <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smooth Vector Painter</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+            touch-action: none; /* Prevents scrolling when touching the canvas */
+        }
+    </style>
+</head>
+<body>
+    <input type="color" id="colorPicker" value="#000000">
+    <select id="brushSize">
+        <option value="2">Brush Size: 2px</option>
+        <option value="3">Brush Size: 3px</option>
+        <option value="5">Brush Size: 5px</option>
+        <option value="10">Brush Size: 10px</option>
+    </select>
+    <button id="clearButton">Clear Canvas</button>
+    <button id="saveButton">Save Image</button>
+    <input type="file" id="fileInput" accept="image/*">
+    <canvas id="drawingCanvas" width="500" height="500"></canvas>
+
+    <script>
+        const canvas = document.getElementById('drawingCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+        const recentPoints = [];
+
+        function getCoordinates(e) {
+            const rect = canvas.getBoundingClientRect();
+            const x = (e.clientX || e.touches[0].clientX) - rect.left;
+            const y = (e.clientY || e.touches[0].clientY) - rect.top;
+            return [x, y];
+        }
+
+        function startDrawing(e) {
+            isDrawing = true;
+            [lastX, lastY] = getCoordinates(e);
+            recentPoints.length = 0; // Clear previous points
+            recentPoints.push({ x: lastX, y: lastY });
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+
+            const [x, y] = getCoordinates(e);
+            recentPoints.push({ x, y });
+
+            // Limit the number of recent points
+            if (recentPoints.length > 5) {
+                recentPoints.shift(); // Remove the oldest point
+            }
+
+            // Calculate average position for stabilization
+            const avgX = recentPoints.reduce((sum, p) => sum + p.x, 0) / recentPoints.length;
+            const avgY = recentPoints.reduce((sum, p) => sum + p.y, 0) / recentPoints.length;
+
+            ctx.strokeStyle = document.getElementById('colorPicker').value;
+            ctx.lineWidth = parseInt(document.getElementById('brushSize').value) + 1; // Slightly increase stroke width for clarity
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(avgX, avgY);
+            ctx.stroke();
+
+            [lastX, lastY] = [avgX, avgY]; // Update last position
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+            ctx.closePath();
+        }
+
+        // Mouse events
+        canvas.addEventListener('mousedown', (e) => startDrawing(e));
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+
+        // Touch events
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault(); // Prevent scrolling
+            startDrawing(e);
+        });
+        canvas.addEventListener('touchmove', draw);
+        canvas.addEventListener('touchend', stopDrawing);
+        canvas.addEventListener('touchcancel', stopDrawing);
+
+        document.getElementById('clearButton').addEventListener('click', () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        });
+
+        document.getElementById('saveButton').addEventListener('click', () => {
+            const link = document.createElement('a');
+            link.download = 'drawing.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        });
+
+        document.getElementById('fileInput').addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const img = new Image();
+                    img.onload = function () {
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    </script>
+</body>
+</html> *@
+
+<!-- 2.11 save w filename-->
+
+@* <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smooth Vector Painter</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+            touch-action: none; /* Prevents scrolling when touching the canvas */
+        }
+    </style>
+</head>
+<body>
+    <input type="color" id="colorPicker" value="#000000">
+    <select id="brushSize">
+        <option value="1">Brush Size: 1px</option>
+        <option value="2">Brush Size: 2px</option>
+        <option value="3">Brush Size: 3px</option>
+        <option value="5">Brush Size: 5px</option>
+        <option value="10">Brush Size: 10px</option>
+    </select>
+    <button id="clearButton">Clear Canvas</button>
+    <button id="saveButton">Save Image</button>
+    <input type="file" id="fileInput" accept="image/*">
+    <canvas id="drawingCanvas" width="500" height="500"></canvas>
+
+    <script>
+        const canvas = document.getElementById('drawingCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+        const recentPoints = [];
+
+        function getCoordinates(e) {
+            const rect = canvas.getBoundingClientRect();
+            const x = (e.clientX || e.touches[0].clientX) - rect.left;
+            const y = (e.clientY || e.touches[0].clientY) - rect.top;
+            return [x, y];
+        }
+
+        function startDrawing(e) {
+            isDrawing = true;
+            [lastX, lastY] = getCoordinates(e);
+            recentPoints.length = 0; // Clear previous points
+            recentPoints.push({ x: lastX, y: lastY });
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+
+            const [x, y] = getCoordinates(e);
+            recentPoints.push({ x, y });
+
+            // Limit the number of recent points
+            if (recentPoints.length > 5) {
+                recentPoints.shift(); // Remove the oldest point
+            }
+
+            // Calculate average position for stabilization
+            const avgX = recentPoints.reduce((sum, p) => sum + p.x, 0) / recentPoints.length;
+            const avgY = recentPoints.reduce((sum, p) => sum + p.y, 0) / recentPoints.length;
+
+            ctx.strokeStyle = document.getElementById('colorPicker').value;
+            ctx.lineWidth = parseInt(document.getElementById('brushSize').value); // Use selected brush size
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(avgX, avgY);
+            ctx.stroke();
+
+            [lastX, lastY] = [avgX, avgY]; // Update last position
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+            ctx.closePath();
+        }
+
+        // Mouse events
+        canvas.addEventListener('mousedown', (e) => startDrawing(e));
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+
+        // Touch events
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault(); // Prevent scrolling
+            startDrawing(e);
+        });
+        canvas.addEventListener('touchmove', draw);
+        canvas.addEventListener('touchend', stopDrawing);
+        canvas.addEventListener('touchcancel', stopDrawing);
+
+        document.getElementById('clearButton').addEventListener('click', () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        });
+
+        document.getElementById('saveButton').addEventListener('click', () => {
+            const filename = prompt("Enter a filename for your image:", "drawing.png");
+            if (filename) { // Only save if a filename is provided
+                const link = document.createElement('a');
+                link.download = filename;
+                link.href = canvas.toDataURL();
+                link.click();
+            }
+        });
+
+        document.getElementById('fileInput').addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const img = new Image();
+                    img.onload = function () {
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    </script>
+</body>
+</html> *@
+
+<!-- Fifth best option for v2.7: version nr.: v2.12, whitout bezier stabillize-->
+
+@* <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smooth Vector Painter</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+            touch-action: none; /* Prevents scrolling when touching the canvas */
+        }
+    </style>
+</head>
+<body>
+    <input type="color" id="colorPicker" value="#000000">
+    <select id="brushSize">
+        <option value="1">Brush Size: 1px</option>
+        <option value="2">Brush Size: 2px</option>
+        <option value="3">Brush Size: 3px</option>
+        <option value="5">Brush Size: 5px</option>
+        <option value="10">Brush Size: 10px</option>
+    </select>
+    <button id="clearButton">Clear Canvas</button>
+    <button id="saveButton">Save Image</button>
+    <input type="file" id="fileInput" accept="image/*">
+    <canvas id="drawingCanvas" width="500" height="500"></canvas>
+
+    <script>
+        const canvas = document.getElementById('drawingCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+        const recentPoints = [];
+
+        function getCoordinates(e) {
+            const rect = canvas.getBoundingClientRect();
+            const x = (e.clientX || e.touches[0].clientX) - rect.left;
+            const y = (e.clientY || e.touches[0].clientY) - rect.top;
+            return [x, y];
+        }
+
+        function startDrawing(e) {
+            isDrawing = true;
+            [lastX, lastY] = getCoordinates(e);
+            recentPoints.length = 0; // Clear previous points
+            recentPoints.push({ x: lastX, y: lastY });
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+
+            const [x, y] = getCoordinates(e);
+            recentPoints.push({ x, y });
+
+            // Limit the number of recent points
+            if (recentPoints.length > 10) {
+                recentPoints.shift(); // Remove the oldest point
+            }
+
+            // Calculate average position for stabilization
+            const avgX = recentPoints.reduce((sum, p) => sum + p.x, 0) / recentPoints.length;
+            const avgY = recentPoints.reduce((sum, p) => sum + p.y, 0) / recentPoints.length;
+
+            ctx.strokeStyle = document.getElementById('colorPicker').value;
+            ctx.lineWidth = parseInt(document.getElementById('brushSize').value);
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(avgX, avgY);
+            ctx.stroke();
+
+            // Update last position with the averaged point
+            [lastX, lastY] = [avgX, avgY];
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+            ctx.closePath();
+        }
+
+        // Mouse events
+        canvas.addEventListener('mousedown', (e) => startDrawing(e));
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+
+        // Touch events
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault(); // Prevent scrolling
+            startDrawing(e);
+        });
+        canvas.addEventListener('touchmove', draw);
+        canvas.addEventListener('touchend', stopDrawing);
+        canvas.addEventListener('touchcancel', stopDrawing);
+
+        document.getElementById('clearButton').addEventListener('click', () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        });
+
+        document.getElementById('saveButton').addEventListener('click', () => {
+            const filename = prompt("Enter a filename for your image:", "drawing.png");
+            if (filename) {
+                const link = document.createElement('a');
+                link.download = filename;
+                link.href = canvas.toDataURL();
+                link.click();
+            }
+        });
+
+        document.getElementById('fileInput').addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const img = new Image();
+                    img.onload = function () {
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    </script>
+</body>
+</html> *@
+
+
+<!--         -->
+<!--Beta v1.0-->
+<!--         -->
+
+<!--Best, GOOD painting experience and look-->
+<!--Vanilla JS v2.6 smoother?+brush size, touch support,save as image.png,undo/redo,line smoothing, save color and size, save image,
+load image, jitter reduze stabilization, higer Resolution, smoothing: -->
+
+@* <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smooth Painter</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+            touch-action: none; /* Prevents scrolling when touching the canvas */
+        }
+    </style>
+</head>
+<body>
+    <input type="color" id="colorPicker" value="#000000">
+    <select id="brushSize">
+        <option value="1">Brush Size: 1px</option>
+        <option value="2">Brush Size: 2px</option>
+        <option value="3">Brush Size: 3px</option>
+        <option value="5">Brush Size: 5px</option>
+        <option value="10">Brush Size: 10px</option>
+    </select>
+    <button id="clearButton">Clear Canvas</button>
+    <button id="saveButton">Save Image</button>
+    <input type="color" id="bgColorPicker" value="#ffffff" title="Background Color">
+    <label>
+        <input type="checkbox" id="transparentCheckbox"> Transparent Background
+    </label>
+    <input type="file" id="fileInput" accept="image/*">
+    <canvas id="drawingCanvas" width="1000" height="1000"></canvas>
+
+    <script>
+        const canvas = document.getElementById('drawingCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const displayWidth = 500;
+        const displayHeight = 500;
+        canvas.style.width = `${displayWidth}px`;
+        canvas.style.height = `${displayHeight}px`;
+
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+        const lines = []; // Store lines as vector data
+        const history = []; // Store history for undo functionality
+        const redoStack = []; // Store history for redo functionality
+
+        function getCoordinates(e) {
+            const rect = canvas.getBoundingClientRect();
+            const x = (e.clientX || e.touches[0].clientX) - rect.left;
+            const y = (e.clientY || e.touches[0].clientY) - rect.top;
+            return [x * (canvas.width / displayWidth), y * (canvas.height / displayHeight)];
+        }
+
+        function startDrawing(e) {
+            isDrawing = true;
+            [lastX, lastY] = getCoordinates(e);
+            lines.push({ color: ctx.strokeStyle, size: ctx.lineWidth, points: [{ x: lastX, y: lastY }] });
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+
+            const [x, y] = getCoordinates(e);
+            const currentLine = lines[lines.length - 1];
+            currentLine.points.push({ x, y });
+
+            redrawCanvas();
+            lastX = x;
+            lastY = y;
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+            ctx.closePath();
+            history.push(JSON.parse(JSON.stringify(lines))); // Save current state for undo
+            redoStack.length = 0; // Clear redo stack after new action
+        }
+
+        function redrawCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (!document.getElementById('transparentCheckbox').checked) {
+                ctx.fillStyle = document.getElementById('bgColorPicker').value;
+                ctx.fillRect(0, 0, canvas.width, canvas.height); // Fill background
+            }
+            lines.forEach(line => {
+                ctx.strokeStyle = line.color;
+                ctx.lineWidth = line.size;
+                ctx.beginPath();
+
+                const points = line.points;
+                ctx.moveTo(points[0].x, points[0].y);
+
+                for (let i = 1; i < points.length; i++) {
+                    ctx.lineTo(points[i].x, points[i].y);
+                }
+
+                ctx.stroke();
+            });
+        }
+
+        // Mouse events
+        canvas.addEventListener('mousedown', (e) => {
+            ctx.strokeStyle = document.getElementById('colorPicker').value;
+            ctx.lineWidth = parseInt(document.getElementById('brushSize').value);
+            startDrawing(e);
+        });
+
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+
+        // Touch events
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault(); // Prevent scrolling
+            ctx.strokeStyle = document.getElementById('colorPicker').value;
+            ctx.lineWidth = parseInt(document.getElementById('brushSize').value);
+            startDrawing(e);
+        });
+        canvas.addEventListener('touchmove', draw);
+        canvas.addEventListener('touchend', stopDrawing);
+        canvas.addEventListener('touchcancel', stopDrawing);
+
+        document.getElementById('clearButton').addEventListener('click', () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            lines.length = 0; // Clear stored lines
+            history.length = 0; // Clear history
+            redoStack.length = 0; // Clear redo stack
+            redrawCanvas(); // Redraw to reflect background
+        });
+
+        document.getElementById('saveButton').addEventListener('click', () => {
+            const name = prompt("Enter image name:", "drawing.png");
+            if (name) {
+                const link = document.createElement('a');
+                link.download = name.endsWith('.png') ? name : name + '.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            }
+        });
+
+        document.getElementById('bgColorPicker').addEventListener('change', redrawCanvas);
+        document.getElementById('transparentCheckbox').addEventListener('change', redrawCanvas);
+
+        document.getElementById('fileInput').addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const img = new Image();
+                    img.onload = function () {
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    </script>
+</body>
+</html> *@
+
+
+
+
+
+<!-- second best, pretty clean lines but some glitch in start/end-->
+<!--Vanilla JS v2.7 smoother?+brush size, touch support,save as image.png,undo/redo,line smoothing, save color and size, save image,
+load image, jitter reduze stabilization, higer Resolution, smoothing, vector: -->
+@* <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smooth Vector Painter</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+            touch-action: none; /* Prevents scrolling when touching the canvas */
+        }
+    </style>
+</head>
+<body>
+    <input type="color" id="colorPicker" value="#000000">
+    <select id="brushSize">
+        <option value="1">Brush Size: 1px</option>
+        <option value="2">Brush Size: 2px</option>
+        <option value="3">Brush Size: 3px</option>
+        <option value="5">Brush Size: 5px</option>
+        <option value="10">Brush Size: 10px</option>
+    </select>
+    <button id="clearButton">Clear Canvas</button>
+    <button id="undoButton">Undo</button>
+    <button id="redoButton">Redo</button>
+    <button id="saveButton">Save Image</button>
+    <input type="color" id="bgColorPicker" value="#ffffff" title="Background Color">
+    <label>
+        <input type="checkbox" id="transparentCheckbox"> Transparent Background
+    </label>
+    <input type="file" id="fileInput" accept="image/*">
+    <canvas id="drawingCanvas" width="1000" height="1000"></canvas>
+
+    <script>
+        const canvas = document.getElementById('drawingCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const displayWidth = 500;
+        const displayHeight = 500;
+        canvas.style.width = `${displayWidth}px`;
+        canvas.style.height = `${displayHeight}px`;
+
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+        const lines = []; // Store lines as vector data
+        const history = []; // Store history for undo functionality
+        const redoStack = []; // Store history for redo functionality
+
+        function getCoordinates(e) {
+            const rect = canvas.getBoundingClientRect();
+            const x = (e.clientX || e.touches[0].clientX) - rect.left;
+            const y = (e.clientY || e.touches[0].clientY) - rect.top;
+            return [x * (canvas.width / displayWidth), y * (canvas.height / displayHeight)];
+        }
+
+        function startDrawing(e) {
+            isDrawing = true;
+            [lastX, lastY] = getCoordinates(e);
+            lines.push({ color: ctx.strokeStyle, size: ctx.lineWidth, points: [{ x: lastX, y: lastY }] });
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+
+            const [x, y] = getCoordinates(e);
+            const currentLine = lines[lines.length - 1];
+            currentLine.points.push({ x, y });
+
+            // Clear and redraw all lines
+            redrawCanvas();
+            lastX = x;
+            lastY = y;
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+            ctx.closePath();
+            history.push(JSON.parse(JSON.stringify(lines))); // Save current state for undo
+            redoStack.length = 0; // Clear redo stack after new action
+        }
+
+        function undo() {
+            if (history.length > 0) {
+                redoStack.push(history.pop()); // Move current state to redo stack
+                lines.length = 0; // Clear current lines
+                if (history.length > 0) {
+                    lines.push(...history[history.length - 1]); // Restore last state
+                }
+                redrawCanvas();
+            }
+        }
+
+        function redo() {
+            if (redoStack.length > 0) {
+                const lineToRedo = redoStack.pop();
+                lines.push(...lineToRedo); // Restore the state
+                redrawCanvas();
+                history.push(JSON.parse(JSON.stringify(lines))); // Save state for undo
+            }
+        }
+
+        function redrawCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (!document.getElementById('transparentCheckbox').checked) {
+                ctx.fillStyle = document.getElementById('bgColorPicker').value;
+                ctx.fillRect(0, 0, canvas.width, canvas.height); // Fill background
+            }
+            lines.forEach(line => {
+                ctx.strokeStyle = line.color;
+                ctx.lineWidth = line.size;
+                ctx.beginPath();
+
+                const points = line.points;
+                ctx.moveTo(points[0].x, points[0].y);
+
+                for (let i = 1; i < points.length - 1; i++) {
+                    const midX = (points[i].x + points[i + 1].x) / 2;
+                    const midY = (points[i].y + points[i + 1].y) / 2;
+                    ctx.quadraticCurveTo(points[i].x, points[i].y, midX, midY);
+                }
+
+                ctx.lineTo(points[points.length - 1].x, points[points.length - 1].y);
+                ctx.stroke();
+            });
+        }
+
+        // Mouse events
+        canvas.addEventListener('mousedown', (e) => {
+            ctx.strokeStyle = document.getElementById('colorPicker').value;
+            ctx.lineWidth = parseInt(document.getElementById('brushSize').value);
+            startDrawing(e);
+        });
+
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+
+        // Touch events
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault(); // Prevent scrolling
+            ctx.strokeStyle = document.getElementById('colorPicker').value;
+            ctx.lineWidth = parseInt(document.getElementById('brushSize').value);
+            startDrawing(e);
+        });
+        canvas.addEventListener('touchmove', draw);
+        canvas.addEventListener('touchend', stopDrawing);
+        canvas.addEventListener('touchcancel', stopDrawing);
+
+        document.getElementById('clearButton').addEventListener('click', () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            lines.length = 0; // Clear stored lines
+            history.length = 0; // Clear history
+            redoStack.length = 0; // Clear redo stack
+            redrawCanvas(); // Redraw to reflect background
+        });
+
+        document.getElementById('undoButton').addEventListener('click', undo);
+        document.getElementById('redoButton').addEventListener('click', redo);
+
+        document.getElementById('saveButton').addEventListener('click', () => {
+            const name = prompt("Enter image name:", "drawing.png");
+            if (name) {
+                const link = document.createElement('a');
+                link.download = name.endsWith('.png') ? name : name + '.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            }
+        });
+
+        document.getElementById('fileInput').addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const img = new Image();
+                    img.onload = function () {
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    </script>
+</body>
+</html> *@
+
+
+
+
+
+
+
+

@@ -38,6 +38,14 @@
                         </a>
                         <span class="icon-text">Verktyg</span>
                     </div>
+
+                    <div class="icon-container">
+                        <a class="btn overlay-btn-main" @onclick="()=> Draw()" aria-label="Rita" title="Rita">
+                            <i class="fa fa-paint-brush fa-1x" aria-hidden="true"></i>
+                        </a>
+                        <span class="icon-text">Rita</span>
+                    </div>
+
                 }
                 else
                 {
@@ -96,11 +104,17 @@
         <p>Denna webbsidan har inget innehåll.</p>
     }
     else if (!Contents.Any())
-    { 
-        <CascadingValue Value="WebPageId">
-            <CreateContent />
-        </CascadingValue>
-        <button type="button" class="btn btn-warning" @onclick="()=> CreateDone()"> Klar </button>
+    {
+        <div class="containerEditWebPage" style="position: relative;">
+            <div class="content">
+                <div class="create-empty-webpage">
+                    <CascadingValue Value="WebPageId">
+                        <CreateContent />
+                    </CascadingValue>
+                    <button type="button" class="btn btn-warning" @onclick="()=> CreateDone()"> Klar </button>
+                </div>
+            </div>
+        </div>
     }
     else
     {
@@ -232,17 +246,25 @@
                             {
                                 <div class="content">
                                     <ContentPreview ContentId="@content.ContentId" />
-                                </div>
-                            }
-                            break;
+                        </div>
                     }
-                    case ExecuteAction.Wait:
+                    break;
+                }
+            case ExecuteAction.Draw:
+            {
+                <div>
+                    <CMS.Components.Pages.ContentPages.Draw/>
+                </div>
+                break;
+            }
+
+            case ExecuteAction.Wait:
                     {
                         break;
                     }
                     default:          
                     {
-                        <div class="content">
+                    <div class="centered-draw-div" style="border:solid; border-color black;">
                             <ContentPreview ContentId="@content.ContentId" />
                         </div>
                         break;

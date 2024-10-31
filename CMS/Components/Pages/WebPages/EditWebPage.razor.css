@@ -187,3 +187,14 @@
     font-size: 14px; /* Smaller font */
     padding: 5px 1px; /* Smaller padding */
 }
+
+.centered-draw-div {
+    width: 300px; /* Width of your div */
+    height: 200px; /* Height of your div */
+    background-color: lightblue; /* Background color */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    border: 2px solid #000; /* Optional border */
+}

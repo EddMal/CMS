@@ -28,6 +28,7 @@ namespace CMS.Components.Pages.WebPages
         private bool HideToolbar = false;
 
         private ExecuteAction PageExecution { get; set; } = ExecuteAction.EditSelect;
+        private bool drawNow { get; set; }
 
         private enum ExecuteAction
         {
@@ -38,6 +39,7 @@ namespace CMS.Components.Pages.WebPages
             CreateContent,
             Preview,
             Delete,
+            Draw,
             EditContent
         }
 
@@ -79,6 +81,20 @@ namespace CMS.Components.Pages.WebPages
 
             ContentForEditing = null;
             PageExecution = ExecuteAction.CreateContent;
+        }
+
+        private void Draw()
+        {
+
+            if (HideToolbar)
+            {
+                drawNow = false;
+            }
+            else
+            {
+                drawNow = true;
+                PageExecution = ExecuteAction.Draw;
+            }
         }
 
         private void DeleteContent(int contentId)
