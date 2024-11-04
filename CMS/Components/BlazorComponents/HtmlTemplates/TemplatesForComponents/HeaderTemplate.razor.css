@@ -1,0 +1,26 @@
+﻿.header-template {
+    padding: 60px;
+    text-align: center;
+    font-size: 30px;
+    font-family: Arial;
+    font-weight: bold;
+}
+
+
+.header-template-link {
+    font-size: 15px;
+    opacity: 0.7;
+    font-family: Arial, sans-serif !important; /* Added fallback font */
+    font-weight: bold !important;
+    transition: color 0.3s !important; /* Smooth transition effect */
+}
+
+    .header-template-link:hover {
+        font-weight: bold !important; /* Bold on hover */
+        color: grey !important; /* Change color on hover */
+    }
+
+    .header-template-link a {
+        text-decoration: none !important; /* Remove underline */
+        color: inherit !important; /* Use the parent color */
+    }

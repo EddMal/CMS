@@ -1,0 +1,78 @@
+﻿.instruction-text {
+    font-size: 9px;
+    font-style:;
+    margin: 0; /* Remove default margin */
+    padding: 0; /* Remove default padding */
+    line-height: 1.5; /* Adjust line height if needed */
+    display: flex; /* Align items for arrow */
+    align-items: center; /* Center the arrow vertically */
+}
+
+
+.checkbox-group {
+    display: flex;
+    flex-direction: column; /* Stack items vertically */
+}
+
+/* Hide the checkbox */
+input[type="checkbox"] {
+    display: none; /* Hide the checkbox itself */
+}
+
+
+/* Toggle the visibility of the content based on checkbox state */
+.toggle-checkbox:checked + .instruction-text + .toggle-content {
+    display: block; /* Show content when checkbox is checked */
+}
+
+/* Initially hide the toggle content */
+.toggle-content {
+    display: none; /* Hide the content by default */
+    padding: 10px; /* Add padding for better readability */
+    border: 1px solid #ccc; /* Optional border */
+    background-color: #f9f9f9; /* Optional background color */
+}
+
+/* Style the arrow */
+.arrow {
+    font-weight: bold;
+    border: none;
+    border: none;
+    border-width: 2px;
+    padding: 0; /* Remove any padding */
+    margin-right: 4px;
+}
+
+/* Hover effect for the arrow */
+.instruction-text:hover .arrow {
+    color: #f9f9f9; /* Change color on hover (you can customize this) */
+    background-color: black;
+}
+
+.text2-input {
+    width: 370px; /* Set desired width */
+    height: 100px; /* Set a greater height */
+    padding: 8px; /* Add padding for better usability */
+    font-size: 16px; /* Optional: Increase font size */
+    border: 1px solid #ccc; /* Add border */
+    border-radius: 4px; /* Rounded corners */
+    overflow-y: auto; /* Enable vertical scrollbar */
+    resize: vertical; /* Allow vertical resizing only */
+}
+
+.text-2-form-row {
+    display: flex; /* Use flexbox to align items */
+    align-items: flex-start; /* Align items at the top */
+}
+
+@media (max-width: 600px) { /* Adjust breakpoint as needed */
+    .form-row {
+        flex-direction: column; /* Stack items vertically on small screens */
+        align-items: flex-start; /* Align at the start */
+    }
+
+    .text-2-form-row {
+        margin-bottom: 15px; /* Add spacing between stacked items */
+    }
+}
+

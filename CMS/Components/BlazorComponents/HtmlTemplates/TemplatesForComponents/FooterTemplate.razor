@@ -1,63 +1,39 @@
 ﻿@namespace BlazorComponents.HtmlTemplates.TemplatesForComponents
 @using CMS.Components.BlazorComponents.HtmlTemplates
+@using CMS.Shared
 @inherits BaseFooterTemplate //gets the base parameters we have in every template/inputform
 
 @* <h3>Template 1</h3> *@
 
-<footer class="text-white py-4" style="background-color:@BackgroundColor;">
+<footer class="text-white py-4 footer-template" style="background-color:@BackgroundColor;">
     <div class="container">
-        <div class="text-center mb-3 mb-md-0" style="color:@TextColor;">
-            <small class="d-block">@TextInput1</small>
-            <small class="d-block">@TextInput2</small>
-        </div>
-    </div>
-</footer>
+        <h1 class="footer-heading1" style="color:@TextColor;">@TextInput1</h1>
 
-
-
-@* @namespace Templates.SingleInput
-
-<h3>Template 1</h3>
-
-<footer class="text-white py-4" style="background-color:@Backgroundcolor;">
-    <div class="container">
-        <div class="text-center mb-3 mb-md-0" style="color:@Textcolor;">
-            <small class="d-block">Template 1 Footer: &copy; 2024 @TextInput1</small>
-            <small class="d-block">Author: @TextInput2</small>
-        </div>
-    </div>
-</footer>
-
-@code {
-    [Parameter] public string ContentName { get; set; } = "No name given";
-    [Parameter] public string TextInput1 { get; set; } = "Default FooterText 1 for Template 1";
-    [Parameter] public string TextInput2 { get; set; } = "Default FooterText 2 for Template 1";
-    [Parameter] public string Backgroundcolor { get; set; } = "grey";
-    [Parameter] public string Textcolor { get; set; } = "black"; // Default text color
-} *@
-
-
-@* @code {
-    [Parameter] public Dictionary<string, object> Inputs { get; set; }
-    [Parameter] public string Backgroundcolor { get; set; } = "grey";
-    [Parameter] public string Textcolor { get; set; } = "black";
-}
-
-<footer class="text-white py-4" style="background-color:@Backgroundcolor;">
-    <div class="container">
-        <div class="text-center mb-3 mb-md-0" style="color:@Textcolor;">
-            @if (Inputs != null && Inputs.Any())
+        <div class="text-right" style="color:@TextColor;">
+            @if (!string.IsNullOrEmpty(TextInput2))
             {
-                @foreach (var input in Inputs)
+                var delimiter = ";;";
+                //Split input at delimiter
+                var partDetails = InputProcessor.SplitInput(TextInput2, delimiter);
+
+                foreach (var part in partDetails)
                 {
-                    <small class="d-block">@input.Key: @input.Value</small>
+
+                    if (part.IsLink)
+                    {
+                        //Render Link
+                        <small class="d-block footer-template-link">
+                            <a href="@part.Url" class="footer-link">@part.DisplayText</a>
+                        </small>
+                    }
+                    else
+                    {
+                        //Render Text
+                        <small class="d-block footer-template-small">@part.DisplayText</small>
+                    }
                 }
             }
-            else
-            {
-                <small>No inputs provided.</small>
-            }
+
         </div>
     </div>
 </footer>
- *@

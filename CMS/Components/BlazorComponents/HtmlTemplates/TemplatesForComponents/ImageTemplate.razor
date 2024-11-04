@@ -2,9 +2,10 @@
 @using CMS.Components.BlazorComponents.HtmlTemplates
 @inherits BaseImageTemplate //gets the base parameters we have in every template/inputform
 
-<div class="card" style="background-color: @BackgroundColor; padding: 10px; box-shadow: @BoxShadow; text-align:@ImageAlignment;">
+<div style="background-color: @BackgroundColor; box-shadow: @BoxShadow; text-align:@ImageAlignment;">
     <img src="@ImageInput" class="custom-image" 
     style="
+            max-width: 100%;
             width: @ImageWidth; 
             height: @ImageHeight; 
             border-radius: @(BorderRadius.ToString(System.Globalization.CultureInfo.InvariantCulture) + "px");

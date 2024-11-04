@@ -1,0 +1,65 @@
+﻿.footer-template {
+    padding: 50px 0; /* Adjust padding */
+    text-align: center; /* Center text for fallback */
+}
+
+    .footer-template .footer-heading1 {
+        font-family: Arial, sans-serif; /* Added fallback font */
+        font-weight: bold;
+        font-size: 70px !important; /* Maintain your size */
+        margin: 0; /* Reset margin */
+    }
+
+.footer-template-link {
+    font-family: Arial, sans-serif !important; /* Added fallback font */
+    font-weight: bold !important;  
+    transition: color 0.3s !important; /* Smooth transition effect */
+}
+
+    .footer-template-link:hover {
+        font-weight: bold !important; /* Bold on hover */
+        color: grey !important; /* Change color on hover */
+    }
+
+    .footer-template-link a {
+        text-decoration: none !important; /* Remove underline */
+        color: inherit !important; /* Use the parent color */
+    }
+
+.footer-template-small {
+    font-family: Arial, sans-serif !important; /* Added fallback font */
+    font-weight: bold !important;
+    transition: color 0.3s !important; /* Smooth transition effect */
+}
+
+/* Flexbox adjustments */
+.container {
+    display: flex; /* Enable Flexbox */
+    justify-content: space-between; /* Space between heading and links */
+    align-items: center; /* Vertically center items */
+    padding: 0 15%; /* Increase padding to push items further from the edges */
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column; /* Stack items vertically */
+        align-items: center; /* Center items */
+    }
+
+    .footer-template {
+        font-size: 20px; /* Adjust font size for smaller screens */
+    }
+
+    .footer-heading1 {
+        font-size: 40px; /* Smaller heading on mobile */
+        margin: 0; /* Reset margin for smaller screens */
+        text-align: center; /* Center text on smaller screens */
+    }
+
+    .text-right {
+        text-align: center; /* Center links on mobile */
+        width: 100%; /* Ensure the div takes full width */
+        margin-top: 10px; /* Add some space above the links */
+    }
+}
