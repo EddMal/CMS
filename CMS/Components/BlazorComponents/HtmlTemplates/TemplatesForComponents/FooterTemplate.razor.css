@@ -11,25 +11,25 @@
     }
 
 .footer-template-link {
-    font-family: Arial, sans-serif; /* Added fallback font */
-    font-weight: bold; /* Default weight */
-    transition: color 0.3s; /* Smooth transition effect */
+    font-family: Arial, sans-serif !important; /* Added fallback font */
+    font-weight: bold !important;  
+    transition: color 0.3s !important; /* Smooth transition effect */
 }
 
     .footer-template-link:hover {
-        font-weight: bold; /* Bold on hover */
-        color: grey; /* Change color on hover */
+        font-weight: bold !important; /* Bold on hover */
+        color: grey !important; /* Change color on hover */
     }
 
     .footer-template-link a {
-        text-decoration: none; /* Remove underline */
-        color: inherit; /* Use the parent color */
+        text-decoration: none !important; /* Remove underline */
+        color: inherit !important; /* Use the parent color */
     }
 
 .footer-template-small {
-    font-family: Arial, sans-serif; /* Added fallback font */
-    font-weight: bold; /* Default weight */
-    transition: color 0.3s; /* Smooth transition effect */
+    font-family: Arial, sans-serif !important; /* Added fallback font */
+    font-weight: bold !important;
+    transition: color 0.3s !important; /* Smooth transition effect */
 }
 
 /* Flexbox adjustments */

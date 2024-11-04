@@ -11,7 +11,7 @@
 @inject IContentService ContentService
 @inherits BaseHeaderTemplate //gets the base parameters we have in every template/inputform
 <h4></h4>
-<p>Om du skapar en footer och vill ha med länkar kan du i fält "Text 2" skriva t.ex. länkrubrik1=https://github.com,länkrubrik2="URL-för-länk-2",..</p>
+
 <div>
     <form>
             <div>
@@ -21,14 +21,71 @@
                 </div>
 
                 <div class="form-row">
-                    <label style="margin-right: 79px;">Text 1:</label>
+                    <label style="margin-right: 59px;">Textfält 1:</label>
                     <input type="text" @bind="TextInput1" />
+
                 </div>
 
-                <div class="form-row">
-                    <label style="margin-right: 79px;">Text 2:</label>
-                    <input type="text" @bind="TextInput2" />
+            <div class="form-row text-2-form-row">
+                <label style="margin-right: 64px;" >Textfält 2:</label>
+                    <textarea @bind="TextInput2" class="text-input" rows="4" style="resize: vertical;"></textarea>
                 </div>
+
+                
+               @*  <p class ="instruction-text"> Instruktioner för textfält 2</p>      
+                    
+                    <p class="instruction-text"> Exempel: Text1,Text2,..</p>
+                    <p class="instruction-text"> - Lägg till Länkar skriv "=" mellan länkttitel och URL, se nedan</p>
+                    <p class="instruction-text"> Exempel: Länkrubrik1=https://github.com,Länkrubrik1="URL-för-länk-2",..</p>
+                    <p class="instruction-text"> - Blanda Länkar och text:</p>
+                    <p class="instruction-text"> Exempel: Länkrubrik1=https://github.com,Text ,Länkrubrik1="URL-för-länk-2",..</p>
+                    <p class="instruction-text"> -Kommatecken radbryter.</p>
+                </div> *@
+
+                <p class="instruction-text">Instruktioner för textfält 2</p>
+                <p class="instruction-text">";;" radbryter och krävs för att urskilja/separera länkar.</p>
+                
+                <div class="checkbox-group">
+                    <input type="checkbox" id="toggle-instructions1" class="toggle-checkbox" />
+                    <label class="instruction-text" for="toggle-instructions1">
+                    <span class="arrow">≡ Text med radbrytning</span> <!-- Arrow icon -->
+                    <span class="tooltip">Exempel</span> <!-- Tooltip text -->
+                    </label>
+                    <div class="toggle-content">
+                        <p class="instruction-text">Exempel Lägg till text med radbrytning:</p>
+                    <p class="instruction-text">- Text1;;Text2;;..</p>
+                    </div>
+
+                    <input type="checkbox" id="toggle-instructions2" class="toggle-checkbox" />
+                    <label class="instruction-text" for="toggle-instructions2">
+                    <span class="arrow">≡ Infoga länkar</span> <!-- Arrow icon -->
+                    <span class="tooltip">Exempel</span> <!-- Tooltip text -->
+                    </label>
+                    <div class="toggle-content">
+                        <p class="instruction-text">Exempel länkar, använd "=" mellan länktitel och URL:</p>
+                    <p class="instruction-text">Länkrubrik1=https://github.com;;Länkrubrik1="URL-för-länk-2";;..</p>
+                    </div>
+
+                    <input type="checkbox" id="toggle-instructions3" class="toggle-checkbox" />
+                    <label class="instruction-text" for="toggle-instructions3">
+                    <span class="arrow">≡ Blanda länkar och text.</span> <!-- Arrow icon -->
+                    <span class="tooltip">Exempel</span> <!-- Tooltip text -->
+                    </label>
+                    <div class="toggle-content">
+                        <p class="instruction-text">Exempel för att blanda länkar och text:</p>
+                    <p class="instruction-text">Text1;; Länkrubrik1="URL-för-länk-2";;..</p>
+                    </div>
+                </div>
+
+
+
+
+        
+
+
+
+
+               
 
                 <div class="form-row">
                     <label>Bakgrundsfärg:</label>

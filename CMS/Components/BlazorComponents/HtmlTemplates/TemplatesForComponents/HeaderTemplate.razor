@@ -6,7 +6,33 @@
     <div class="container">
         <div class="text-center mb-3 mb-md-0" style="color:@TextColor;">
             <h1 class="d-block">@TextInput1</h1>
-            <p class="d-block">@TextInput2</p>
+
+            <div class="text-center" style="color:@TextColor;">
+                @if (!string.IsNullOrEmpty(TextInput2))
+                {
+                    var delimiter = ";;";
+                    //Split input at delimiter
+                    var partDetails = InputProcessor.SplitInput(TextInput2, delimiter);
+
+                    foreach (var part in partDetails)
+                    {
+
+                        if (part.IsLink)
+                        {
+                            //Render Link
+                            <small class="d-block header-template-link">
+                                <a href="@part.Url" class="footer-link">@part.DisplayText</a>
+                            </small>
+                        }
+                        else
+                        {
+                            //Render Text
+                            <small class="d-block ">@part.DisplayText</small>
+                        }
+                    }
+                }
+
+            </div>
         </div>
     </div>
 </header>
