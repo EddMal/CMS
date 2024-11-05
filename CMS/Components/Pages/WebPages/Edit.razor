@@ -62,6 +62,11 @@ else
                     <InputText id="visitor-url" @bind-Value="WebPage.VisitorUrl" class="form-control" />
                     <ValidationMessage For="() => WebPage.VisitorUrl" class="text-danger" />
                 </div>
+                 <div class="mb-3">
+                    <label>Bakgrundsfärg:</label>
+                    <br>
+                    <input type="color" @bind="WebPage.BackgroundColor" />
+                </div>
 
                 <button type="submit" class="btn btn-primary" disabled="@TitleExists">Spara</button>
             </EditForm>

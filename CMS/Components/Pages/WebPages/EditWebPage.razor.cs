@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 namespace CMS.Components.Pages.WebPages
 {
+    //ToDO: Chanfe variables name from ec. WebSiteId to webSiteId
     public partial class EditWebPage
     {
         [Inject] private NavigationManager NavigationManager { get; set; } = default!;
@@ -17,6 +18,8 @@ namespace CMS.Components.Pages.WebPages
         [SupplyParameterFromQuery]
         public int? WebPageId { get; set; }
         private int? WebSiteId { get; set; }
+
+        public string webPageBackgroundColor { get; set; } = "white";
         private int? ContentForEditing { get; set; } = null;
 
         public int ContentId { get; set; }
@@ -45,12 +48,13 @@ namespace CMS.Components.Pages.WebPages
         {
             context = DbFactory.CreateDbContext();
 
-           var  WebPage = await context.WebPages.FirstOrDefaultAsync(m => m.WebPageId == WebPageId);
+           var  webPage = await context.WebPages.FirstOrDefaultAsync(m => m.WebPageId == WebPageId);
            
-            if (WebPage is null)
+            if (webPage is null)
             {
                 NavigationManager.NavigateTo("/error");
             }
+            webPageBackgroundColor = webPage.BackgroundColor ?? "white"; // Default to white if null
 
             if (WebPageId.HasValue)
             {
@@ -64,7 +68,7 @@ namespace CMS.Components.Pages.WebPages
                 //contents = context.Contents;
             }
 
-            WebSiteId = WebPage.WebSiteId;
+            WebSiteId = webPage.WebSiteId;
           
         }
         private void EditContent(Content content)

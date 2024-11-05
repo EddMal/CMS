@@ -37,7 +37,4 @@
   <ItemGroup>
     <Content Include="Components\BlazorComponents\ConnectedWebPagesInfo.razor.css" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Migrations\" />
-  </ItemGroup>
 </Project>

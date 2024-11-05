@@ -18,6 +18,7 @@ namespace CMS.Seed
             }
 
             // Check and seed roles if they don't exist
+
             var roles = new[] { "Admin", "User" };
             foreach (var role in roles)
             {

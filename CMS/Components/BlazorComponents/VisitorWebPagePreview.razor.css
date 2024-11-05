@@ -1,0 +1,26 @@
+﻿
+body {
+     padding: 0; /* Ensure no padding */
+    width: 100%; /* Ensure content spans the full width */
+    height: 100%; /* Ensure content spans the full height */
+}
+
+* {
+    margin: 0; /* Remove margin from all elements */
+    padding: 0; /* Remove padding from all elements */
+}
+
+.main .content {
+  
+    transition: background-color 0.3s ease; /* Optional: smooth color transition */
+    margin: 0; /* Ensure no margin */
+    padding: 0; /* Ensure no padding */
+    width: 100%; /* Ensure content spans the full width */
+    height: 100%; /* Ensure content spans the full height */
+}
+
+/* Optional: Reset header, navbar, and footer if necessary */
+header, .navbar, footer {
+    margin: 0; /* Remove margin */
+    padding: 0; /* Remove padding */
+}

@@ -1,5 +1,5 @@
 ﻿@page "/webpages/previewpage/{webPageId:int}"
-
+@layout Layout.EmptyLayout
 @using CMS.Shared
 @using CMS.Data
 @using CMS.Models
@@ -22,27 +22,58 @@
         ("Förhandsgranskning", $"/webpages/previewpage/{WebPageId}")
     })" />
 
-<h3>Förhandsgranskning Webbsida</h3>
-
-@if (contentList == null)
-{
-    <p>Laddar...</p>
-}
-else if (contentList.Count == 0)
-{
-    <p>Inget innehåll tillgängligt för denna webbsida.</p>
-}
-else
-{
-    @foreach (var content in contentList)
+<h3 class="textGrey">Förhandsgranskning Webbsida</h3>
+<body style="background-color: @webPageBackgroundColor">
+    @if (contentList == null)
     {
-        <div class="content-preview">
-            <CMS.Components.Pages.ContentPages.ContentPreview ContentId="@content.ContentId" />
-        </div>
+        <p>Laddar...</p>
     }
-}
+    else if (contentList.Count == 0)
+    {
+        <p class="textGrey" >Inget innehåll tillgängligt för denna webbsida.</p>
+    }
+    else
+    {
+        @foreach (var content in contentList)
+        {
+            <div class="content-preview"  style="background-color: @webPageBackgroundColor;">
+                <CMS.Components.Pages.ContentPages.ContentPreview ContentId="@content.ContentId" />
+            </div>
+        }
+    }
+</body>
+<p class="textGrey">Denna sida har besökts @VisitCount gånger.</p>
 
-<p>Denna sida har besökts @VisitCount gånger.</p>
+<style>
+    :root {
+        --layout-background-color: @webPageBackgroundColor;
+    }
+
+    html, body {
+        height: 100%; /* Ensure the body takes the full height of the viewport */
+        margin: 0; /* Remove any default margin */
+        padding: 0; /* Remove any default padding */
+    }
+
+    body {
+        background-color: @webPageBackgroundColor;
+    }
+
+    .main .content {
+        background-color: @webPageBackgroundColor;
+        transition: background-color 0.3s ease; /* Optional: smooth color transition */
+        margin: 0; /* Ensure no margin */
+        padding: 0; /* Ensure no padding */
+        width: 100%; /* Ensure content spans the full width */
+        height: 100%; /* Ensure content spans the full height */
+    }
+
+    .textGrey{
+        background-color:black;
+        color: white;
+    }
+
+</style>
 
 @code {
     [Parameter] public int WebPageId { get; set; }
@@ -51,6 +82,7 @@ else
     private int VisitCount { get; set; }
     private string CurrentPageUrl => NavigationManager.Uri;
     private int WebSiteId { get; set; }
+    private string webPageBackgroundColor { get; set; } = "white";
 
     protected override async Task OnInitializedAsync()
     {
@@ -65,6 +97,7 @@ else
         if (webPage != null)
         {
             WebSiteId = webPage.WebSiteId;
+            webPageBackgroundColor = webPage.BackgroundColor ?? "white"; // Default to white if null
 
             // Check if the user is logged in
             var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
