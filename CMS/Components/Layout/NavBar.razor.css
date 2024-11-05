@@ -8,10 +8,10 @@
 body {
     font-family: 'Lato', sans-serif;
     height: 100%;
-    background-color: #fcfafa;
-    width: 100vw;
+    background-color: #fcfafa; /* Can be modified to match the page background */
+    width: 100vw; /* Ensure it takes full width of the viewport */
     line-height: 1.7;
-    overflow-x: hidden;
+    overflow-x: hidden; /* Prevent horizontal scrolling */
     font-weight: 400;
 }
 
@@ -32,17 +32,21 @@ li.nav-item {
 }
 
 .navbar {
-    padding: .2rem 1rem;
+    width: 100%;                    /* Ensure navbar spans the full width */
+    padding: 0.2rem 1rem;           /* Padding can be adjusted to your preference */
     transition: all 0.3s ease-in-out;
-    background-color: rgba(82, 82, 82, 0.123);
+    background-color: rgba(82, 82, 82, 0.123);  /* You can modify this for your page color */
+    margin: 0;                       /* Remove margin */
+    box-shadow: none;                /* Remove any box shadow if it’s creating spacing */
 }
 
-/*Changes navbar background color on scroll*/
+/* Changes navbar background color on scroll */
 .navbar.bg-nav-colored {
     background-color: #525252;
     padding: .5rem 1rem;
 }
 
+/* Navbar links */
 .nav-link {
     display: inline-block;
     color: #fff !important;
@@ -66,7 +70,6 @@ li.nav-item {
     transition: all .4s ease-in-out;
 }
 
-.nav-link:after,
 .nav-link:after {
     content: "";
     position: absolute;
@@ -83,6 +86,7 @@ li.nav-item {
     width: 90%;
 }
 
+/* Logo styling */
 #logo {
     text-transform: uppercase;
     font-family: 'Oxygen', sans-serif;
@@ -91,6 +95,7 @@ li.nav-item {
     color: #f7f7f7;
 }
 
+/* Toggler button for mobile */
 .navbar-toggler {
     background-color: #f7f7f7;
     border-radius: 50%;
@@ -105,3 +110,11 @@ li.nav-item {
     outline: none;
 }
 
+/* Remove any spacing below the navbar if present */
+.navbar.fixed-top {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;    /* Make sure navbar is full width */
+    z-index: 1030;  /* Adjust if needed to ensure navbar stays on top */
+}

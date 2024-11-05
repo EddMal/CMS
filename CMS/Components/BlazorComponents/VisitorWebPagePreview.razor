@@ -24,7 +24,7 @@ else
 @code {
     [Parameter] public int WebPageId { get; set; }
 
-    private List<Content> contentList;
+    private List<Content>? contentList;
 
     protected override async Task OnInitializedAsync()
     {

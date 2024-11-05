@@ -1,7 +1,48 @@
 @inherits LayoutComponentBase
 
+<!-- The layout structure -->
 <div class="main">
-    <div class="content px-4">
-        @Body
+    <div class="content">
+        @Body  <!-- The content from the page that uses this layout will be rendered here -->
     </div>
 </div>
+
+@* <style>
+    :root {
+
+    }
+
+    html, body {
+        height: 100%; /* Ensure the body takes the full height of the viewport */
+        margin: 0; /* Remove any default margin */
+        padding: 0; /* Remove any default padding */
+    }
+
+    body {
+    }
+
+    .main .content {
+
+        transition: background-color 0.3s ease; /* Optional: smooth color transition */
+        margin: 0; /* Ensure no margin */
+        padding: 0; /* Ensure no padding */
+        width: 100%; /* Ensure content spans the full width */
+        height: 100%; /* Ensure content spans the full height */
+    }
+
+</style> *@
+
+@* @code {
+    [Parameter] public string WebPageBackgroundColor { get; set; }
+
+    protected override Task OnInitializedAsync()
+    {
+        // Default to white background if no color is provided
+        if (string.IsNullOrEmpty(WebPageBackgroundColor))
+        {
+            WebPageBackgroundColor = "white";
+        }
+
+        return base.OnInitializedAsync();
+    }
+} *@

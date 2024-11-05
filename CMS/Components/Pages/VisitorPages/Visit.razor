@@ -7,46 +7,43 @@
 @inject VisitorCounterService VisitorCounterService
 @rendermode InteractiveServer
 
-<div>
+
+
     @if (website is null)
     {
     <p><em>Loading...</em></p>
     }
     else
     {
-    
-      @*   <nav class="navbar navbar-expand-lg navbar-light bg-light" style="font-size:20px;">
-            <a class="navbar-brand" style="font-size:24px; padding-top:10px; padding-bottom:10px;" href=@($"visit?WebSiteId={@website.WebSiteId}")>@website.Title</a>
-            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                <ul class="navbar-nav mr-auto">
-                    @foreach (var webpage in website.WebPages)
-                    {
-                        <li class="nav-item active">
-                            <NavLink class="nav-link" href=@($"visit?WebSiteId={@website.WebSiteId}&WebPageId={@webpage.WebPageId}") Match="NavLinkMatch.All">
-                                @webpage.Title
-                            </NavLink>
-                        </li>
-                    }
-                </ul>
-            </div>
-        </nav> *@
-    
-       @*  <AuthorizeView>
-            <Authorized>
-                    <a href="webpages/editwebpage?websiteid=@WebPageId">Redigera webbplats</a>
-            </Authorized>
-        </AuthorizeView> *@
-       
-      
-        <VisitorWebPagePreview WebPageId="@WebPageId"/>
-        <br/>
-        <br/>
+            <VisitorWebPagePreview WebPageId="@WebPageId" />
     }
-</div>
 
+
+<style>
+    :root {
+        --layout-background-color: @webPageBackgroundColor;
+    }
+
+    html, body {
+        height: 100%; /* Ensure the body takes the full height of the viewport */
+        margin: 0; /* Remove any default margin */
+        padding: 0; /* Remove any default padding */
+    }
+
+    body {
+        background-color: @webPageBackgroundColor;
+    }
+
+    .main .content {
+        background-color: @webPageBackgroundColor;
+        transition: background-color 0.3s ease; /* Optional: smooth color transition */
+        margin: 0; /* Ensure no margin */
+        padding: 0; /* Ensure no padding */
+        width: 100%; /* Ensure content spans the full width */
+        height: 100%; /* Ensure content spans the full height */
+    }
+
+</style>
 
 @code {
     [SupplyParameterFromQuery]
@@ -55,6 +52,8 @@
     [SupplyParameterFromQuery]
     public int WebPageId { get; set; }
 
+    public string webPageBackgroundColor { get; set; } = "white";
+
     private WebSite website;
 
     protected override async Task OnInitializedAsync()
@@ -66,7 +65,10 @@
 
         if (WebPageId == 0 && website != null)
         {
-            WebPageId = website.WebPages.FirstOrDefault().WebPageId;
+            var webpage = website.WebPages.FirstOrDefault();
+            WebPageId = webpage.WebPageId;
+            webPageBackgroundColor = webpage.BackgroundColor ?? "white";
+
         }
 
         if (website is null)
@@ -77,41 +79,3 @@
 }
 
 
-@*
-@code {
-   
-    [SupplyParameterFromQuery]
-    public int WebSiteId { get; set; }
-
-    [SupplyParameterFromQuery] public int WebPageId { get; set; }
-   
-    private WebSite website;
-    private int VisitCount { get; set; }
-    private string CurrentPageUrl => NavigationManager.Uri;
-
-    protected override async Task OnInitializedAsync()
-    {
-        using var context = DbFactory.CreateDbContext();
-        website = await context.WebSites
-            .Include(w => w.WebPages)
-            .FirstOrDefaultAsync(m => m.WebSiteId == WebSiteId);
-
-        if (WebPageId == 0 && website != null)
-        {
-            WebPageId= website.WebPages.FirstOrDefault().WebPageId;
-        }
-
-        if (website is null)
-        {
-            NavigationManager.NavigateTo("notfound");
-        }
-        else
-        {
-            // Increment the visit count for this specific page
-            await VisitorCounterService.IncrementPageVisitAsync(WebSiteId, CurrentPageUrl);
-            // Get the updated visit count for this page
-            VisitCount = await VisitorCounterService.GetPageVisitCountAsync(WebSiteId, CurrentPageUrl);
-        }
-    }
-}
-*@

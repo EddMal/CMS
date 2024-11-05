@@ -1,4 +1,4 @@
-
+@layout Layout.EmptyLayout
 
 @page "/webpages/editwebpage"
 
@@ -17,236 +17,259 @@
 @inject IGetCurrentUserService GetCurrentUserService
 @implements IAsyncDisposable
 
- <style>
-  
-</style>
 
 
 
-
-@* Todo: Investigate the handling of the use of components, to remove excess use/"writing" of components*@
-    <p>
-         <div class="containerMainButtons">
-             <div class="button-container">
-            @if (PageExecution != ExecuteAction.Preview)
-            {
-                if (HideToolbar)
+    @* Todo: Investigate the handling of the use of components, to remove excess use/"writing" of components*@
+        <p>
+             <div class="containerMainButtons">
+                 <div class="button-container">
+                @if (PageExecution != ExecuteAction.Preview)
                 {
-                    <div class="icon-container">
-                        <a class="btn overlay-btn-main" @onclick="()=> HideTools()" aria-label="Förhandgranska" title="Förhandgranska">
-                            <i class="fa fa-wrench fa-1x" aria-hidden="true"></i>
+                    if (HideToolbar)
+                    {
+                        <div class="icon-container">
+                            <a class="btn overlay-btn-main" @onclick="()=> HideTools()" aria-label="Förhandgranska" title="Förhandgranska">
+                                <i class="fa fa-wrench fa-1x" aria-hidden="true"></i>
+                            </a>
+                            <span class="icon-text">Verktyg</span>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="icon-container">
+                            <a class="btn overlay-btn-main" @onclick="()=> PauseEditContent()" aria-label="Förhandgranska" title="Förhandgranska">
+                                <i class="fa fa-pause fa-1x" aria-hidden="true"></i>
+                            </a>
+                            <span class="icon-text">Granska</span>
+                        </div>
+
+                        <div class="icon-container">
+                            <a class="btn overlay-btn-main" @onclick="()=> AddContent()" aria-label="Lägg till innehåll" title="Lägg till innehåll">
+                                <i class="fa fa-plus-square-o fa-2x" style="margin-top:2px;"aria-hidden="true"></i>
+                            </a>
+                            <span class="icon-text">Lägg till</span>
+                        </div>
+
+                        <div class="icon-container">
+                            <a class="btn overlay-btn-main" @onclick="()=> EditPageinformation()" aria-label="Redigera sidinformation" title="Redigera sidinformation">
+                                <i class="fa fa-cog fa-2x" aria-hidden="true"></i>
+                            </a>
+                            <span class="icon-text">Redigera</span>
+                        </div>
+
+                        <div class="icon-container">
+                            <a class="btn overlay-btn-main" href="@($"webpages?websiteid={WebSiteId}")" aria-label="Tillbaka till webbsajt" title="Tillbaka till webbsajt">
+                                <i class="fa fa-mail-reply fa-2x" aria-hidden="true"></i>
                         </a>
-                        <span class="icon-text">Verktyg</span>
+                            <span class="icon-text">Tillbaka</span>
                     </div>
+
+                        <div class="icon-container">
+                            <a class="btn overlay-btn-main-ghost" @onclick="()=> HideTools()" aria-label="Förhandgranska" title="Förhandgranska">
+                                <i class="fa fa-snapchat-ghost fa-2x" aria-hidden="true"></i>
+                            </a>
+                            <span class="icon-text">Göm</span>
+                        </div>
+
+                    }
                 }
                 else
                 {
                     <div class="icon-container">
-                        <a class="btn overlay-btn-main" @onclick="()=> PauseEditContent()" aria-label="Förhandgranska" title="Förhandgranska">
-                            <i class="fa fa-pause fa-1x" aria-hidden="true"></i>
+                        <a class="btn overlay-btn-main-ghost" @onclick="()=> ResumeEditContent()" aria-label="Fortsätt redigera" title="Fortsätt redigera">
+                            <i class="fa fa-play fa-1x" aria-hidden="true"></i>
                         </a>
-                        <span class="icon-text">Granska</span>
+                            <span class="icon-text">Redigera</span>
                     </div>
-
-                    <div class="icon-container">
-                        <a class="btn overlay-btn-main" @onclick="()=> AddContent()" aria-label="Lägg till innehåll" title="Lägg till innehåll">
-                            <i class="fa fa-plus-square-o fa-2x" style="margin-top:2px;"aria-hidden="true"></i>
-                        </a>
-                        <span class="icon-text">Lägg till</span>
-                    </div>
-
-                    <div class="icon-container">
-                        <a class="btn overlay-btn-main" @onclick="()=> EditPageinformation()" aria-label="Redigera sidinformation" title="Redigera sidinformation">
-                            <i class="fa fa-cog fa-2x" aria-hidden="true"></i>
-                        </a>
-                        <span class="icon-text">Redigera</span>
-                    </div>
-
-                    <div class="icon-container">
-                        <a class="btn overlay-btn-main" href="@($"webpages?websiteid={WebSiteId}")" aria-label="Tillbaka till webbsajt" title="Tillbaka till webbsajt">
-                            <i class="fa fa-mail-reply fa-2x" aria-hidden="true"></i>
-                    </a>
-                        <span class="icon-text">Tillbaka</span>
-                </div>
-
-                    <div class="icon-container">
-                        <a class="btn overlay-btn-main-ghost" @onclick="()=> HideTools()" aria-label="Förhandgranska" title="Förhandgranska">
-                            <i class="fa fa-snapchat-ghost fa-2x" aria-hidden="true"></i>
-                        </a>
-                        <span class="icon-text">Göm</span>
-                    </div>
-
                 }
-            }
-            else
-            {
-                <div class="icon-container">
-                    <a class="btn overlay-btn-main-ghost" @onclick="()=> ResumeEditContent()" aria-label="Fortsätt redigera" title="Fortsätt redigera">
-                        <i class="fa fa-play fa-1x" aria-hidden="true"></i>
-                    </a>
-                        <span class="icon-text">Redigera</span>
                 </div>
-            }
             </div>
-        </div>
-    </p>
+        </p>
 
-    @if (Contents == null)
-    {
-        <p>Denna webbsidan har inget innehåll.</p>
-    }
-    else if (!Contents.Any())
-    { 
-        <CascadingValue Value="WebPageId">
-            <CreateContent />
-        </CascadingValue>
-        <button type="button" class="btn btn-warning" @onclick="()=> CreateDone()"> Klar </button>
-    }
-    else
-    {
-
-        foreach (var content in Contents)
+        @if (Contents == null)
         {
-                @switch (PageExecution)
-                {
-                    case ExecuteAction.EditPageinformation:
+            <p>Denna webbsidan har inget innehåll.</p>
+        }
+        else if (!Contents.Any())
+        { 
+            <CascadingValue Value="WebPageId">
+                <CreateContent />
+            </CascadingValue>
+            <button type="button" class="btn btn-warning" @onclick="()=> CreateDone()"> Klar </button>
+        }
+        else
+        {
+
+            foreach (var content in Contents)
+            {
+                    @switch (PageExecution)
                     {
-                        <div class="containerEditWebPageContent" style="position: relative;">
-                            <div class="content">
-                                <ContentPreview ContentId="@content.ContentId" />
-                                </div>
-                                    <div class="overlay-editwebpageinfo">
-                                    <CascadingValue Value="content.WebPageId">
-                                        <CMS.Components.Pages.WebPages.Edit />
-                                    </CascadingValue>
-                                        <button type="button" class="btn btn-warning btn-warning-edit" @onclick="()=> EditPageinformationDone()"> Tillbaka </button>
-                                </div>
-                            </div>
-                            PageExecution = ExecuteAction.Preview;
-                            break;         
-                        }
-                    case ExecuteAction.EditContent:
+                        case ExecuteAction.EditPageinformation:
                         {
-                            if (content.ContentId == ContentForEditing)
+                            <div class="containerEditWebPageContent" style="position: relative;">
+                                <div class="content">
+                                    <ContentPreview ContentId="@content.ContentId" />
+                                    </div>
+                                        <div class="overlay-editwebpageinfo">
+                                        <CascadingValue Value="content.WebPageId">
+                                            <CMS.Components.Pages.WebPages.Edit />
+                                        </CascadingValue>
+                                            <button type="button" class="btn btn-warning btn-warning-edit" @onclick="()=> EditPageinformationDone()"> Tillbaka </button>
+                                    </div>
+                                </div>
+                                PageExecution = ExecuteAction.Preview;
+                                break;         
+                            }
+                        case ExecuteAction.EditContent:
                             {
-                                @* Todo: Change this use of templateId is not good practice: *@
-                                if (content.TemplateId == 9)
+                                if (content.ContentId == ContentForEditing)
                                 {
+                                    @* Todo: Change this use of templateId is not good practice: *@
+                                    if (content.TemplateId == 9)
+                                    {
+                                        <div class="containerEditWebPageContent" style="position: relative;">
+                                            <div class="content">
+                                                <CascadingValue Value="content.ContentId">
+                                                    <EditContent />
+                                                </CascadingValue>
+                                            </div>
+                                            <div class="nav-edit-done-button-container">
+                                                <button type="button" class="btn btn-warning" @onclick="()=> ResumeEditContent()"> Tillbaka </button>
+                                            </div>
+                                        </div>
+                                    }
+                                    else
+                                    {
                                     <div class="containerEditWebPageContent" style="position: relative;">
                                         <div class="content">
+                                            <ContentPreview ContentId="@content.ContentId" />
+                                        </div>
+                                        <div class="overlay-edit">
                                             <CascadingValue Value="content.ContentId">
                                                 <EditContent />
                                             </CascadingValue>
-                                        </div>
-                                        <div class="nav-edit-done-button-container">
                                             <button type="button" class="btn btn-warning" @onclick="()=> ResumeEditContent()"> Tillbaka </button>
                                         </div>
-                                    </div>
-                                }
-                                else
-                                {
-                                <div class="containerEditWebPageContent" style="position: relative;">
-                                    <div class="content">
-                                        <ContentPreview ContentId="@content.ContentId" />
-                                    </div>
-                                    <div class="overlay-edit">
-                                        <CascadingValue Value="content.ContentId">
-                                            <EditContent />
-                                        </CascadingValue>
-                                        <button type="button" class="btn btn-warning" @onclick="()=> ResumeEditContent()"> Tillbaka </button>
-                                    </div>
-                                </div>                             
-                                }
-                        }
-                        else
-                        {
-                            <div class="content">
-                                <ContentPreview ContentId="@content.ContentId" />
-                                </div>
-                        }
-                            break;
-                        }
-                    case ExecuteAction.CreateContent:
-                        {
-                        <div class="containerEditWebPageContent" style="position: relative;">
-                            <div class="content">
-                                <ContentPreview ContentId="@content.ContentId" />
-                            </div>
-                            <div class="overlay-edit">
-                                <CascadingValue Value="content.WebPageId">
-                                    <CreateContent />
-                                </CascadingValue>
-                            <button type="button" class="btn btn-warning btn-create" @onclick="()=> CreateDone()"> Klar </button>
-                            </div>
-                        </div>
-                        PageExecution = ExecuteAction.Preview;
-                        break;
-                    }
-                    case ExecuteAction.EditSelect:
-                    {
-                        <div class="containerEditWebPageContent" style="position: relative;">
-                            <div class="content">
-                                <ContentPreview ContentId="@content.ContentId" />
-                            </div>
-                                <div class="containerEditWebPagebuttons">
-                                    <div class="button-container">
-                                        <a class="btn overlay-btn-edit" @onclick="()=> EditContent(content)" aria-label="Redigera" title="Redigera">
-                                                <i class="fa fa-pencil fa-2x" aria-hidden="true"></i>
-                                        </a>
-                                        <a class="btn overlay-btn-delete" @onclick="()=> DeleteContent(content.ContentId)" aria-label="Ta bort" title="Radera">
-                                            <i class="fa fa-trash-o fa-2x" aria-hidden="true"></i>
-                                        </a>
-                                    </div>
-                            </div>
-                        </div>
-                         break;
-                    }
-                    case ExecuteAction.Preview:
-                    {
-                        <div class="content">
-                            <ContentPreview ContentId="@content.ContentId" />
-                            </div>
-                            break;
-                        }
-                    case ExecuteAction.Delete:
-                        {
-                            if (ContentForEditing == content.ContentId)
-                            {
-                                Content contentdelete = new()
-                                {
-                                    ContentId = (int)ContentForEditing
-                                };
-                            <div class="containerEditWebPageContent" style="position: relative;">
-                                    <div class="content">
-                                        <ContentPreview ContentId="@content.ContentId" />
-                                    </div>
-                                    <div class="overlay-edit">
-                                        <CascadingValue Value="@contentdelete.ContentId">
-                                            <CMS.Components.Pages.ContentPages.Delete />
-                                        </CascadingValue>
-                                        <button type="button" class="btn btn-warning" @onclick="()=> CreateDone()"> Gå tillbaka </button>
-                                    </div>
-                                </div>
+                                    </div>                             
+                                    }
                             }
                             else
                             {
                                 <div class="content">
                                     <ContentPreview ContentId="@content.ContentId" />
-                                </div>
+                                    </div>
                             }
+                                break;
+                            }
+                        case ExecuteAction.CreateContent:
+                            {
+                            <div class="containerEditWebPageContent" style="position: relative;">
+                                <div class="content">
+                                    <ContentPreview ContentId="@content.ContentId" />
+                                </div>
+                                <div class="overlay-edit">
+                                    <CascadingValue Value="content.WebPageId">
+                                        <CreateContent />
+                                    </CascadingValue>
+                                <button type="button" class="btn btn-warning btn-create" @onclick="()=> CreateDone()"> Klar </button>
+                                </div>
+                            </div>
+                            PageExecution = ExecuteAction.Preview;
                             break;
+                        }
+                        case ExecuteAction.EditSelect:
+                        {
+                            <div class="containerEditWebPageContent" style="position: relative;">
+                                <div class="content">
+                                    <ContentPreview ContentId="@content.ContentId" />
+                                </div>
+                                    <div class="containerEditWebPagebuttons">
+                                        <div class="button-container">
+                                            <a class="btn overlay-btn-edit" @onclick="()=> EditContent(content)" aria-label="Redigera" title="Redigera">
+                                                    <i class="fa fa-pencil fa-2x" aria-hidden="true"></i>
+                                            </a>
+                                            <a class="btn overlay-btn-delete" @onclick="()=> DeleteContent(content.ContentId)" aria-label="Ta bort" title="Radera">
+                                                <i class="fa fa-trash-o fa-2x" aria-hidden="true"></i>
+                                            </a>
+                                        </div>
+                                </div>
+                            </div>
+                             break;
+                        }
+                        case ExecuteAction.Preview:
+                        {
+                            <div class="content">
+                                <ContentPreview ContentId="@content.ContentId" />
+                                </div>
+                                break;
+                            }
+                        case ExecuteAction.Delete:
+                            {
+                                if (ContentForEditing == content.ContentId)
+                                {
+                                    Content contentdelete = new()
+                                    {
+                                        ContentId = (int)ContentForEditing
+                                    };
+                                <div class="containerEditWebPageContent" style="position: relative;">
+                                        <div class="content">
+                                            <ContentPreview ContentId="@content.ContentId" />
+                                        </div>
+                                        <div class="overlay-edit">
+                                            <CascadingValue Value="@contentdelete.ContentId">
+                                                <CMS.Components.Pages.ContentPages.Delete />
+                                            </CascadingValue>
+                                            <button type="button" class="btn btn-warning" @onclick="()=> CreateDone()"> Gå tillbaka </button>
+                                        </div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="content">
+                                        <ContentPreview ContentId="@content.ContentId" />
+                                    </div>
+                                }
+                                break;
+                        }
+                        case ExecuteAction.Wait:
+                        {
+                            break;
+                        }
+                        default:          
+                        {
+                            <div class="content">
+                                <ContentPreview ContentId="@content.ContentId" />
+                            </div>
+                            break;
+                        }
                     }
-                    case ExecuteAction.Wait:
-                    {
-                        break;
-                    }
-                    default:          
-                    {
-                        <div class="content">
-                            <ContentPreview ContentId="@content.ContentId" />
-                        </div>
-                        break;
-                    }
-                }
+            }
         }
+
+
+<style>
+    :root {
+        --layout-background-color: @webPageBackgroundColor;
     }
+
+    html, body {
+        height: 100%; /* Ensure the body takes the full height of the viewport */
+        margin: 0; /* Remove any default margin */
+        padding: 0; /* Remove any default padding */
+    }
+
+    body {
+        background-color: @webPageBackgroundColor;
+    }
+
+    .main .content {
+        background-color: @webPageBackgroundColor;
+        transition: background-color 0.3s ease; /* Optional: smooth color transition */
+        margin: 0; /* Ensure no margin */
+        padding: 0; /* Ensure no padding */
+        width: 100%; /* Ensure content spans the full width */
+        height: 100%; /* Ensure content spans the full height */
+    }
+
+</style>
