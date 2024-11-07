@@ -4,7 +4,6 @@
 
 
 @attribute [Authorize]
-
 @using Microsoft.EntityFrameworkCore
 @using Microsoft.AspNetCore.Components.QuickGrid
 @using CMS.Entities
@@ -100,13 +99,14 @@
         }
         else
         {
-
+        if (layout == null || layout.LayoutCells == null || !layout.LayoutCells.Any())
+            {
             foreach (var content in Contents)
             {
                     @switch (PageExecution)
                     {
                         case ExecuteAction.EditPageinformation:
-                        {
+                            {
                             <div class="containerEditWebPageContent" style="position: relative;">
                                 <div class="content">
                                     <ContentPreview ContentId="@content.ContentId" />
@@ -164,24 +164,75 @@
                             }
                         case ExecuteAction.CreateContent:
                             {
-                            <div class="containerEditWebPageContent" style="position: relative;">
-                                <div class="content">
-                                    <ContentPreview ContentId="@content.ContentId" />
+                                <div class="containerEditWebPageContent" style="position: relative;">
+                                    <div class="content">
+                                        <ContentPreview ContentId="@content.ContentId" />
+                                    </div>
+                                    <div class="overlay-edit">
+                                        <CascadingValue Value="content.WebPageId">
+                                            <CreateContent />
+                                        </CascadingValue>
+                                    <button type="button" class="btn btn-warning btn-create" @onclick="()=> CreateDone()"> Klar </button>
+                                    </div>
                                 </div>
-                                <div class="overlay-edit">
-                                    <CascadingValue Value="content.WebPageId">
-                                        <CreateContent />
-                                    </CascadingValue>
-                                <button type="button" class="btn btn-warning btn-create" @onclick="()=> CreateDone()"> Klar </button>
+                                PageExecution = ExecuteAction.Preview;
+                                break;
+                            }
+                case ExecuteAction.EditSelect:
+                    {
+                    if (layout == null || layout.LayoutCells == null || !layout.LayoutCells.Any())
+                    {
+                        // If layout doesn't exist or has no cells, show the content without layout grid
+                        <div class="containerEditWebPageContent" style="position: relative;">
+                            <div class="content">
+                                <ContentPreview ContentId="@content.ContentId" />
+                            </div>
+                            <div class="containerEditWebPagebuttons">
+                                <div class="button-container">
+                                    <a class="btn overlay-btn-edit" @onclick="()=> EditContent(content)" aria-label="Redigera" title="Redigera">
+                                        <i class="fa fa-pencil fa-2x" aria-hidden="true"></i>
+                                    </a>
+                                    <a class="btn overlay-btn-delete" @onclick="()=> DeleteContent(content.ContentId)" aria-label="Ta bort" title="Radera">
+                                        <i class="fa fa-trash-o fa-2x" aria-hidden="true"></i>
+                                    </a>
                                 </div>
                             </div>
-                            PageExecution = ExecuteAction.Preview;
-                            break;
+                            </div>
                         }
-                        case ExecuteAction.EditSelect:
+                        else
                         {
-                            <div class="containerEditWebPageContent" style="position: relative;">
-                                <div class="content">
+                            // If layout exists, render the content in grid layout
+                            var layoutCell = layout.LayoutCells.FirstOrDefault(lc => lc.ContentId == content.ContentId);
+
+                            if (layoutCell != null)
+                            {
+                                <div class="containerEditWebPageContentLayoutGrid">
+                                    <div class="content-item-layout-grid"
+                                    draggable="true"
+                                    @ondragstart="(e) => OnDragStart(e, layoutCell)"
+                                    @ondragend="OnDragEndAsync"
+                                    @ondragover="(e) => OnDragOver(e, layoutCell.Row, layoutCell.Column, layoutCell.ContentId)"
+                                    style="grid-row: @layoutCell.Row; grid-column: @layoutCell.Column; position: relative;"
+                                    data-content-id="@layoutCell.ContentId">
+                                        <ContentPreview ContentId="@layoutCell.ContentId.Value" />
+
+                                        <div class="containerEditWebPagebuttons">
+                                            <div class="button-container">
+                                                <a class="btn overlay-btn-edit" @onclick="() => EditContent(content)" aria-label="Redigera" title="Redigera">
+                                                    <i class="fa fa-pencil fa-2x" aria-hidden="true"></i>
+                                                </a>
+                                                <a class="btn overlay-btn-delete" @onclick="() => DeleteContent(content.ContentId)" aria-label="Ta bort" title="Radera">
+                                                    <i class="fa fa-trash-o fa-2x" aria-hidden="true"></i>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="containerEditWebPageContent" style="position: relative;">
+                                    <div class="content">
                                     <ContentPreview ContentId="@content.ContentId" />
                                 </div>
                                     <div class="containerEditWebPagebuttons">
@@ -193,10 +244,13 @@
                                                 <i class="fa fa-trash-o fa-2x" aria-hidden="true"></i>
                                             </a>
                                         </div>
+                                    </div>
                                 </div>
-                            </div>
-                             break;
-                        }
+                            }
+                    }
+                    break;
+                }
+
                         case ExecuteAction.Preview:
                         {
                             <div class="content">
@@ -243,10 +297,185 @@
                             </div>
                             break;
                         }
-                    }
             }
         }
+    }
+    else
+    {
 
+        <div class="containerEditWebPageContentLayoutGrid" style="display: grid; grid-template-columns: repeat(12, 1fr); grid-gap: 10px;">
+            @foreach (var cell in layout.LayoutCells)
+            {
+                // Find content for the cell
+                var content = Contents.FirstOrDefault(l => l.ContentId == cell.ContentId);
+
+                if (cell != null)
+                {
+                    <div class="content-item-layout-grid"
+                         draggable="true"
+                         @ondragstart="(e) => OnDragStart(e, cell)"
+                         @ondragend="(e) => OnDragEndAsync(e)"
+                         @ondragover="(e) => OnDragOver(e, cell.Row, cell.Column, cell.ContentId)"
+                         style="grid-row: @cell.Row; grid-column: @cell.Column;
+                        grid-row-end: span @cell.RowSpan;
+                        grid-column-end: span @cell.ColumnSpan;
+                        position: relative;"
+                         data-content-id="@cell.ContentId">
+
+                        @if (cell.ContentId != null)
+                        {
+                            <ContentPreview ContentId="@cell.ContentId.Value" @key="@cell.ContentId" />
+
+                            <div class="containerEditWebPagebuttons">
+                                <div class="button-container">
+                                    <a class="btn overlay-btn-edit" @onclick="() => EditContent(content)" aria-label="Redigera" title="Redigera">
+                                        <i class="fa fa-pencil fa-2x" aria-hidden="true"></i>
+                                    </a>
+                                    <a class="btn overlay-btn-delete" @onclick="() => DeleteContent(content.ContentId)" aria-label="Ta bort" title="Radera">
+                                        <i class="fa fa-trash-o fa-2x" aria-hidden="true"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <p style="color:white;">EMPTY</p>
+                        }
+                    </div>
+                }
+            }
+        </div>
+
+        }
+    }
+}
+}
+@*  VERSION 3: rowSpan and columnSpan *@
+@* <div class="containerEditWebPageContentLayoutGrid" style="display: grid; grid-template-columns: repeat(12, 1fr); grid-gap: 10px;">
+    @foreach (var cell in layout.LayoutCells)
+    {
+        // Find content for the cell
+        var content = Contents.FirstOrDefault(l => l.ContentId == cell.ContentId);
+
+        if (cell != null)
+        {
+            <div class="content-item-layout-grid"
+                 draggable="true"
+                 @ondragstart="(e) => OnDragStart(e, cell)"
+                 @ondragend="(e) => OnDragEndAsync(e)"
+                 @ondragover="(e) => OnDragOver(e, cell.Row, cell.Column, cell.ContentId)"
+                 style="grid-row: @cell.Row; grid-column: @cell.Column;
+                        grid-row-end: span @cell.RowSpan;
+                        grid-column-end: span @cell.ColumnSpan;
+                        position: relative;"
+                 data-content-id="@cell.ContentId">
+
+                @if (cell.ContentId != null)
+                {
+                    <ContentPreview ContentId="@cell.ContentId.Value" @key="@cell.ContentId" />
+
+                    <div class="containerEditWebPagebuttons">
+                        <div class="button-container">
+                            <a class="btn overlay-btn-edit" @onclick="() => EditContent(content)" aria-label="Redigera" title="Redigera">
+                                <i class="fa fa-pencil fa-2x" aria-hidden="true"></i>
+                            </a>
+                            <a class="btn overlay-btn-delete" @onclick="() => DeleteContent(content.ContentId)" aria-label="Ta bort" title="Radera">
+                                <i class="fa fa-trash-o fa-2x" aria-hidden="true"></i>
+                            </a>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <p style="color:white;">EMPTY</p>
+                }
+            </div>
+        }
+    }
+</div> *@
+
+@*  VERSION 2: works along vid version 2 (event handler at drop end)in EditWebpage.razor.cs *@
+@* <div class="containerEditWebPageContentLayoutGrid" style="display: grid; grid-template-columns: repeat(12, 1fr); grid-gap: 10px;">
+    @foreach (var cell in layout.LayoutCells)
+    {
+        // Find content for the cell
+        var content = Contents.FirstOrDefault(l => l.ContentId == cell.ContentId);
+
+        if (cell != null)
+        {
+            <div class="content-item-layout-grid"
+                 draggable="true"
+                 @ondragstart="(e) => OnDragStart(e, cell)"
+                 @ondragend="(e) => OnDragEndAsync(e)"
+                 @ondragover="(e) => OnDragOver(e, cell.Row, cell.Column, cell.ContentId)"
+                 style="grid-row: @cell.Row; grid-column: @cell.Column; position: relative;"
+                 data-content-id="@cell.ContentId">
+
+                @if (cell.ContentId != null)
+                {
+                    <ContentPreview ContentId="@cell.ContentId.Value" @key="@cell.ContentId" />
+
+                    <div class="containerEditWebPagebuttons">
+                        <div class="button-container">
+                            <a class="btn overlay-btn-edit" @onclick="() => EditContent(content)" aria-label="Redigera" title="Redigera">
+                                <i class="fa fa-pencil fa-2x" aria-hidden="true"></i>
+                            </a>
+                            <a class="btn overlay-btn-delete" @onclick="() => DeleteContent(content.ContentId)" aria-label="Ta bort" title="Radera">
+                                <i class="fa fa-trash-o fa-2x" aria-hidden="true"></i>
+                            </a>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <p style="color:white;">EMPTY</p>
+                }
+            </div>
+        }
+    }
+
+</div> *@
+
+
+@*  VERSION 1: works along vid version 1 (event handler at drop end)in EditWebpage.razor.cs *@
+ @* @foreach (var cell in layout.LayoutCells)
+        {
+            // Find content for the cell
+            var content = Contents.FirstOrDefault(l => l.ContentId == cell.ContentId);
+
+            if (cell != null)
+            {
+                <div class="containerEditWebPageContentLayoutGrid">
+                    <div class="content-item-layout-grid"
+                         draggable="true"
+                         @ondragstart="(e) => OnDragStart(e, cell)"
+                         @ondragend="(e) => OnDragEndAsync(e)"
+                         @ondragover="(e) => OnDragOver(e, cell.Row, cell.Column, cell.ContentId)"
+                         style="grid-row: @cell.Row; grid-column: @cell.Column; position: relative;"
+                         data-content-id="@cell.ContentId">
+
+                        @if (cell.ContentId != null)
+                        {
+                            <ContentPreview ContentId="@cell.ContentId.Value" @key="@cell.ContentId" />
+
+                            <div class="containerEditWebPagebuttons">
+                                <div class="button-container">
+                                    <a class="btn overlay-btn-edit" @onclick="() => EditContent(content)" aria-label="Redigera" title="Redigera">
+                                        <i class="fa fa-pencil fa-2x" aria-hidden="true"></i>
+                                    </a>
+                                    <a class="btn overlay-btn-delete" @onclick="() => DeleteContent(content.ContentId)" aria-label="Ta bort" title="Radera">
+                                        <i class="fa fa-trash-o fa-2x" aria-hidden="true"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <p style="color:white;">EMPTY</p>
+                        }
+                    </div>
+                </div>
+            } *@
 
 <style>
     :root {
@@ -273,3 +502,4 @@
     }
 
 </style>
+

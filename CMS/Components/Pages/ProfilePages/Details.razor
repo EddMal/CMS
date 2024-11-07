@@ -81,7 +81,7 @@
         {
 
             using var context = DbFactory.CreateDbContext();
-            Profile = await context.profiles.FirstOrDefaultAsync(u => u.UserId == user.Id);
+            Profile = await context.Profiles.FirstOrDefaultAsync(u => u.UserId == user.Id);
 
             ViewModel.WebsitesCount = await context.WebSites.Where(w => w.UserId == user.Id).CountAsync();
             ViewModel.WebPagesCount = await context.WebPages.Where(w => w.UserId == user.Id).CountAsync();

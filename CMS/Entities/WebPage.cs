@@ -17,5 +17,7 @@ namespace CMS.Entities
         public WebSite WebSite { get; set; }
         public ICollection<Content> Contents { get; set; }
 
+        public WebPageLayout? WebPageLayout { get; set; } = null;
+
     }
 }

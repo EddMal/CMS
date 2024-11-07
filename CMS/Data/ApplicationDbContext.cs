@@ -19,7 +19,9 @@ namespace CMS.Data
         public DbSet<WebSiteVisit> WebSiteVisits { get; set; }
         public DbSet<Template> Templates { get; set; }  // Map to the Templates table
 
-        public DbSet<Profile> profiles {get; set;}
+        public DbSet<WebPageLayout> WebPageLayouts { get; set; }
+
+        public DbSet<Profile> Profiles {get; set;}
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -42,6 +44,10 @@ namespace CMS.Data
                   .WithMany(w => w.WebPages)
                   .HasForeignKey(p => p.WebSiteId);
 
+                // Reverse navigation to WebPageLayout
+                p.HasOne(p => p.WebPageLayout)  // One-to-one with WebPageLayout
+                    .WithOne(l => l.WebPage) // One-to-one with WebPage
+                    .HasForeignKey<WebPageLayout>(l => l.WebPageIdForLayout);  // Foreign key property
             });
 
             modelBuilder.Entity<Content>(c =>
@@ -56,17 +62,35 @@ namespace CMS.Data
                  .HasForeignKey(c => c.TemplateId);
             });
 
-            modelBuilder.Entity<Profile>( p => 
-                {
-                    p.ToTable("Profiles");
-                    p.HasKey(p => p.id);
-                    p.HasOne(c=> c.User)
+            modelBuilder.Entity<Profile>(p =>
+            {
+                p.ToTable("Profiles");
+                p.HasKey(p => p.id);
+                p.HasOne(c => c.User)
                     .WithOne(u => u.Profile)
                     .HasForeignKey<Profile>(c => c.UserId);
-                }
-            );
+            });
+
+            modelBuilder.Entity<WebPageLayout>(e =>
+            {
+                e.ToTable("WebPageLayouts");
+                e.HasKey(e => e.Id);
+
+                // Define foreign key relationship with WebPage
+                e.HasOne(wpl => wpl.WebPage)
+                    .WithOne() // WebPage has exactly one WebPageLayout
+                    .HasForeignKey<WebPageLayout>(wpl => wpl.WebPageIdForLayout);  // Define WebPageId as the foreign key
+
+                // Configure the serialized LayoutCells property
+                e.Property(w => w.LayoutCellsSerialized)
+                    .HasColumnType("nvarchar(max)"); // Using "nvarchar(max)" to store the serialized data as a string (JSON)
+
+                // Optional: You could store the LayoutCells as JSON (if you're using a database that supports JSON columns, like PostgreSQL)
+                // For example, in PostgreSQL you could do something like this:
+                // e.Property(w => w.LayoutCellsSerialized).HasColumnType("jsonb"); // for Postgres
+            });
         }
-    
-         
+
+
     }
 }

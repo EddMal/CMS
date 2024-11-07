@@ -214,3 +214,94 @@ header, .navbar, footer {
     font-size: 14px; /* Smaller font */
     padding: 5px 1px; /* Smaller padding */
 }
+
+.containerEditWebPageContentLayout {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Define columns */
+    grid-template-rows: auto; /* Adjust rows based on content */
+    gap: 10px;
+    position: relative;
+}
+
+.content-item-Layout {
+    position: relative;
+    padding: 10px;
+    background-color: #f4f4f4;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.containerEditWebPageContentLayoutGrid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr); /* 12 columns by default */
+    grid-gap: 10px;
+    position: relative;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    /* Ensure it accepts drops */
+    border: 2px dashed #ccc;
+}
+
+@media (max-width: 1024px) {
+    .containerEditWebPageContentLayoutGrid {
+        grid-template-columns: repeat(8, 1fr); /* 8 columns for medium screens */
+    }
+}
+
+@media (max-width: 768px) {
+    .containerEditWebPageContentLayoutGrid {
+        grid-template-columns: repeat(4, 1fr); /* 4 columns for small screens */
+    }
+}
+
+@media (max-width: 480px) {
+    .containerEditWebPageContentLayoutGrid {
+        grid-template-columns: 1fr; /* Single column for very small screens */
+    }
+}
+
+.content-item-layout-grid {
+    /* Ensure it accepts drops */
+    border: 2px dashed #ccc;
+    will-change: transform, top, left;
+    transition: all 0.3s ease; /* Smooth transition */
+}
+
+    .content-item-layout.dragging {
+        opacity: 0.5; /* Make the item semi-transparent when dragged */
+    }
+
+    .content-item-layout.drag-over {
+        border: 2px dashed #ccc; /* Highlight the target area when dragging */
+    }
+
+.grid-edit-controls {
+    margin-top: 10px;
+}
+
+    .grid-edit-controls input[type="range"] {
+        width: 100%; /* Make the slider take up the full width of the container */
+        margin-bottom: 5px;
+    }
+
+    .grid-edit-controls label {
+        display: block;
+        margin-bottom: 5px;
+        font-size: 14px;
+    }
+
+.grid-edit-controls {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+    .grid-edit-controls label {
+        font-weight: bold;
+    }
+
+    .grid-edit-controls input {
+        margin-bottom: 10px;
+    }
