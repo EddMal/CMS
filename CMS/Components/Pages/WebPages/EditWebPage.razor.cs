@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Newtonsoft.Json;
 using Microsoft.JSInterop;
 using CMS.Services;
+using Microsoft.DotNet.Scaffolding.Shared.CodeModifier.CodeChange;
 namespace CMS.Components.Pages.WebPages
 {
     //ToDO: Chanfe variables name from ec. WebSiteId to webSiteId
@@ -500,71 +501,121 @@ namespace CMS.Components.Pages.WebPages
 
         }
 
-        //// Method to update RowSpan for a specific cell
-        //private void UpdateRowSpan(LayoutCell cell, int newRowSpan)
-        //{
-        //    // Find the cell in LayoutCells and update its RowSpan
-        //    var targetCell = layout.LayoutCells.FirstOrDefault(c => c.ContentId == cell.ContentId);
-        //    if (targetCell != null)
-        //    {
-        //        // Remove cells that will be overlapped by the resized cell
-        //        RemoveOverlappingCells(targetCell, newRowSpan, targetCell.ColumnSpan);
+        // Method to update RowSpan for a specific cell
+        private async Task UpdateRowSpan(LayoutCell cell, int newRowSpan)
+        {
+            var targetCell = layout.LayoutCells.FirstOrDefault(c => c.ContentId == cell.ContentId);
+            if (targetCell != null)
+            {
+                // Store old RowSpan to calculate affected area
+                int oldRowSpan = targetCell.RowSpan;
+                int oldColumnSpan = targetCell.ColumnSpan; // Store old ColumnSpan as well
 
-        //        // Update the RowSpan
-        //        targetCell.RowSpan = newRowSpan;
+                // Update the RowSpan
+                targetCell.RowSpan = newRowSpan;
 
-        //        // Recalculate layout and ensure cells are not overlapping
-        //        layout.LayoutCells = layout.LayoutCells.OrderBy(c => c.Row).ThenBy(c => c.Column).ToList();
+                // Shift cells that will be pushed down by the expanded row span
+                ShiftCellsAfterResize(targetCell, oldRowSpan, newRowSpan, oldColumnSpan, targetCell.ColumnSpan);
 
-        //        StateHasChanged(); // Refresh the UI
-        //    }
-        //}
+                // Re-sort layout to maintain grid order (based on row and column)
+                layout.LayoutCells = layout.LayoutCells
+                    .OrderBy(c => c.Row)
+                    .ThenBy(c => c.Column)
+                    .ToList();
 
-        //// Method to update ColumnSpan for a specific cell
-        //private void UpdateColumnSpan(LayoutCell cell, int newColumnSpan)
-        //{
-        //    // Find the cell in LayoutCells and update its ColumnSpan
-        //    var targetCell = layout.LayoutCells.FirstOrDefault(c => c.ContentId == cell.ContentId);
-        //    if (targetCell != null)
-        //    {
-        //        // Remove cells that will be overlapped by the resized cell
-        //        RemoveOverlappingCells(targetCell, targetCell.RowSpan, newColumnSpan);
+                // Optionally, save the new layout order
+                await SaveLayoutChanges(); // Save the layout changes to persistent storage
 
-        //        // Update the ColumnSpan
-        //        targetCell.ColumnSpan = newColumnSpan;
+                StateHasChanged(); // Refresh the UI
+            }
+        }
 
-        //        // Recalculate layout and ensure cells are not overlapping
-        //        layout.LayoutCells = layout.LayoutCells.OrderBy(c => c.Row).ThenBy(c => c.Column).ToList();
+        // Method to update ColumnSpan for a specific cell
+        private async Task UpdateColumnSpan(LayoutCell cell, int newColumnSpan)
+        {
+            var targetCell = layout.LayoutCells.FirstOrDefault(c => c.ContentId == cell.ContentId);
+            if (targetCell != null)
+            {
+                // Store old ColumnSpan to calculate affected area
+                int oldColumnSpan = targetCell.ColumnSpan;
+                int oldRowSpan = targetCell.RowSpan; // Store old RowSpan as well
 
-        //        StateHasChanged(); // Refresh the UI
-        //    }
-        //}
+                // Update the ColumnSpan
+                targetCell.ColumnSpan = newColumnSpan;
 
-        //// Method to remove overlapping cells when resizing
-        //private void RemoveOverlappingCells(LayoutCell targetCell, int newRowSpan, int newColumnSpan)
-        //{
-        //    var targetRowEnd = targetCell.Row + newRowSpan - 1;
-        //    var targetColEnd = targetCell.Column + newColumnSpan - 1;
+                // Shift cells that will be pushed to the right due to the expanded column span
+                ShiftCellsAfterResize(targetCell, oldRowSpan, targetCell.RowSpan, oldColumnSpan, newColumnSpan);
 
-        //    // Check if any other cell overlaps with the new space of the resized cell
-        //    var overlappingCells = layout.LayoutCells
-        //        .Where(c => c.Row >= targetCell.Row && c.Row <= targetRowEnd &&
-        //                    c.Column >= targetCell.Column && c.Column <= targetColEnd &&
-        //                    c.ContentId != targetCell.ContentId)
-        //        .ToList();
+                // Re-sort layout to maintain grid order (based on row and column)
+                layout.LayoutCells = layout.LayoutCells
+                    .OrderBy(c => c.Row)
+                    .ThenBy(c => c.Column)
+                    .ToList();
 
-        //    // Remove the overlapping cells
-        //    foreach (var overlappingCell in overlappingCells)
-        //    {
-        //        layout.LayoutCells.Remove(overlappingCell);
-        //    }
-        //}
+                // Optionally, save the new layout order
+                await SaveLayoutChanges(); // Save the layout changes to persistent storage
+
+                StateHasChanged(); // Refresh the UI
+            }
+        }
+
+        // Method to shift cells after resizing (either row span or column span)
+        private void ShiftCellsAfterResize(LayoutCell targetCell, int oldRowSpan, int newRowSpan, int oldColumnSpan, int newColumnSpan)
+        {
+            // Calculate the area affected by the resized cell (both horizontally and vertically)
+            int startRow = targetCell.Row;
+            int endRow = startRow + newRowSpan - 1;
+
+            int startColumn = targetCell.Column;
+            int endColumn = startColumn + newColumnSpan - 1;
+
+            // Adjust the layout for cells that are affected by the resize
+            for (int row = startRow; row <= endRow; row++)
+            {
+                for (int col = startColumn; col <= endColumn; col++)
+                {
+                    var affectedCell = layout.LayoutCells.FirstOrDefault(c =>
+                        c.Row >= startRow && c.Row <= endRow &&
+                        c.Column >= startColumn && c.Column <= endColumn &&
+                        c.ContentId != null);
+
+                    if (affectedCell != null)
+                    {
+                        // Shift the cell in the row and/or column direction depending on whether
+                        // the size increased or decreased.
+                        if (newRowSpan > oldRowSpan)  // Expanding vertically
+                        {
+                            affectedCell.Row++;
+                        }
+                        else if (newRowSpan < oldRowSpan)  // Shrinking vertically
+                        {
+                            affectedCell.Row--;
+                        }
+
+                        if (newColumnSpan > oldColumnSpan)  // Expanding horizontally
+                        {
+                            affectedCell.Column++;
+                        }
+                        else if (newColumnSpan < oldColumnSpan)  // Shrinking horizontally
+                        {
+                            affectedCell.Column--;
+                        }
+
+                        // Ensure cells are reordered properly after shifting
+                        layout.LayoutCells = layout.LayoutCells
+                            .OrderBy(c => c.Row)
+                            .ThenBy(c => c.Column)
+                            .ToList();
+                    }
+                }
+            }
+        }
 
 
-        // Method to save layout changes (to be implemented with your DB/API)
+        // Method to save layout changes
         private async Task SaveLayoutChanges()
         {
-            // Update LayoutCells in the database, for example:
+            // Update LayoutCells in the database
             var layoutSave = await LayoutService.GetLayoutAsync(WebPageId.Value);
             if (layoutSave != null)
             {
