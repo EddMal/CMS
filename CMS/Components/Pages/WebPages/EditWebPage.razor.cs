@@ -412,6 +412,7 @@ namespace CMS.Components.Pages.WebPages
 
         private async Task OnDragEndAsync(DragEventArgs e)
         {
+            //ToDo: Add column span:
             // If the dragged cell is set, update layout
             if (draggedCell != null )
             {
@@ -496,6 +497,7 @@ namespace CMS.Components.Pages.WebPages
         // Method to handle drag over events
         private void OnDragOver(DragEventArgs e, int row, int column, int? contentId)
         {
+            //ToDo: Add column span:
             // Update the hovered cell using the row, column, and ContentId passed
             hoveredCell = layout.LayoutCells.FirstOrDefault(cell =>
                 cell.Row == row && cell.Column == column && cell.ContentId == contentId);
