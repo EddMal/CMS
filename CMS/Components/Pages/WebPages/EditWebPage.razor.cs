@@ -413,77 +413,81 @@ namespace CMS.Components.Pages.WebPages
         private async Task OnDragEndAsync(DragEventArgs e)
         {
             // If the dragged cell is set, update layout
-            if (draggedCell != null)
+            if (draggedCell != null )
             {
-                // Logic to update layout after drag ends
-                Console.WriteLine("Drag ended, updating layout.");
-
-                // Find the index of the dragged cell in LayoutCells
-                var draggedCellIndex = layout.LayoutCells
-                    .Select((cell, index) => new { cell, index })
-                    .FirstOrDefault(x => x.cell.Row == draggedCell.Row && x.cell.Column == draggedCell.Column)?.index;
-
-                // Find the index of the target cell in LayoutCells
-                var targetCellIndex = layout.LayoutCells
-                    .Select((cell, index) => new { cell, index })
-                    .FirstOrDefault(x => x.cell.Row == hoveredCell.Row && x.cell.Column == hoveredCell.Column)?.index;
-
-                if (draggedCellIndex.HasValue && targetCellIndex.HasValue)
+                if (hoveredCell != null )
                 {
-                    // Check if both indices are valid and different
-                    if (draggedCellIndex.Value != targetCellIndex.Value)
+                    // Logic to update layout after drag ends
+                    Console.WriteLine("Drag ended, updating layout.");
+
+                    // Find the index of the dragged cell in LayoutCells
+                    var draggedCellIndex = layout.LayoutCells
+                        .Select((cell, index) => new { cell, index })
+                        .FirstOrDefault(x => x.cell.Row == draggedCell.Row && x.cell.Column == draggedCell.Column)?.index;
+
+
+                    // Find the index of the target cell in LayoutCells
+                    var targetCellIndex = layout.LayoutCells
+                        .Select((cell, index) => new { cell, index })
+                        .FirstOrDefault(x => x.cell.Row == hoveredCell.Row && x.cell.Column == hoveredCell.Column)?.index;
+
+                    if (draggedCellIndex.HasValue && targetCellIndex.HasValue)
                     {
-                        // Swap the cells by index
-                        var tempCell = layout.LayoutCells[draggedCellIndex.Value];
-                        var tempCellhover = layout.LayoutCells[targetCellIndex.Value];
+                        // Check if both indices are valid and different
+                        if (draggedCellIndex.Value != targetCellIndex.Value)
+                        {
+                            // Swap the cells by index
+                            var tempCell = layout.LayoutCells[draggedCellIndex.Value];
+                            var tempCellhover = layout.LayoutCells[targetCellIndex.Value];
                         
-                        //ToDo: Resolve in a better way
-                        //Restore ID and rowspan, temp. fix
-                        tempCell.ContentId = hoveredCell.ContentId;
-                        tempCellhover.ContentId = draggedCell.ContentId;
-                        tempCell.ColumnSpan = hoveredCell.ColumnSpan;
-                        tempCellhover.ColumnSpan = draggedCell.ColumnSpan;
-                        // End Restore ID and rowspan, temp. fix
+                            //ToDo: Resolve in a better way
+                            //Restore ID and rowspan, temp. fix
+                            tempCell.ContentId = hoveredCell.ContentId;
+                            tempCellhover.ContentId = draggedCell.ContentId;
+                            tempCell.ColumnSpan = hoveredCell.ColumnSpan;
+                            tempCellhover.ColumnSpan = draggedCell.ColumnSpan;
+                            // End Restore ID and rowspan, temp. fix
 
-                        // Now, reassign the LayoutCells property to trigger the setter
-                        layout.LayoutCells = layout.LayoutCells
-                            .Select((cell, index) =>
-                            {
-                                if (index == draggedCellIndex.Value)
-                                    return tempCell;
-                                else if (index == targetCellIndex.Value)
-                                    return tempCellhover;
-                                else
-                                    return cell;
-                            })
-                            .ToList(); // Rebuild the list to ensure the setter is triggered
+                            // Now, reassign the LayoutCells property to trigger the setter
+                            layout.LayoutCells = layout.LayoutCells
+                                .Select((cell, index) =>
+                                {
+                                    if (index == draggedCellIndex.Value)
+                                        return tempCell;
+                                    else if (index == targetCellIndex.Value)
+                                        return tempCellhover;
+                                    else
+                                        return cell;
+                                })
+                                .ToList(); // Rebuild the list to ensure the setter is triggered
 
-                        //// Sort the layout cells by Row and Column to ensure they are in the correct grid order
-                        //layout.LayoutCells = layout.LayoutCells
-                        //    .OrderBy(cell => cell.Row) // First, order by Row
-                        //    .ThenBy(cell => cell.Column) // Then, order by Column
-                        //    .ToList(); // Rebuild the list to apply sorting
+                            //// Sort the layout cells by Row and Column to ensure they are in the correct grid order
+                            //layout.LayoutCells = layout.LayoutCells
+                            //    .OrderBy(cell => cell.Row) // First, order by Row
+                            //    .ThenBy(cell => cell.Column) // Then, order by Column
+                            //    .ToList(); // Rebuild the list to apply sorting
 
-                        // Optionally save the new layout order
-                        await SaveLayoutChanges();
-                        //await SaveScrollAndReloadPage();
-                        StateHasChanged();  // To refresh the UI
+                            // Optionally save the new layout order
+                            await SaveLayoutChanges();
+                            //await SaveScrollAndReloadPage();
+                            StateHasChanged();  // To refresh the UI
 
-                        Console.WriteLine("Layout updated: Cells swapped.");
+                            Console.WriteLine("Layout updated: Cells swapped.");
+                        }
+                        else
+                        {
+                            Console.WriteLine("Dragged cell is already in the target position. No swap needed.");
+                        }
                     }
                     else
                     {
-                        Console.WriteLine("Dragged cell is already in the target position. No swap needed.");
+                        Console.WriteLine("No valid target cell to swap with.");
                     }
-                }
-                else
-                {
-                    Console.WriteLine("No valid target cell to swap with.");
-                }
 
-                // Reset dragged cell after layout update
-                draggedCell = null;
-                hoveredCell = null;
+                    // Reset dragged cell after layout update
+                    draggedCell = null;
+                    hoveredCell = null;
+                }
             }
 
             Console.WriteLine("Drag ended.");
@@ -607,12 +611,12 @@ namespace CMS.Components.Pages.WebPages
                 //List of empty cells used to replace the void created by the reduction of span.
                 List<LayoutCell> replacementCells = new();
 
-                for (int decrease = 1; decrease <= oldColumnSpan - newColumnSpan; decrease++)
+                for (int decrease = 0; decrease <= oldColumnSpan - (newColumnSpan+1); decrease++)
                 {
                     replacementCells.Add( new LayoutCell
                     {
                         Row = targetCell.Row,
-                        Column = targetCell.Column + decrease,
+                        Column = targetCell.Column + newColumnSpan + decrease,
                         ColumnSpan = 1,
                         RowSpan = 1,
                         ContentId = null
