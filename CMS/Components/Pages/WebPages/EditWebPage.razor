@@ -339,11 +339,11 @@
 
                             <!-- Sliders for RowSpan and ColumnSpan -->
                             <div class="grid-edit-controls">
-                                <label for="row-span-@cell.ContentId">Row Span: @cell.RowSpan</label>
+                                @* <label for="row-span-@cell.ContentId">Row Span: @cell.RowSpan</label>
                                 <input type="range" id="row-span-@cell.ContentId"
                                        value="@cell.RowSpan" min="1" max="12"
                                        @oninput="(e) => UpdateRowSpan(cell, int.Parse(e.Value.ToString()))"
-                                       step="1" />
+                                       step="1" /> *@
 
                                 <label for="col-span-@cell.ContentId">Column Span: @cell.ColumnSpan</label>
                                 <input type="range" id="col-span-@cell.ContentId"
