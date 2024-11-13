@@ -436,11 +436,15 @@ namespace CMS.Components.Pages.WebPages
                         // Swap the cells by index
                         var tempCell = layout.LayoutCells[draggedCellIndex.Value];
                         var tempCellhover = layout.LayoutCells[targetCellIndex.Value];
-                        //ToDo: Resolve in a better way,
-                        //Restore ID, temp. fix
+                        
+                        //ToDo: Resolve in a better way
+                        //Restore ID and rowspan, temp. fix
                         tempCell.ContentId = hoveredCell.ContentId;
                         tempCellhover.ContentId = draggedCell.ContentId;
-                        // End Restore ID , temp. fix
+                        tempCell.ColumnSpan = hoveredCell.ColumnSpan;
+                        tempCellhover.ColumnSpan = draggedCell.ColumnSpan;
+                        // End Restore ID and rowspan, temp. fix
+
                         // Now, reassign the LayoutCells property to trigger the setter
                         layout.LayoutCells = layout.LayoutCells
                             .Select((cell, index) =>
@@ -512,7 +516,7 @@ namespace CMS.Components.Pages.WebPages
                 int oldColumnSpan = targetCell.ColumnSpan; // Store old ColumnSpan as well
 
                 // Update the RowSpan
-                targetCell.RowSpan = newRowSpan;
+                //targetCell.RowSpan = newRowSpan;
 
                 // Shift cells that will be pushed down by the expanded row span
                 ShiftCellsAfterResize(targetCell, oldRowSpan, newRowSpan, oldColumnSpan, targetCell.ColumnSpan);
@@ -541,16 +545,16 @@ namespace CMS.Components.Pages.WebPages
                 int oldRowSpan = targetCell.RowSpan; // Store old RowSpan as well
 
                 // Update the ColumnSpan
-                targetCell.ColumnSpan = newColumnSpan;
+                //targetCell.ColumnSpan = newColumnSpan;
 
                 // Shift cells that will be pushed to the right due to the expanded column span
                 ShiftCellsAfterResize(targetCell, oldRowSpan, targetCell.RowSpan, oldColumnSpan, newColumnSpan);
 
                 // Re-sort layout to maintain grid order (based on row and column)
-                layout.LayoutCells = layout.LayoutCells
-                    .OrderBy(c => c.Row)
-                    .ThenBy(c => c.Column)
-                    .ToList();
+                //layout.LayoutCells = layout.LayoutCells
+                //    .OrderBy(c => c.Row)
+                //    .ThenBy(c => c.Column)
+                //    .ToList();
 
                 // Optionally, save the new layout order
                 await SaveLayoutChanges(); // Save the layout changes to persistent storage
@@ -562,52 +566,173 @@ namespace CMS.Components.Pages.WebPages
         // Method to shift cells after resizing (either row span or column span)
         private void ShiftCellsAfterResize(LayoutCell targetCell, int oldRowSpan, int newRowSpan, int oldColumnSpan, int newColumnSpan)
         {
-            // Calculate the area affected by the resized cell (both horizontally and vertically)
-            int startRow = targetCell.Row;
-            int endRow = startRow + newRowSpan - 1;
-
-            int startColumn = targetCell.Column;
-            int endColumn = startColumn + newColumnSpan - 1;
-
-            // Adjust the layout for cells that are affected by the resize
-            for (int row = startRow; row <= endRow; row++)
+            if (newColumnSpan > oldColumnSpan)
             {
-                for (int col = startColumn; col <= endColumn; col++)
+                IncreaseColumnSpan(targetCell, oldColumnSpan, newColumnSpan);
+            }
+            else if (newColumnSpan < oldColumnSpan)
+            {
+                
+                    DecreaseColumnSpan(targetCell, oldColumnSpan, newColumnSpan);
+            }
+        }
+
+        private void DecreaseColumnSpan(LayoutCell targetCell, int oldColumnSpan, int newColumnSpan)
+        {
+
+            if (newColumnSpan < oldColumnSpan)
+            {
+                //ToDo: Evaluate if direct use of layout instead of cellsUpToAndIncludingTargetCell would save costs.
+                //Get the cells up to and including targetCell.
+                var cellsUpToAndIncludingTargetCell = layout.LayoutCells
+                  .Where(cell => cell.Row < targetCell.Row || (cell.Row == targetCell.Row && cell.Column <= targetCell.Column))
+                  .ToList();
+
+                //Get the rest of the cells after targetCell.
+                var cellsAfterTargetRow = layout.LayoutCells
+                    .Where(cell => cell.Row > targetCell.Row || (cell.Row == targetCell.Row && cell.Column > targetCell.Column))
+                    .ToList();
+
+                //Assign new columnSpan to targetCell.
+                foreach (var cell in cellsUpToAndIncludingTargetCell)
                 {
-                    var affectedCell = layout.LayoutCells.FirstOrDefault(c =>
-                        c.Row >= startRow && c.Row <= endRow &&
-                        c.Column >= startColumn && c.Column <= endColumn &&
-                        c.ContentId != null);
-
-                    if (affectedCell != null)
-                    {
-                        // Shift the cell in the row and/or column direction depending on whether
-                        // the size increased or decreased.
-                        if (newRowSpan > oldRowSpan)  // Expanding vertically
-                        {
-                            affectedCell.Row++;
-                        }
-                        else if (newRowSpan < oldRowSpan)  // Shrinking vertically
-                        {
-                            affectedCell.Row--;
-                        }
-
-                        if (newColumnSpan > oldColumnSpan)  // Expanding horizontally
-                        {
-                            affectedCell.Column++;
-                        }
-                        else if (newColumnSpan < oldColumnSpan)  // Shrinking horizontally
-                        {
-                            affectedCell.Column--;
-                        }
-
-                        // Ensure cells are reordered properly after shifting
-                        layout.LayoutCells = layout.LayoutCells
-                            .OrderBy(c => c.Row)
-                            .ThenBy(c => c.Column)
-                            .ToList();
-                    }
+                    if (cell.ContentId == targetCell.ContentId)
+                        cell.ColumnSpan = newColumnSpan;
                 }
+
+                //Assign new columnSpan to targetCell.
+                targetCell.ColumnSpan = newColumnSpan;
+
+
+                //List of empty cells used to replace the void created by the reduction of span.
+                List<LayoutCell> replacementCells = new();
+
+                for (int decrease = 1; decrease <= oldColumnSpan - newColumnSpan; decrease++)
+                {
+                    replacementCells.Add( new LayoutCell
+                    {
+                        Row = targetCell.Row,
+                        Column = targetCell.Column + decrease,
+                        ColumnSpan = 1,
+                        RowSpan = 1,
+                        ContentId = null
+                    });
+                }
+
+
+                // Create a list to store the updated LayoutCells
+                var updatedLayoutCells = new List<LayoutCell>();
+
+                if (cellsUpToAndIncludingTargetCell.Count > 0)
+                {
+                    updatedLayoutCells.AddRange(cellsUpToAndIncludingTargetCell);
+                }
+                if (replacementCells.Count > 0)
+                {
+                    updatedLayoutCells.AddRange(replacementCells);
+                }
+                if (cellsAfterTargetRow.Count > 0)
+                { 
+                    updatedLayoutCells.AddRange(cellsAfterTargetRow);
+                }
+
+                // Rebuild the list to trigger setter notification
+                layout.LayoutCells = updatedLayoutCells.Select(cell => new LayoutCell
+                    {
+                        Row = cell.Row,
+                        Column = cell.Column,
+                        ColumnSpan = cell.ColumnSpan,
+                        RowSpan = cell.RowSpan,
+                        ContentId = cell.ContentId
+                    }).ToList();
+            }
+        }
+
+        private void IncreaseColumnSpan(LayoutCell targetCell, int oldColumnSpan, int newColumnSpan)
+        {
+            if (newColumnSpan > oldColumnSpan)
+            {
+                //Variable for calculating available column space left for cell to expand to
+                int availableColumnSpace = 0;
+
+                int NumberOfolumnsLeftOfTargetCell = 0;
+                bool OccupiedColumnFound = false;
+                List<int?> replaceCellsByIndex = new();
+
+                //Get row data
+                var targetRow = layout.LayoutCells
+                  .Select(cell => cell.Row == targetCell.Row ? cell : null)
+                  .ToList();
+
+                //Count columns
+                foreach (var cell in targetRow)
+                {
+                    if (cell != null)
+                    {
+                        //Stop count of available space when occupied column is found.
+                        if (cell.ContentId != null && cell.ContentId != targetCell.ContentId && cell.Column >= targetCell.Column)
+                        {
+                            OccupiedColumnFound = true;
+
+                        }
+
+                        //Count available space until occupied column is found.
+                        if (!OccupiedColumnFound && cell.Column >= targetCell.Column)
+                        {
+                            availableColumnSpace = availableColumnSpace + cell.ColumnSpan;
+
+                            //Store cells index for removing that is not targetCell.
+                            if (cell.ContentId != targetCell.ContentId)
+                            {
+                                replaceCellsByIndex.Add(targetRow.IndexOf(cell));
+                            }
+
+                        }
+
+                        //Count space in front of targetCell.
+                        if (cell.Column < targetCell.Column)
+                        {
+                            NumberOfolumnsLeftOfTargetCell = NumberOfolumnsLeftOfTargetCell + cell.ColumnSpan;
+                        }
+
+                    }
+
+                    // If as much avaliable column space as requested are found stop the evaluation.
+                    if (availableColumnSpace == newColumnSpan)
+                    {
+                        break;
+                    }
+
+                }
+                // Assign available column space if free space is less then requested column space.
+                if (availableColumnSpace < newColumnSpan)
+                {
+                    targetCell.ColumnSpan = availableColumnSpace;
+                }
+                // Assign new column span when there is enough space for requested column span.
+                else
+                {
+                    targetCell.ColumnSpan = newColumnSpan;
+                }
+
+
+                var targetCellIndex = layout.LayoutCells
+                        .Select((cell, index) => new { cell, index })
+                        .FirstOrDefault(x => x.cell.Row == targetCell.Row && x.cell.Column == targetCell.Column && x.cell.ContentId == targetCell.ContentId)?.index;
+                layout.LayoutCells = layout.LayoutCells
+                    .Select((cell, index) =>
+                    {
+                        // Replace the cell if its index matches the target index
+                        if (index == targetCellIndex)  // targetCellIndex is the index of the target cell
+                            return targetCell;  // Replace with the updated target cell
+                        else if (replaceCellsByIndex.Contains(index))//set cells to null 
+                            return null;
+                        else
+                            return cell;  // Otherwise, keep the original cell
+                    })
+                    .Where(cell => cell != null)  // Remove null cells (cells marked for removal)
+                    .ToList();  // Rebuild the list to ensure setter is triggered
+
             }
         }
 
