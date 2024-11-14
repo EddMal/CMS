@@ -51,6 +51,22 @@
                         </div>
 
                         <div class="icon-container">
+                            @if (addRowActive)
+                            {
+                                <a class="btn overlay-btn-main" @onclick="()=> AddRow()" aria-label="Lägg till innehåll" title="Lägg till innehåll">
+                                    <i class="fa fa-plus-square-o fa-2x" style="margin-top:2px;" aria-hidden="true"></i>
+                                </a>
+                            }
+                            else
+                            {
+                                <a class="btn overlay-btn-main" @onclick="()=> AddRow()" aria-label="Lägg till innehåll" title="Lägg till innehåll">
+                                    <i class="fa fa-plus-square-o fa-2x" style="margin-top:2px;" aria-hidden="true"></i>
+                                </a>
+                            }
+                            <span class="icon-text">Lägg till</span>
+                        </div>
+
+                        <div class="icon-container">
                             <a class="btn overlay-btn-main" @onclick="()=> EditPageinformation()" aria-label="Redigera sidinformation" title="Redigera sidinformation">
                                 <i class="fa fa-cog fa-2x" aria-hidden="true"></i>
                             </a>
