@@ -40,9 +40,15 @@ namespace CMS.Components.Pages.WebPages
 
         private bool addRowActive = false;
 
+        private bool moveRowActive = false;
+
         private LayoutCell? draggedCell { get; set; } = null;
 
         private LayoutCell? hoveredCell { get; set; } = null;
+
+        private int? draggedRow { get; set; } = null;
+
+        private int? hoveredRow { get; set; } = null;
         public WebPageLayout? layout { get; set; } = new WebPageLayout();
 
         public LayoutCell? layoutCell { get; set; } = null;
@@ -136,30 +142,30 @@ namespace CMS.Components.Pages.WebPages
                 for (int i = 0; i < totalContents; i++)
                 {
                     //If header navigation bar or footer set content for entire rowShift
-                    if(Contents[contentIndex].TemplateId == 6 ||
+                    if (Contents[contentIndex].TemplateId == 6 ||
                         Contents[contentIndex].TemplateId == 7 ||
                         Contents[contentIndex].TemplateId == 9)
-                    {   
-                            newLayoutCells.Add(new LayoutCell
-                            {
-                                ContentId = Contents[contentIndex++].ContentId, // Add the content for the first column
-                                Row = row,
-                                Column = column,
-                                ColumnSpan = cellsPerRow
-                            });
-                            // Move to the next rowShift
-                            row++;
-                            column = 1; // Reset column to 1 for the next rowShift
+                    {
+                        newLayoutCells.Add(new LayoutCell
+                        {
+                            ContentId = Contents[contentIndex++].ContentId, // Add the content for the first column
+                            Row = row,
+                            Column = column,
+                            ColumnSpan = cellsPerRow
+                        });
+                        // Move to the next rowShift
+                        row++;
+                        column = 1; // Reset column to 1 for the next rowShift
                     }
                     else
-                    { 
-                    // First column in each rowShift will hold content
-                    newLayoutCells.Add(new LayoutCell
                     {
-                        ContentId = Contents[contentIndex++].ContentId, // Add the content for the first column
-                        Row = row,
-                        Column = column
-                    });
+                        // First column in each rowShift will hold content
+                        newLayoutCells.Add(new LayoutCell
+                        {
+                            ContentId = Contents[contentIndex++].ContentId, // Add the content for the first column
+                            Row = row,
+                            Column = column
+                        });
                         // Fill the remaining 11 columns with null ContentId
                         for (int j = 1; j < cellsPerRow; j++)  // Start from column 2 to 12
                         {
@@ -201,6 +207,18 @@ namespace CMS.Components.Pages.WebPages
             {
                 CreateNewRow();
                 addRowActive = true;
+            }
+        }
+
+        private void DragRow()
+        {
+            if (moveRowActive)
+            {
+                moveRowActive = false;
+            }
+            else
+            {
+                moveRowActive = true;
             }
         }
 
@@ -364,6 +382,8 @@ namespace CMS.Components.Pages.WebPages
 
 
         }
+
+
 
         // Method to update ColumnSpan for a cell
         private async Task UpdateColumnSpan(LayoutCell cell, int newColumnSpan)
@@ -560,6 +580,76 @@ namespace CMS.Components.Pages.WebPages
 
             }
         }
+        private void SwapCellsPositions(int? draggedCellIndex, int? targetCellIndex, LayoutCell hoveredCell, LayoutCell draggedCell)
+        {
+            //ToDo: move checks in to this method.
+
+            // Reassign the LayoutCells property to trigger the setter
+            layout.LayoutCells = layout.LayoutCells
+                .Select((cell, index) =>
+                {
+                    if (index == draggedCellIndex.Value)
+                        return hoveredCell;
+                    else if (index == targetCellIndex.Value)
+                        return draggedCell;
+                    else
+                        return cell;
+                })
+                .ToList(); // Rebuild the list to ensure the setter is triggered
+
+            if (hoveredCell.ColumnSpan != draggedCell.ColumnSpan)
+            {
+                ShiftCellsAfterResize(hoveredCell, hoveredCell.ColumnSpan, draggedCell.ColumnSpan);
+                ShiftCellsAfterResize(draggedCell, draggedCell.ColumnSpan, hoveredCell.ColumnSpan);
+            }
+
+            //ToDo: Evaluate, is still needed?
+            // Sort the layout cells by Row and Column to ensure they are in the correct grid order
+            layout.LayoutCells = layout.LayoutCells
+                .OrderBy(cell => cell.Row) // First, order by Row
+                .ThenBy(cell => cell.Column) // Then, order by Column
+                .ToList(); // Rebuild the list to apply sorting
+                           // End is still needed?
+
+            Console.WriteLine("Layout updated: Cells swapped.");
+
+        }
+
+        // Method for start of moving layout row
+        private void OnDragStartRow(int cellRow)
+        {
+            draggedRow = cellRow;
+        }
+
+        // Method reading hovered row
+        private void OnDragOverRow(int cellRow)
+        {
+            hoveredRow = cellRow;
+        }
+
+        // Method for handling en of moving layout row
+        private void OnDragEndRowAsync(DragEventArgs e)
+        {
+            if (draggedRow != null)
+            {
+                if (hoveredRow != null)
+                {
+                    Console.WriteLine("Drag ended.");
+                    List<LayoutCell> draggedLayoutCells = layout.LayoutCells.Where(c => c.Row == draggedRow).ToList();
+                    InsertRowInLayout(draggedLayoutCells, (int)hoveredRow);
+                }
+                else 
+                {
+                    Console.WriteLine("No suitable row for moving selected row was found.");
+                }
+                
+            }
+            else
+            {
+                Console.WriteLine("No row selected for moving");
+            }
+            
+        }
 
         // Method for creating a new rowShift for layout.
         private void CreateNewRow(Content? addedContent = null)
@@ -568,7 +658,6 @@ namespace CMS.Components.Pages.WebPages
             // Create a new list to hold layout cells
             var newLayoutCells = new List<LayoutCell>();
             int cellsPerRow = 12; // Number of cells per rowShift
-            int contentIndex = 0;
             int column = 1;
             int row = 1;
             if (addedContent != null)
@@ -626,19 +715,35 @@ namespace CMS.Components.Pages.WebPages
                 Console.WriteLine("Layout updated: Empty rowShift added.");
             }
 
-            SwapRows(newLayoutCells);
+            InsertRowInLayout(newLayoutCells);
+            moveRowActive = true;
         }
 
-        private void SwapRows(List<LayoutCell> newLayoutCells)
-        {
-            //ToDo: Change to accept a input for rowShift and handle insertion based on rowinput:
 
-            // Get existing layout.
-            var oldLayoutcells = layout.LayoutCells;
-            // Variable for shifting old layouts rows.
-            int rowShift = 2;
-            //Start shifting rows of the old layout.
-            foreach (var cell in oldLayoutcells) 
+        private void InsertRowInLayout(List<LayoutCell> layoutRow, int oldRownumber, int rowNumber = 1, int? MoveExistingRow = null)
+        {
+            // When new row is added get all rows except the old position.
+            if (MoveExistingRow != null) 
+            {
+                // Get existing layout excluding the old row.
+                List<LayoutCell> rowsBeforeMovedRow = layout.LayoutCells.Where(c => c.Row < rowNumber && c.Row != oldRownumber).ToList();
+                List<LayoutCell> rowsAfterMovedRow = layout.LayoutCells.Where(c => c.Row > rowNumber && c.Row != oldRownumber).ToList();
+                List<LayoutCell> newLayout = new();
+            }
+            // When new row is added extract all content.
+            else 
+            {
+                // Get existing layout.
+                List<LayoutCell> rowsBeforeMovedRow = layout.LayoutCells.Where(c => c.Row < rowNumber).ToList();
+                List<LayoutCell> rowsAfterMovedRow = layout.LayoutCells.Where(c => c.Row >= rowNumber).ToList();
+            List<LayoutCell> newLayout = new();
+            }
+
+            // Variable for shifting layouts rows after moved row.
+            int rowShift = rowNumber + 1;
+
+            //Shifting rows after the new row.
+            foreach (var cell in rowsAfterMovedRow) 
             {
                 if(cell.Row != rowShift-1)
                 { 
@@ -646,13 +751,32 @@ namespace CMS.Components.Pages.WebPages
                 }
                 cell.Row = rowShift;
             }
+            if (MoveExistingRow != null)
+            {
+                //Format rows after as well
+            }
 
-            // Assign the layouts layout cells with shifted rows to list
-            newLayoutCells.AddRange(oldLayoutcells);
+            // Assign the layouts first row/s
+            if (rowsBeforeMovedRow.Count > 0)
+            {
+                newLayout.AddRange(rowsBeforeMovedRow);
+            }
+
+            // Assign the moved row
+            if (layoutRow.Count > 0)
+            {
+                newLayout.AddRange(layoutRow);
+            }
+
+            // Assign the layouts last rows with shifted row numbers.
+            if (rowsAfterMovedRow.Count > 0)
+            {
+                newLayout.AddRange(rowsAfterMovedRow);
+            }
 
 
             // Rebuild the list to trigger setter notification
-            layout.LayoutCells = newLayoutCells.Select(cell => new LayoutCell
+            layout.LayoutCells = newLayout.Select(cell => new LayoutCell
             {
                 Row = cell.Row,
                 Column = cell.Column,
@@ -660,40 +784,6 @@ namespace CMS.Components.Pages.WebPages
                 RowSpan = cell.RowSpan,
                 ContentId = cell.ContentId
             }).ToList();
-        }
-
-        private void SwapCellsPositions(int? draggedCellIndex, int? targetCellIndex, LayoutCell hoveredCell, LayoutCell draggedCell)
-        {
-            //ToDo: move checks in to this method.
-          
-            // Reassign the LayoutCells property to trigger the setter
-            layout.LayoutCells = layout.LayoutCells
-                .Select((cell, index) =>
-                {
-                    if (index == draggedCellIndex.Value)
-                        return hoveredCell;
-                    else if (index == targetCellIndex.Value)
-                        return draggedCell;
-                    else
-                        return cell;
-                })
-                .ToList(); // Rebuild the list to ensure the setter is triggered
-
-            if(hoveredCell.ColumnSpan != draggedCell.ColumnSpan)
-            {
-                ShiftCellsAfterResize(hoveredCell, hoveredCell.ColumnSpan, draggedCell.ColumnSpan);
-                ShiftCellsAfterResize(draggedCell, draggedCell.ColumnSpan, hoveredCell.ColumnSpan);
-            }
-
-            //ToDo: Evaluate, is still needed?
-            // Sort the layout cells by Row and Column to ensure they are in the correct grid order
-            layout.LayoutCells = layout.LayoutCells
-                .OrderBy(cell => cell.Row) // First, order by Row
-                .ThenBy(cell => cell.Column) // Then, order by Column
-                .ToList(); // Rebuild the list to apply sorting
-                            // End is still needed?
-
-            Console.WriteLine("Layout updated: Cells swapped.");
 
         }
 
