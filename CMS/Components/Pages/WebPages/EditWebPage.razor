@@ -50,21 +50,6 @@
                             <span class="icon-text">Lägg till</span>
                         </div>
 
-                        <div class="icon-container">
-                            @if (addRowActive)
-                            {
-                                <a class="btn overlay-btn-main" @onclick="()=> AddRow()" aria-label="Lägg till innehåll" title="Lägg till innehåll">
-                                    <i class="fa fa-plus-square-o fa-2x" style="margin-top:2px;" aria-hidden="true"></i>
-                                </a>
-                            }
-                            else
-                            {
-                                <a class="btn overlay-btn-main" @onclick="()=> AddRow()" aria-label="Lägg till innehåll" title="Lägg till innehåll">
-                                    <i class="fa fa-plus-square-o fa-2x" style="margin-top:2px;" aria-hidden="true"></i>
-                                </a>
-                            }
-                            <span class="icon-text">Lägg till</span>
-                        </div>
 
                         <div class="icon-container">
                             <a class="btn overlay-btn-main" @onclick="()=> EditPageinformation()" aria-label="Redigera sidinformation" title="Redigera sidinformation">
@@ -78,7 +63,24 @@
                                 <i class="fa fa-mail-reply fa-2x" aria-hidden="true"></i>
                         </a>
                             <span class="icon-text">Tillbaka</span>
-                    </div>
+                        </div>
+
+                        <div class="icon-container">
+                            @if (addRowActive)
+                            {
+                            <a class="btn overlay-btn-main" @onclick="()=> AddRow()" aria-label="Ny innehållsrad" title="Ny innehållsrad">
+                                    <i class="fa fa-times fa-2x" style="margin-top:2px;" aria-hidden="true"></i>
+                                </a>
+                            <span class="icon-text">Ny innehållsrad</span>
+                            }
+                            else
+                            {
+                            <a class="btn overlay-btn-main" @onclick="()=> AddRow()" aria-label="Avbryt" title="Avbryt">
+                                <i class="fa fa-hand-pointer-o fa-2x" style="margin-top:2px; transform: rotate(180deg);" aria-hidden="true"></i>
+                                </a>
+                            <span class="icon-text">Ny innehållsrad</span>
+                            }
+                        </div>
 
                         <div class="icon-container">
                             <a class="btn overlay-btn-main-ghost" @onclick="()=> HideTools()" aria-label="Förhandgranska" title="Förhandgranska">
@@ -381,132 +383,6 @@
     }
 }
 }
-@*  VERSION 3: rowSpan and columnSpan *@
-@* <div class="containerEditWebPageContentLayoutGrid" style="display: grid; grid-template-columns: repeat(12, 1fr); grid-gap: 10px;">
-    @foreach (var cell in layout.LayoutCells)
-    {
-        // Find content for the cell
-        var content = Contents.FirstOrDefault(l => l.ContentId == cell.ContentId);
-
-        if (cell != null)
-        {
-            <div class="content-item-layout-grid"
-                 draggable="true"
-                 @ondragstart="(e) => OnDragStart(e, cell)"
-                 @ondragend="(e) => OnDragEndAsync(e)"
-                 @ondragover="(e) => OnDragOver(e, cell.Row, cell.Column, cell.ContentId)"
-                 style="grid-row: @cell.Row; grid-column: @cell.Column;
-                        grid-row-end: span @cell.RowSpan;
-                        grid-column-end: span @cell.ColumnSpan;
-                        position: relative;"
-                 data-content-id="@cell.ContentId">
-
-                @if (cell.ContentId != null)
-                {
-                    <ContentPreview ContentId="@cell.ContentId.Value" @key="@cell.ContentId" />
-
-                    <div class="containerEditWebPagebuttons">
-                        <div class="button-container">
-                            <a class="btn overlay-btn-edit" @onclick="() => EditContent(content)" aria-label="Redigera" title="Redigera">
-                                <i class="fa fa-pencil fa-2x" aria-hidden="true"></i>
-                            </a>
-                            <a class="btn overlay-btn-delete" @onclick="() => DeleteContent(content.ContentId)" aria-label="Ta bort" title="Radera">
-                                <i class="fa fa-trash-o fa-2x" aria-hidden="true"></i>
-                            </a>
-                        </div>
-                    </div>
-                }
-                else
-                {
-                    <p style="color:white;">EMPTY</p>
-                }
-            </div>
-        }
-    }
-</div> *@
-
-@*  VERSION 2: works along vid version 2 (event handler at drop end)in EditWebpage.razor.cs *@
-@* <div class="containerEditWebPageContentLayoutGrid" style="display: grid; grid-template-columns: repeat(12, 1fr); grid-gap: 10px;">
-    @foreach (var cell in layout.LayoutCells)
-    {
-        // Find content for the cell
-        var content = Contents.FirstOrDefault(l => l.ContentId == cell.ContentId);
-
-        if (cell != null)
-        {
-            <div class="content-item-layout-grid"
-                 draggable="true"
-                 @ondragstart="(e) => OnDragStart(e, cell)"
-                 @ondragend="(e) => OnDragEndAsync(e)"
-                 @ondragover="(e) => OnDragOver(e, cell.Row, cell.Column, cell.ContentId)"
-                 style="grid-row: @cell.Row; grid-column: @cell.Column; position: relative;"
-                 data-content-id="@cell.ContentId">
-
-                @if (cell.ContentId != null)
-                {
-                    <ContentPreview ContentId="@cell.ContentId.Value" @key="@cell.ContentId" />
-
-                    <div class="containerEditWebPagebuttons">
-                        <div class="button-container">
-                            <a class="btn overlay-btn-edit" @onclick="() => EditContent(content)" aria-label="Redigera" title="Redigera">
-                                <i class="fa fa-pencil fa-2x" aria-hidden="true"></i>
-                            </a>
-                            <a class="btn overlay-btn-delete" @onclick="() => DeleteContent(content.ContentId)" aria-label="Ta bort" title="Radera">
-                                <i class="fa fa-trash-o fa-2x" aria-hidden="true"></i>
-                            </a>
-                        </div>
-                    </div>
-                }
-                else
-                {
-                    <p style="color:white;">EMPTY</p>
-                }
-            </div>
-        }
-    }
-
-</div> *@
-
-
-@*  VERSION 1: works along vid version 1 (event handler at drop end)in EditWebpage.razor.cs *@
- @* @foreach (var cell in layout.LayoutCells)
-        {
-            // Find content for the cell
-            var content = Contents.FirstOrDefault(l => l.ContentId == cell.ContentId);
-
-            if (cell != null)
-            {
-                <div class="containerEditWebPageContentLayoutGrid">
-                    <div class="content-item-layout-grid"
-                         draggable="true"
-                         @ondragstart="(e) => OnDragStart(e, cell)"
-                         @ondragend="(e) => OnDragEndAsync(e)"
-                         @ondragover="(e) => OnDragOver(e, cell.Row, cell.Column, cell.ContentId)"
-                         style="grid-row: @cell.Row; grid-column: @cell.Column; position: relative;"
-                         data-content-id="@cell.ContentId">
-
-                        @if (cell.ContentId != null)
-                        {
-                            <ContentPreview ContentId="@cell.ContentId.Value" @key="@cell.ContentId" />
-
-                            <div class="containerEditWebPagebuttons">
-                                <div class="button-container">
-                                    <a class="btn overlay-btn-edit" @onclick="() => EditContent(content)" aria-label="Redigera" title="Redigera">
-                                        <i class="fa fa-pencil fa-2x" aria-hidden="true"></i>
-                                    </a>
-                                    <a class="btn overlay-btn-delete" @onclick="() => DeleteContent(content.ContentId)" aria-label="Ta bort" title="Radera">
-                                        <i class="fa fa-trash-o fa-2x" aria-hidden="true"></i>
-                                    </a>
-                                </div>
-                            </div>
-                        }
-                        else
-                        {
-                            <p style="color:white;">EMPTY</p>
-                        }
-                    </div>
-                </div>
-            } *@
 
 <style>
     :root {

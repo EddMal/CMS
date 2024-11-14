@@ -83,9 +83,16 @@ namespace CMS.Components.Pages.WebPages
                 // Fetch content filtered by WebPageId
                 Contents = context.Contents.Where(c => c.WebPageId == WebPageId.Value).ToList();
 
-                var CurrentWebPageLayout = await LayoutService.GetLayoutAsync(WebPageId.Value);
-                // Initial population of layout cells and content
-                GetLayout(CurrentWebPageLayout);
+                if (Contents.Count > 0)
+                {
+                    var CurrentWebPageLayout = await LayoutService.GetLayoutAsync(WebPageId.Value);
+                    // Initial population of layout cells and content
+                    GetLayout(CurrentWebPageLayout);
+                }
+                else
+                {
+                    CreateNewRow();
+                }
             }
             else
             {
@@ -114,20 +121,21 @@ namespace CMS.Components.Pages.WebPages
             // If layout or LayoutCells is null or empty, generate new layout using Contents
             if (webPageLayout == null || webPageLayout.LayoutCells == null || !webPageLayout.LayoutCells.Any())
             {
+                //ToDo: optimize and alter CreateNewRow() method and replace the seeding code eith method:
                 // Create a new list to hold layout cells
                 var newLayoutCells = new List<LayoutCell>();
 
-                int cellsPerRow = 12; // Number of cells per row
+                int cellsPerRow = 12; // Number of cells per rowShift
                 int totalContents = Contents.Count;
 
                 int contentIndex = 0;
                 int row = 1;
                 int column = 1;
 
-                // Loop through each content and create a row for each one
+                // Loop through each content and create a rowShift for each one
                 for (int i = 0; i < totalContents; i++)
                 {
-                    //If header navigation bar or footer set content for entire row
+                    //If header navigation bar or footer set content for entire rowShift
                     if(Contents[contentIndex].TemplateId == 6 ||
                         Contents[contentIndex].TemplateId == 7 ||
                         Contents[contentIndex].TemplateId == 9)
@@ -139,13 +147,13 @@ namespace CMS.Components.Pages.WebPages
                                 Column = column,
                                 ColumnSpan = cellsPerRow
                             });
-                            // Move to the next row
+                            // Move to the next rowShift
                             row++;
-                            column = 1; // Reset column to 1 for the next row
+                            column = 1; // Reset column to 1 for the next rowShift
                     }
                     else
                     { 
-                    // First column in each row will hold content
+                    // First column in each rowShift will hold content
                     newLayoutCells.Add(new LayoutCell
                     {
                         ContentId = Contents[contentIndex++].ContentId, // Add the content for the first column
@@ -163,9 +171,9 @@ namespace CMS.Components.Pages.WebPages
                             });
                         }
 
-                        // Move to the next row
+                        // Move to the next rowShift
                         row++;
-                        column = 1; // Reset column to 1 for the next row
+                        column = 1; // Reset column to 1 for the next rowShift
                     }
 
                 }
@@ -191,9 +199,11 @@ namespace CMS.Components.Pages.WebPages
             }
             else
             {
+                CreateNewRow();
                 addRowActive = true;
             }
         }
+
         private void EditContent(Content content)
         {
             ContentForEditing = content.ContentId;
@@ -203,7 +213,6 @@ namespace CMS.Components.Pages.WebPages
         }
         private void AddContent()
         {
-
             ContentForEditing = null;
             PageExecution = ExecuteAction.CreateContent;
         }
@@ -343,7 +352,7 @@ namespace CMS.Components.Pages.WebPages
         private void OnDragOver(DragEventArgs e, int row, int column, int? contentId)
         {
             //ToDo: Add column span:
-            // Update the hovered cell using the row, column, and ContentId passed
+            // Update the hovered cell using the rowShift, column, and ContentId passed
             hoveredCell = layout.LayoutCells.FirstOrDefault(cell =>
                 cell.Row == row && cell.Column == column && cell.ContentId == contentId);
 
@@ -376,7 +385,7 @@ namespace CMS.Components.Pages.WebPages
             }
         }
 
-        // Method to shift cells after resizing (either row span or column span)
+        // Method to shift cells after resizing (either rowShift span or column span)
         private void ShiftCellsAfterResize(LayoutCell targetCell, int oldColumnSpan, int newColumnSpan)
         {
             if (targetCell.ContentId == null)
@@ -476,7 +485,7 @@ namespace CMS.Components.Pages.WebPages
                 bool OccupiedColumnFound = false;
                 List<int?> replaceCellsByIndex = new();
 
-                //Get row data
+                //Get rowShift data
                 var targetRow = layout.LayoutCells
                   .Select(cell => cell.Row == targetCell.Row ? cell : null)
                   .ToList();
@@ -552,36 +561,106 @@ namespace CMS.Components.Pages.WebPages
             }
         }
 
-
-        // Method to save layout changes
-        private async Task SaveLayoutChanges()
+        // Method for creating a new rowShift for layout.
+        private void CreateNewRow(Content? addedContent = null)
         {
-            // Update LayoutCells in the database
-            var layoutSave = await LayoutService.GetLayoutAsync(WebPageId.Value);
-            if (layoutSave != null)
+            //ToDo: optimize
+            // Create a new list to hold layout cells
+            var newLayoutCells = new List<LayoutCell>();
+            int cellsPerRow = 12; // Number of cells per rowShift
+            int contentIndex = 0;
+            int column = 1;
+            int row = 1;
+            if (addedContent != null)
             {
-                layoutSave.UserId = userId;
-                layoutSave.LastUpdated = DateOnly.FromDateTime(DateTime.Now);
-                layoutSave.LayoutCellsSerialized = JsonConvert.SerializeObject(layout.LayoutCells);
-                await LayoutService.UpdateLayoutAsync(layoutSave);
-                Console.WriteLine("Layout updates saved!");
+                //If header navigation bar or footer set content for entire rowShift
+                if (addedContent.TemplateId == 6 ||
+                    addedContent.TemplateId == 7 ||
+                    addedContent.TemplateId == 9)
+                {
+                    newLayoutCells.Add(new LayoutCell
+                    {
+                        ContentId = addedContent.ContentId, // Add the content for the first column
+                        Row = row,
+                        Column = column,
+                        ColumnSpan = cellsPerRow
+                    });
+
+                    column = 1; // Reset column to 1 for the next rowShift
+                }
+                else
+                {
+                    // First column in each rowShift will hold content
+                    newLayoutCells.Add(new LayoutCell
+                    {
+                        ContentId = addedContent.ContentId, // Add the content for the first column
+                        Row = row,
+                        Column = column
+                    });
+                    // Fill the remaining 11 columns with null ContentId
+                    for (int j = 1; j < cellsPerRow; j++)  // Start from column 2 to 12
+                    {
+                        newLayoutCells.Add(new LayoutCell
+                        {
+                            ContentId = null, // Empty cell
+                            Row = row,
+                            Column = column + j
+                        });
+                    }
+
+                }
+                Console.WriteLine("Layout updated: Content and rowShift added.");
             }
             else
             {
-                layoutSave = new WebPageLayout()
+                // Fill the remaining 11 columns with null ContentId
+                for (int j = 0; j < cellsPerRow; j++)  // Start from column 2 to 12
                 {
-                    CreationDate = DateOnly.FromDateTime(DateTime.Now),
-                    LastUpdated = DateOnly.FromDateTime(DateTime.Now),
-                    UserId = userId,
-                    WebPageIdForLayout = WebPageId,
-                    LayoutCellsSerialized = JsonConvert.SerializeObject(layout.LayoutCells)
-                };
-                await LayoutService.SaveLayoutAsync(layoutSave);
-                Console.WriteLine("New layout saved!");
+                    newLayoutCells.Add(new LayoutCell
+                    {
+                        ContentId = null, // Empty cell
+                        Row = row,
+                        Column = column + j
+                    });
+                }
+                Console.WriteLine("Layout updated: Empty rowShift added.");
             }
 
+            SwapRows(newLayoutCells);
         }
-    
+
+        private void SwapRows(List<LayoutCell> newLayoutCells)
+        {
+            //ToDo: Change to accept a input for rowShift and handle insertion based on rowinput:
+
+            // Get existing layout.
+            var oldLayoutcells = layout.LayoutCells;
+            // Variable for shifting old layouts rows.
+            int rowShift = 2;
+            //Start shifting rows of the old layout.
+            foreach (var cell in oldLayoutcells) 
+            {
+                if(cell.Row != rowShift-1)
+                { 
+                    rowShift++;
+                }
+                cell.Row = rowShift;
+            }
+
+            // Assign the layouts layout cells with shifted rows to list
+            newLayoutCells.AddRange(oldLayoutcells);
+
+
+            // Rebuild the list to trigger setter notification
+            layout.LayoutCells = newLayoutCells.Select(cell => new LayoutCell
+            {
+                Row = cell.Row,
+                Column = cell.Column,
+                ColumnSpan = cell.ColumnSpan,
+                RowSpan = cell.RowSpan,
+                ContentId = cell.ContentId
+            }).ToList();
+        }
 
         private void SwapCellsPositions(int? draggedCellIndex, int? targetCellIndex, LayoutCell hoveredCell, LayoutCell draggedCell)
         {
@@ -615,6 +694,35 @@ namespace CMS.Components.Pages.WebPages
                             // End is still needed?
 
             Console.WriteLine("Layout updated: Cells swapped.");
+
+        }
+
+        // Method to save layout changes
+        private async Task SaveLayoutChanges()
+        {
+            // Update LayoutCells in the database
+            var layoutSave = await LayoutService.GetLayoutAsync(WebPageId.Value);
+            if (layoutSave != null)
+            {
+                layoutSave.UserId = userId;
+                layoutSave.LastUpdated = DateOnly.FromDateTime(DateTime.Now);
+                layoutSave.LayoutCellsSerialized = JsonConvert.SerializeObject(layout.LayoutCells);
+                await LayoutService.UpdateLayoutAsync(layoutSave);
+                Console.WriteLine("Layout updates saved!");
+            }
+            else
+            {
+                layoutSave = new WebPageLayout()
+                {
+                    CreationDate = DateOnly.FromDateTime(DateTime.Now),
+                    LastUpdated = DateOnly.FromDateTime(DateTime.Now),
+                    UserId = userId,
+                    WebPageIdForLayout = WebPageId,
+                    LayoutCellsSerialized = JsonConvert.SerializeObject(layout.LayoutCells)
+                };
+                await LayoutService.SaveLayoutAsync(layoutSave);
+                Console.WriteLine("New layout saved!");
+            }
 
         }
     }
