@@ -66,19 +66,26 @@
                         </div>
 
                         <div class="icon-container">
-                            @if (addRowActive)
-                            {
-                            <a class="btn overlay-btn-main" @onclick="()=> AddRow()" aria-label="Ny innehållsrad" title="Ny innehållsrad">
-                                    <i class="fa fa-times fa-2x" style="margin-top:2px;" aria-hidden="true"></i>
-                                </a>
+                            <a class="btn overlay-btn-main" @onclick="()=> AddRow()" aria-label="Lägg till innehållsrad" title="Lägg till innehållsrad">
+                                <i class="fa fa-hand-pointer-o fa-2x" style="margin-top:2px; transform: rotate(180deg);" aria-hidden="true"></i>
+                            </a>
                             <span class="icon-text">Ny innehållsrad</span>
+                        </div>
+
+                        <div class="icon-container">
+                            @if (moveRowActive)
+                            {
+                                <a class="btn overlay-btn-main" @onclick="()=> DragRows()" aria-label="Flytta rad" title="Flytta rad">
+                                    <i class="fa fa-times" style="margin-top:0px;" aria-hidden="true"></i>
+                                </a>
+                                <span class="icon-text">Avbryt</span>
                             }
                             else
                             {
-                            <a class="btn overlay-btn-main" @onclick="()=> AddRow()" aria-label="Avbryt" title="Avbryt">
-                                <i class="fa fa-hand-pointer-o fa-2x" style="margin-top:2px; transform: rotate(180deg);" aria-hidden="true"></i>
+                                <a class="btn overlay-btn-main" @onclick="()=> DragRows()" aria-label="Avbryt" title="Avbryt">
+                                        <i class="fa fa-arrows fa-2x" style="margin-top:2px; transform: rotate(180deg);" aria-hidden="true"></i>
                                 </a>
-                            <span class="icon-text">Ny innehållsrad</span>
+                            <span class="icon-text">Flytta rad</span>
                             }
                         </div>
 

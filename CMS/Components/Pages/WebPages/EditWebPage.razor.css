@@ -269,11 +269,12 @@ header, .navbar, footer {
 }
 
     .content-item-layout.dragging {
-        opacity: 0.5; /* Make the item semi-transparent when dragged */
+        cursor: pointer;
     }
 
     .content-item-layout.drag-over {
         border: 2px dashed #ccc; /* Highlight the target area when dragging */
+        cursor: pointer;
     }
 
 .grid-edit-controls {
