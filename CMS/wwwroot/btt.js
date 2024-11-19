@@ -1,6 +1,6 @@
 ﻿$(document).ready(function () {
     /* Back to Top button */
-    bttbutton = document.getElementById("back-to-top-btn");
+    var bttbutton = document.getElementById("back-to-top-btn");
     // When the user scrolls down 50px from the top of the document, show the button
     window.onscroll = function () { scrollFunction() };
     function scrollFunction() {

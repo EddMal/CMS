@@ -223,6 +223,8 @@ header, .navbar, footer {
     position: relative;
 }
 
+
+
 .content-item-Layout {
     position: relative;
     padding: 10px;
@@ -240,7 +242,7 @@ header, .navbar, footer {
     width: 100%;
     height: 100%;
     /* Ensure it accepts drops */
-    border: 2px dashed #ccc;
+    /*border: 2px dashed #ccc;*/
 }
 
 @media (max-width: 1024px) {
@@ -263,17 +265,39 @@ header, .navbar, footer {
 
 .content-item-layout-grid {
     /* Ensure it accepts drops */
-    border: 2px dashed #ccc;
+    //border: 2px dashed #ccc;
     will-change: transform, top, left;
     transition: all 0.3s ease; /* Smooth transition */
 }
 
-    .content-item-layout.dragging {
+.content-item-layout-grid:Hover {
+    cursor: pointer;
+    background-color: grey;
+    border: solid;
+    border-color: grey;
+}
+
+    .content-item-layout-grid.dragging {
+        opacity: 1!important;
+        cursor: move !important;
+        opacity: 1 !important;
+        border: 2px dashed #ccc; /* Highlight the target area when dragging */
+    }
+
+    .dragging {
+        opacity: 1 !important;
+        cursor: move !important;
+        opacity: 1 !important;
+        border: 2px dashed #ccc; /* Highlight the target area when dragging */
+    }
+
+    .content-item-layout-grid.drag-over {
+        border: 2px dashed #ccc; /* Highlight the target area when dragging */
         cursor: pointer;
     }
 
-    .content-item-layout.drag-over {
-        border: 2px dashed #ccc; /* Highlight the target area when dragging */
+    .content-item-layout-grid.drag-hover {
+        background-color: grey;
         cursor: pointer;
     }
 
@@ -306,3 +330,4 @@ header, .navbar, footer {
     .grid-edit-controls input {
         margin-bottom: 10px;
     }
+

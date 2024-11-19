@@ -12,6 +12,7 @@ using Newtonsoft.Json;
 using Microsoft.JSInterop;
 using CMS.Services;
 using Microsoft.DotNet.Scaffolding.Shared.CodeModifier.CodeChange;
+using System.Drawing;
 namespace CMS.Components.Pages.WebPages
 {
     //ToDO: Chanfe variables name from ec. WebSiteId to webSiteId
@@ -30,7 +31,6 @@ namespace CMS.Components.Pages.WebPages
         private int? ContentForEditing { get; set; } = null;
 
         public int ContentId { get; set; }
-
 
         public Content? Content { get; set; }
 
@@ -200,6 +200,11 @@ namespace CMS.Components.Pages.WebPages
             StateHasChanged();
         }
 
+        //private async Task ShowAlert()
+        //{
+        //    // Call the JavaScript function using JS Interop
+        //    await JS.InvokeVoidAsync("showAlert");
+        //}
         private void AddRow()
         {
             if (addRowActive)
@@ -291,16 +296,23 @@ namespace CMS.Components.Pages.WebPages
 
         public async ValueTask DisposeAsync() => await context.DisposeAsync();
 
-        //DRAG and drop content order
+        //Drag and drop content order
 
         // Event handler for drag start
-        private void OnDragStart(DragEventArgs e, LayoutCell layoutCell)
+        private async Task OnDragStart(DragEventArgs e, LayoutCell layoutCell)
         {
-            // Store the dragged cell
-            draggedCell = layoutCell;
-            // Optional: you can use DataTransfer here, but Blazor doesn't expose it directly.
-            // If needed, we can store some information in a custom attribute or pass via JS.
-            Console.WriteLine($"Started dragging: {layoutCell.ContentId}");
+            if (layoutCell.ContentId != null)
+            {
+                // Store the dragged cell
+                draggedCell = layoutCell;
+                // Optional: you can use DataTransfer here, but Blazor doesn't expose it directly.
+                // If needed, we can store some information in a custom attribute or pass via JS.
+                Console.WriteLine($"Started dragging: {layoutCell.ContentId}");
+            }
+            else 
+            {
+                Console.WriteLine($"Empty cell, operation aborted.");
+            }
         }
 
         private async Task OnDragEndAsync(DragEventArgs e)
@@ -700,7 +712,7 @@ namespace CMS.Components.Pages.WebPages
                     {
                         Console.WriteLine("Drag ended.");
                         List<LayoutCell> draggedLayoutCells = layout.LayoutCells.Where(c => c.Row == draggedRow).ToList();
-                        InsertRowInLayout(draggedLayoutCells, draggedRow, (int)hoveredRow, true);
+                        await InsertRowInLayout(draggedLayoutCells, draggedRow, (int)hoveredRow, true);
                         // Save the new layout order
                         await SaveLayoutChanges();
                         StateHasChanged();  // To refresh the UI
@@ -724,7 +736,7 @@ namespace CMS.Components.Pages.WebPages
         }
 
         // Method for creating a new rowShift for layout.
-        private void CreateNewRow(Content? addedContent = null)
+        private async Task CreateNewRow(Content? addedContent = null)
         {
             //ToDo: optimize
             // Create a new list to hold layout cells
@@ -786,11 +798,11 @@ namespace CMS.Components.Pages.WebPages
                 Console.WriteLine("Layout updated: Empty rowShift added.");
             }
 
-            InsertRowInLayout(newLayoutCells);
+            await InsertRowInLayout(newLayoutCells);
         }
 
 
-        private void InsertRowInLayout(List<LayoutCell> layoutRow, int? oldRownumber=null, int rowNumber = 1, bool MoveExistingRow = false)
+        private async Task InsertRowInLayout(List<LayoutCell> layoutRow, int? oldRownumber=null, int rowNumber = 1, bool MoveExistingRow = false)
         {
 
             List<LayoutCell> rowsBeforeMovedRow = new();
@@ -863,6 +875,10 @@ namespace CMS.Components.Pages.WebPages
                 RowSpan = cell.RowSpan,
                 ContentId = cell.ContentId
             }).ToList();
+
+            // Save the new layout order
+            await SaveLayoutChanges();
+            StateHasChanged();  // To refresh the UI
 
         }
 
