@@ -33,42 +33,6 @@
     <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
 
     <script src="_content/dragdrop.js"></script>
-    <script>
-        window.addEventListener('DOMContentLoaded', function () {
-            console.log('Script for drag start and drag end loaded');
-
-            document.querySelectorAll('[draggable="true"]').forEach(function (draggableElement) {
-                // Handle drag start
-                draggableElement.addEventListener('dragstart', function (e) {
-                    console.log('Drag started JS');
-                    this.classList.add('dragging');
-
-                    // Create a custom drag preview
-                    var dragPreview = document.createElement('div');
-                    dragPreview.style.width = this.offsetWidth + 'px';
-                    dragPreview.style.height = this.offsetHeight + 'px';
-                    dragPreview.style.backgroundColor = '#f0f0f0';
-                    dragPreview.style.border = '2px dashed #333';
-                    dragPreview.style.pointerEvents = 'none';
-                    dragPreview.style.opacity = '1';
-                    dragPreview.innerText = "Dragging...";
-
-                    // Set the custom preview image
-                    e.dataTransfer.setDragImage(dragPreview, 0, 0);
-
-                    this.style.opacity = '1';
-                });
-
-                // Handle drag end
-                draggableElement.addEventListener('dragend', function () {
-                    console.log('Drag ended');
-                    this.classList.remove('dragging');
-                    this.style.opacity = '1'; // Reset opacity after drag ends
-                });
-            });
-        });
-    </script>
-
 
     <HeadOutlet />
 </head>
