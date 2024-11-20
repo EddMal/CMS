@@ -297,6 +297,68 @@ namespace CMS.Components.Pages.WebPages
         public async ValueTask DisposeAsync() => await context.DisposeAsync();
 
         //Drag and drop content order
+        private bool _isFirstRender = true;
+        private const int MaxRetries = 100;
+        private const int RetryIntervalMs = 500; // Retry every 500ms
+
+        protected override async Task OnAfterRenderAsync(bool firstRender)
+        {
+            if (firstRender)
+            {
+                // Add a small delay before calling the JavaScript function to ensure DOM is ready
+                await Task.Delay(100); // Delay to ensure the DOM is ready
+
+                // Now we invoke the retry mechanism for initializing the JS function
+                await WaitForJSInitializationAsync();
+
+                // After initialization, trigger a re-render to ensure the DOM elements are fully available
+                _isFirstRender = false;
+                StateHasChanged();
+            }
+        }
+
+        private async Task WaitForJSInitializationAsync(int attempt = 0)
+        {
+            try
+            {
+                // Check if the function is defined in the global scope
+                var isFunctionAvailable = await JSRuntime.InvokeAsync<bool>("eval", "typeof initializeSortable === 'function'");
+
+                if (isFunctionAvailable)
+                {
+                    // Create a reference to the component instance for JS interop
+                    _dotNetObjectReference = DotNetObjectReference.Create(this);
+                    // The function is available, invoke it
+                    await JSRuntime.InvokeVoidAsync("initializeSortable", "#sortable-container");
+                    Console.WriteLine("Sortable initialized successfully.");
+                }
+                else
+                {
+                    // The function is not available yet, retry after some delay
+                    if (attempt < MaxRetries)
+                    {
+                        await Task.Delay(RetryIntervalMs); // Wait before retrying
+                        await WaitForJSInitializationAsync(attempt + 1); // Retry initialization
+                    }
+                    else
+                    {
+                        Console.WriteLine("JavaScript function 'initializeSortable' not found after multiple attempts.");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error waiting for JavaScript initialization: {ex.Message}");
+            }
+        }
+
+        [JSInvokable]
+        public static Task UpdateLayoutOrder(int oldIndex, int newIndex)
+        {
+            // Update the order of the items in your Layout or Content list
+            Console.WriteLine($"Moved item from index {oldIndex} to {newIndex}");
+            return Task.CompletedTask;
+        }
 
         // Event handler for drag start
         private async Task OnDragStart(DragEventArgs e, LayoutCell layoutCell)
@@ -314,8 +376,14 @@ namespace CMS.Components.Pages.WebPages
                 Console.WriteLine($"Empty cell, operation aborted.");
             }
         }
+        private DotNetObjectReference<EditWebPage> _dotNetObjectReference;
+        public void Dispose()
+        {
+            _dotNetObjectReference?.Dispose();
+        }
 
-        private async Task OnDragEndAsync(DragEventArgs e)
+        [JSInvokable]
+        public async Task OnDragEndAsync()
         {
             //ToDo: Add column span:
             // If the dragged cell is set, update layout

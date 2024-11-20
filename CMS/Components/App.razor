@@ -31,10 +31,34 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
-
-    <script src="_content/dragdrop.js"></script>
-
-
+      <!--drag and drop, js additions-->
+     <script src="_content/dragdrop.js"></script> 
+      <!--Sortable lis-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
+<script>
+        console.log('Script dragDrop.js loaded')
+    window.initializeSortable = function (containerSelector) {
+        console.log('Initialize sortable');
+        const container = document.querySelector(containerSelector);
+        if (container) {
+            new Sortable(container, {
+                handle: '.content-item-layout-grid-item',
+                draggable: '.content-item-layout-grid-item',
+                animation: 150,
+                onEnd: function (evt) {
+                    console.log('drag ended');
+                    dotNetObjectReference.invokeMethodAsync('CMS', 'OnDragEndAsync')
+                        .then(data => {
+                            console.log('Drag operation ended and handled in Blazor');
+                        })
+                        .catch(error => {
+                            console.error('Error invoking OnDragEndAsync:', error);
+                        });
+                }
+            });
+        }
+    };
+</script>
     <HeadOutlet />
 </head>
 
@@ -76,8 +100,8 @@
     <!-- back to top btn -->
     <script src="btt.js"></script>
 
-    <!--Prevent default used in drag and drop-->
-    <script src="dragDrop.js"></script>
+    <!--drag and drop, js additions-->
+     <script src="dragDrop.js"></script> 
 </body>
 
 </html>

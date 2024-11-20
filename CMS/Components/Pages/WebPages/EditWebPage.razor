@@ -237,7 +237,7 @@
 
                             if (layoutCell != null)
                             {
-                                <div class="containerEditWebPageContentLayoutGrid">
+                              @*   <div class="containerEditWebPageContentLayoutGrid">
                                     <div class="content-item-layout-grid"
                                     draggable="true"
                                     @ondragstart="(e) => OnDragStart(e, layoutCell)"
@@ -258,7 +258,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                </div>
+                                </div> *@
                             }
                             else
                             {
@@ -336,23 +336,20 @@
         if(!moveRowActive)
         {
             <div class="containerEditWebPageContentLayoutGrid" style="display: grid; grid-template-columns: repeat(12, 1fr); grid-gap: 10px;">
-                @foreach (var cell in layout.LayoutCells)
-                {
-                    // Find content for the cell
-                    var content = Contents.FirstOrDefault(l => l.ContentId == cell.ContentId);
-                    if (cell != null)
+                <div id="sortable-container" class="content-item-layout-grid"
+                     style="display: grid; grid-template-columns: repeat(12, 1fr); grid-gap: 10px;">
+                    @foreach (var cell in layout.LayoutCells)
                     {
-                        <div class="content-item-layout-grid"
-                             draggable="true"
-                             @ondragstart="(e) => OnDragStart(e, cell)"
-                             @ondragend="(e) => OnDragEndAsync(e)"
-                             @ondragover="(e) => OnDragOver(e, cell.Row, cell.Column, cell.ContentId)"
+                        // Find content for the cell
+                        var content = Contents.FirstOrDefault(l => l.ContentId == cell.ContentId);
+                        <div class="content-item-layout-grid-item"
+                             @key="@cell.ContentId"
+                             data-content-id="@cell.ContentId"
                              style="grid-row: @cell.Row; grid-column: @cell.Column;
-                            grid-row-end: span @cell.RowSpan;
-                            grid-column-end: span @cell.ColumnSpan;
-                            position: relative;"
-                             data-content-id="@cell.ContentId">
-                            
+                    grid-row-end: span @cell.RowSpan;
+                    grid-column-end: span @cell.ColumnSpan;
+                    position: relative;">
+
                             @if (cell.ContentId != null)
                             {
                                 <ContentPreview ContentId="@cell.ContentId.Value" @key="@cell.ContentId" />
@@ -370,12 +367,6 @@
 
                                 <!-- Sliders for RowSpan and ColumnSpan -->
                                 <div class="grid-edit-controls">
-                                    @* <label for="row-span-@cell.ContentId">Row Span: @cell.RowSpan</label>
-                                    <input type="range" id="row-span-@cell.ContentId"
-                                           value="@cell.RowSpan" min="1" max="12"
-                                           @oninput="(e) => UpdateRowSpan(cell, int.Parse(e.Value.ToString()))"
-                                           step="1" /> *@
-
                                     <label for="col-span-@cell.ContentId">Column Span: @cell.ColumnSpan</label>
                                     <input type="range" id="col-span-@cell.ContentId"
                                            value="@cell.ColumnSpan" min="1" max="12"
@@ -389,7 +380,7 @@
                             }
                         </div>
                     }
-                }
+                </div>
             </div>
 
         }
@@ -403,7 +394,7 @@
 
                     if (cell != null)
                     {
-                        <div class="content-item-layout-grid"
+                    @*     <div class="content-item-layout-grid"
                              draggable="true"
                              @ondragstart="(e) => OnDragStartRow(cell.Row)"
                              @ondragend="(e) => OnDragEndRowAsync(e)"
@@ -427,20 +418,20 @@
                                             <i class="fa fa-trash-o fa-2x" aria-hidden="true"></i>
                                         </a>
                                     </div>
-                                </div>
+                                </div> 
                             }
                             else
                             {
                                 <p style="color:white;">EMPTY</p>
                             }
-                        </div>
+                        </div>*@
                     }
                 }
             </div>
         }
     }
 }
-}
+
 
 
 
@@ -469,6 +460,41 @@
     }
 
 </style>
+
+<script>
+@*     function initializeSortable(containerSelector) {
+        console.log('Initialize sortable');
+        const container = document.querySelector(containerSelector);
+        if (container) {
+            console.log('container found');
+            new Sortable(container, {
+                handle: '.content-item-layout-grid-item', // Handle for dragging (optional)
+                draggable: '.content-item-layout-grid-item', // The items that can be dragged
+                animation: 150, // Smooth animation during drag
+                onEnd: function (evt) {
+                    // Trigger the OnDragEndAsync method in Blazor
+                        await DotNet.invokeMethodAsync('CMS', 'OnDragEndAsync')
+                        .then(data => {
+                            console.log('Drag operation ended and handled in Blazor');
+                        })
+                        .catch(error => {
+                            console.error('Error invoking OnDragEndAsync:', error);
+                        });
+                }
+            });
+        }
+        else
+        {
+            console.log('container not found');
+        }
+    } *@
+
+@*     onEnd: function (evt) {
+    // Trigger a Blazor method to handle the new order
+        DotNet.invokeMethodAsync('OnDragEndAsync', 'UpdateLayoutOrder', evt.oldIndex, evt.newIndex)
+        .then(data => console.log('Blazor method result', data));
+} *@
+</script>
 
 @* <script>
      // Prevent drag over default action
