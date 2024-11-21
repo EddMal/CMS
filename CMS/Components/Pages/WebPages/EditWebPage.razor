@@ -237,7 +237,7 @@
 
                             if (layoutCell != null)
                             {
-                                <div class="containerEditWebPageContentLayoutGrid">
+                               @*  <div class="containerEditWebPageContentLayoutGrid">
                                     <div class="content-item-layout-grid"
                                     draggable="true"
                                     @ondragstart="(e) => OnDragStart(e, layoutCell)"
@@ -258,7 +258,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                </div>
+                                </div> *@
                             }
                             else
                             {
@@ -343,10 +343,10 @@
                     if (cell != null)
                     {
                         <div class="content-item-layout-grid"
-                             draggable="true"
-                             @ondragstart="(e) => OnDragStart(e, cell)"
-                             @ondragend="(e) => OnDragEndAsync(e)"
-                             @ondragover="(e) => OnDragOver(e, cell.Row, cell.Column, cell.ContentId)"
+                             
+                             @onmousedown="() => OnDragStart( cell)"
+                             @onmouseup="() => OnDragEndAsync()"
+                             @onmouseenter="() => OnDragOver( cell.Row, cell.Column, cell.ContentId)"
                              style="grid-row: @cell.Row; grid-column: @cell.Column;
                             grid-row-end: span @cell.RowSpan;
                             grid-column-end: span @cell.ColumnSpan;
@@ -405,7 +405,7 @@
                     {
                         <div class="content-item-layout-grid"
                              draggable="true"
-                             @onclick="(e)=> InitializeDrag()"
+                           @*   @onclick="(e)=> InitializeDrag()" *@
                              @ondragstart="(e) => OnDragStartRow(cell.Row)"
                              @ondragend="(e) => OnDragEndRowAsync(e)"
                              @ondragover="(e) => OnDragOverRow(cell.Row)"

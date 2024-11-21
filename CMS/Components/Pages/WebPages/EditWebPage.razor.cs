@@ -43,6 +43,8 @@ namespace CMS.Components.Pages.WebPages
 
         private bool moveRowActive = false;
 
+        private bool clicked = false;
+
         private LayoutCell? draggedCell { get; set; } = null;
 
         private LayoutCell? hoveredCell { get; set; } = null;
@@ -302,128 +304,135 @@ namespace CMS.Components.Pages.WebPages
         private async Task InitializeDrag()
         {
             await JSRuntime.InvokeVoidAsync("eval", @"
-        document.querySelectorAll('[draggable=""true""]').forEach(function (draggableElement) {
-            // Only add event listeners once to avoid multiple listeners
-            if (!draggableElement.hasAttribute('data-drag-initialized')) {
-                draggableElement.setAttribute('data-drag-initialized', 'true');
+if (!window.setupDragPreview) {
+    window.setupDragPreview = function(contentId) {
+        // Select the element using data-content-id attribute
+        var element = document.querySelector('[data-content-id=""' + contentId + '""]'); 
 
-                // Create the drag preview only on mousedown
-                draggableElement.addEventListener('mousedown', function (e) {
-                    console.log('Mouse down initiated drag JS');
-                    // Prevent text selection or any default behavior
-                    e.preventDefault();
-
-                    // Create a fully styled custom drag preview container (a clone of the dragged element)
-                    var dragPreview = this.cloneNode(true); // Clone the dragged element with its content and styles
-
-                    // Ensure the custom drag preview is fully visible and follows the mouse
-                    dragPreview.style.opacity = '1'; // Ensure it's fully visible (custom preview)
-                    dragPreview.style.position = 'absolute'; // Absolute positioning to detach it from the flow
-                    dragPreview.style.pointerEvents = 'none'; // Disable interaction with the preview
-                    dragPreview.style.zIndex = '9999'; // Ensure it's above other content
-                    dragPreview.style.top = e.clientY + 'px'; // Initial top position (match mouse position)
-                    dragPreview.style.left = e.clientX + 'px'; // Initial left position (match mouse position)
-
-                    // Append the custom drag preview to the body
-                    document.body.appendChild(dragPreview);
-
-                    // Listen for mousemove events to move the preview with the mouse
-                    var movePreview = function (moveEvent) {
-                        dragPreview.style.top = moveEvent.clientY + 'px'; // Move with the mouse
-                        dragPreview.style.left = moveEvent.clientX + 'px'; // Move with the mouse
-                    };
-
-                    // Add the mousemove event listener to move the preview while dragging
-                    document.addEventListener('mousemove', movePreview);
-
-                    // Listen for mouseup event to stop dragging
-                    var cleanupOnMouseUp = function () {
-                        console.log('Mouse button released, cleanup');
-                        // Remove the custom drag preview from the DOM
-                        document.body.removeChild(dragPreview);
-
-                        // Reset the dragged element's opacity and any other properties
-                        draggableElement.style.opacity = '1'; // Reset to the original opacity
-                        draggableElement.style.cursor = 'grab'; // Reset cursor
-
-                        // Remove the mousemove listener as drag ends
-                        document.removeEventListener('mousemove', movePreview);
-
-                        // Remove the mouseup listener
-                        document.removeEventListener('mouseup', cleanupOnMouseUp);
-                    };
-
-                    // Add the mouseup listener to clean up after drag ends
-                    document.addEventListener('mouseup', cleanupOnMouseUp);
-                });
-
-                // Dragstart event listener to handle the drag operation (for browser native drag events)
-                draggableElement.addEventListener('dragstart', function (e) {
-                    console.log('Drag started JS');
-                    this.classList.add('dragging'); // Add the dragging class
-
-                    // Set a transparent drag image (or use a default image if needed)
-                    var transparentPreview = document.createElement('div');
-                    transparentPreview.style.width = '0px';
-                    transparentPreview.style.height = '0px';
-                    transparentPreview.style.pointerEvents = 'none';
-                    e.dataTransfer.setDragImage(transparentPreview, 0, 0); // Set the transparent preview
-
-                    // Optionally, adjust the dragged element itself (opacity, etc.)
-                    this.style.opacity = '0.5'; // Make the dragged element semi-transparent during the drag
-                });
-
-                // Dragend event listener to handle cleanup after the drag operation
-                draggableElement.addEventListener('dragend', function () {
-                    console.log('Drag ended JS');
-                    this.classList.remove('dragging'); // Remove the dragging class
-
-                    // Reset content appearance to the original state
-                    this.style.opacity = '1'; // Reset to the original opacity
-                    this.style.backgroundColor = ''; // Reset any background color changes
-                    this.style.cursor = 'grab'; // Reset the cursor
-                });
-            }
-        });
-    ");
+        // Check if the element exists
+        if (!element) {
+            console.error('Element with ContentId ' + contentId + ' not found.');
+            return; // Exit if the element is not found
         }
 
+        // Make the original element fully transparent and disable interaction
+        element.style.opacity = '0'; // Make the original element fully transparent
+        element.style.pointerEvents = 'none'; // Prevent interaction with the original element during drag
+
+        // Clone the element to create a custom preview
+        var dragPreview = element.cloneNode(true); // Create a clone with the same content and styles
+        dragPreview.style.position = 'absolute'; // Absolute positioning for the drag preview
+        dragPreview.style.zIndex = '9999'; // Make sure the preview is above other elements
+        dragPreview.style.pointerEvents = 'none'; // Prevent interaction with the preview
+        dragPreview.style.opacity = '1'; // Make the preview fully visible
+
+        // Append the preview to the body
+        document.body.appendChild(dragPreview);
+
+        // Function to move the preview with the mouse
+        var movePreview = function(event) {
+            // Get the size of the preview element
+            var previewWidth = dragPreview.offsetWidth;
+            var previewHeight = dragPreview.offsetHeight;
+
+            // Set the preview's position to center it at the mouse cursor
+            dragPreview.style.top = (event.clientY - previewHeight / 2) + 'px';
+            dragPreview.style.left = (event.clientX - previewWidth / 2) + 'px';
+        };
+
+        // Immediately position the preview at the mouse cursor's position (centered)
+        movePreview({ clientX: window.event.clientX, clientY: window.event.clientY });
+
+        // Listen for the mousemove event to update the preview position
+        document.addEventListener('mousemove', movePreview);
+
+        // Store the dragPreview and the original element in global variables for later use
+        window.dragPreviewElement = dragPreview;
+        window.originalElement = element;
+
+        // Clean up the preview and reset the original element when drag ends (on mouseup)
+        var cleanupOnMouseUp = function() {
+            window.removeDragPreview(); // Call the cleanup function
+
+            // Remove the mousemove event listener when drag ends
+            document.removeEventListener('mousemove', movePreview);
+            document.removeEventListener('mouseup', cleanupOnMouseUp); // Remove the mouseup listener
+        };
+
+        // Add a mouseup event to clean up the preview
+        document.addEventListener('mouseup', cleanupOnMouseUp);
+    };
+
+    // Cleanup function to remove the drag preview and reset the original element
+    window.removeDragPreview = function() {
+        if (window.dragPreviewElement) {
+            document.body.removeChild(window.dragPreviewElement); // Remove the preview
+            window.dragPreviewElement = null; // Clear the preview reference
+        }
+
+        if (window.originalElement) {
+            window.originalElement.style.opacity = '1'; // Reset the original element's opacity
+            window.originalElement.style.pointerEvents = ''; // Re-enable interaction with the original element
+            window.originalElement = null; // Clear the reference to the original element
+        }
+    };
+}
+");
 
 
 
-
-
-
-
-
-
-
-
+        }
 
 
 
 
 
         // Event handler for drag start
-        private async Task OnDragStart(DragEventArgs e, LayoutCell layoutCell)
+
+        private async Task OnDragStart( LayoutCell layoutCell)
         {
-            
             if (layoutCell.ContentId != null)
             {
-                await InitializeDrag();
-                // Store the dragged cell
-                draggedCell = layoutCell;
-                // Optional: you can use DataTransfer here, but Blazor doesn't expose it directly.
-                // If needed, we can store some information in a custom attribute or pass via JS.
-                Console.WriteLine($"Started dragging: {layoutCell.ContentId}");
+               
+                
+                    draggedCell = layoutCell;
+
+                    // First, ensure that the JavaScript is initialized and ready
+                    await InitializeDrag();
+
+                    // Get the element to be dragged (you can use `document.querySelector` or pass the element directly)
+                    var elementId = layoutCell.ContentId; // Or use any identifier for the draggable element
+                    await JSRuntime.InvokeVoidAsync("setupDragPreview", layoutCell.ContentId);
+
+                    // Optionally, store any other information or state
+                    Console.WriteLine($"Started dragging: {layoutCell.ContentId}");
+
             }
-            else 
+            else
             {
-                Console.WriteLine($"Empty cell, operation aborted.");
+                Console.WriteLine("Empty cell, operation aborted.");
             }
         }
 
-        private async Task OnDragEndAsync(DragEventArgs e)
+        //private async Task OnDragStart(DragEventArgs e, LayoutCell layoutCell)
+        //{
+            
+        //    if (layoutCell.ContentId != null)
+        //    {
+        //        await InitializeDrag();
+        //        // Store the dragged cell
+        //        draggedCell = layoutCell;
+        //        // Optional: you can use DataTransfer here, but Blazor doesn't expose it directly.
+        //        // If needed, we can store some information in a custom attribute or pass via JS.
+        //        Console.WriteLine($"Started dragging: {layoutCell.ContentId}");
+        //    }
+        //    else 
+        //    {
+        //        Console.WriteLine($"Empty cell, operation aborted.");
+        //    }
+        //}
+
+        private async Task OnDragEndAsync()
         {
             //ToDo: Add column span:
             // If the dragged cell is set, update layout
@@ -457,12 +466,12 @@ namespace CMS.Components.Pages.WebPages
                     }
                     else
                     {
-                        Console.WriteLine("cellForAdjustments spans are not equal, swap aborted.");
+                        Console.WriteLine("Dragged cell is already in the target position. No swap needed.");
                     }
                 }
                 else
                 {
-                    Console.WriteLine("Dragged cell is already in the target position. No swap needed.");
+                    Console.WriteLine("Found no cell for drop (null)");
                 }
             }
 
@@ -484,7 +493,7 @@ namespace CMS.Components.Pages.WebPages
         }
 
         // Method to handle drag over events
-        private void OnDragOver(DragEventArgs e, int row, int column, int? contentId)
+        private void OnDragOver( int row, int column, int? contentId)
         {
             //ToDo: Add column span:
             // Update the hovered cell using the rowShift, column, and ContentId passed

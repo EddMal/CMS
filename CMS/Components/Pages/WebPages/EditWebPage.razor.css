@@ -226,6 +226,7 @@ header, .navbar, footer {
 
 
 .content-item-Layout {
+    cursor: grabbing;
     position: relative;
     padding: 10px;
     background-color: #f4f4f4;
@@ -234,6 +235,7 @@ header, .navbar, footer {
 }
 
 .containerEditWebPageContentLayoutGrid {
+    cursor: grabbing;
     display: grid;
     grid-template-columns: repeat(12, 1fr); /* 12 columns by default */
     grid-gap: 10px;
@@ -270,31 +272,37 @@ header, .navbar, footer {
     transition: all 0.3s ease; /* Smooth transition */
 }
 
-.content-item-layout-grid:Hover {
-    cursor: pointer;
-    background-color: grey;
-    border: solid;
-    border-color: grey;
-    cursor: move;
-}
+    .content-item-layout-grid:Hover {
+        cursor: grabbing;
+        background-color: grey;
+        border: solid;
+        border-color: grey;
+        cursor: grab;
+    }
 
 .dragging {
-  /*  cursor: grabbing;
+    cursor: grabbing;
+    /*  
     opacity: 1 !important;
     cursor: move !important;
     opacity: 1 !important;
     border: 10px solid yellow;*/ /* Highlight the target area when dragging */
 }
 
+.content-item-layout-grid.mouse-down {
+    background-color: rgba(0, 0, 0, 0.2); /* Change background color on mouse down */
+    cursor: grabbing !important; /* Change cursor style */
+}
+
     .content-item-layout-grid.drag-over {
         border: 2px solid blue; /* Highlight the target area when dragging */
-        cursor: pointer;
+        cursor: grabbing;
     }
 
-    .content-item-layout-grid.drag-hover {
-        background-color: grey;
-        cursor: move;
-    }
+.content-item-layout-grid.drag-hover {
+    background-color: grey;
+    cursor: grabbing;
+}
 
 .grid-edit-controls {
     margin-top: 10px;
