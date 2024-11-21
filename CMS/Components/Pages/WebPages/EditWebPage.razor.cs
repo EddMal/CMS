@@ -304,80 +304,82 @@ namespace CMS.Components.Pages.WebPages
         private async Task InitializeDrag()
         {
             await JSRuntime.InvokeVoidAsync("eval", @"
-if (!window.setupDragPreview) {
-    window.setupDragPreview = function(contentId) {
-        // Select the element using data-content-id attribute
-        var element = document.querySelector('[data-content-id=""' + contentId + '""]'); 
+                if (!window.setupDragPreview) {
+                    window.setupDragPreview = function(contentId) {
+                        // Select the element using data-content-id attribute
+                        var element = document.querySelector('[data-content-id=""' + contentId + '""]'); 
 
-        // Check if the element exists
-        if (!element) {
-            console.error('Element with ContentId ' + contentId + ' not found.');
-            return; // Exit if the element is not found
-        }
+                        // Check if the element exists
+                        if (!element) {
+                            console.error('Element with ContentId ' + contentId + ' not found.');
+                            return; // Exit if the element is not found
+                        }
 
-        // Make the original element fully transparent and disable interaction
-        element.style.opacity = '0'; // Make the original element fully transparent
-        element.style.pointerEvents = 'none'; // Prevent interaction with the original element during drag
+                        // Make the original element fully transparent and disable interaction
+                        element.style.opacity = '0'; // Make the original element fully transparent
+                        element.style.pointerEvents = 'none'; // Prevent interaction with the original element during drag
 
-        // Clone the element to create a custom preview
-        var dragPreview = element.cloneNode(true); // Create a clone with the same content and styles
-        dragPreview.style.position = 'absolute'; // Absolute positioning for the drag preview
-        dragPreview.style.zIndex = '9999'; // Make sure the preview is above other elements
-        dragPreview.style.pointerEvents = 'none'; // Prevent interaction with the preview
-        dragPreview.style.opacity = '1'; // Make the preview fully visible
+                        // Clone the element to create a custom preview
+                        var dragPreview = element.cloneNode(true); // Create a clone with the same content and styles
+                        dragPreview.style.position = 'absolute'; // Absolute positioning for the drag preview
+                        dragPreview.style.zIndex = '9999'; // Make sure the preview is above other elements
+                        dragPreview.style.pointerEvents = 'none'; // Prevent interaction with the preview
+                        dragPreview.style.opacity = '1'; // Make the preview fully visible
+                        dragPreview.style.width = '20%';
 
-        // Append the preview to the body
-        document.body.appendChild(dragPreview);
 
-        // Function to move the preview with the mouse
-        var movePreview = function(event) {
-            // Get the size of the preview element
-            var previewWidth = dragPreview.offsetWidth;
-            var previewHeight = dragPreview.offsetHeight;
+                        // Append the preview to the body
+                        document.body.appendChild(dragPreview);
 
-            // Set the preview's position to center it at the mouse cursor
-            dragPreview.style.top = (event.clientY - previewHeight / 2) + 'px';
-            dragPreview.style.left = (event.clientX - previewWidth / 2) + 'px';
-        };
+                        // Function to move the preview with the mouse
+                        var movePreview = function(event) {
+                            // Get the size of the preview element
+                            var previewWidth = dragPreview.offsetWidth;
+                            var previewHeight = dragPreview.offsetHeight;
 
-        // Immediately position the preview at the mouse cursor's position (centered)
-        movePreview({ clientX: window.event.clientX, clientY: window.event.clientY });
+                            // Set the preview's position to center it at the mouse cursor
+                            dragPreview.style.top = (event.clientY - previewHeight / 2) + 'px';
+                            dragPreview.style.left = (event.clientX - previewWidth / 2) + 'px';
+                        };
 
-        // Listen for the mousemove event to update the preview position
-        document.addEventListener('mousemove', movePreview);
+                        // Immediately position the preview at the mouse cursor's position (centered)
+                        movePreview({ clientX: window.event.clientX, clientY: window.event.clientY });
 
-        // Store the dragPreview and the original element in global variables for later use
-        window.dragPreviewElement = dragPreview;
-        window.originalElement = element;
+                        // Listen for the mousemove event to update the preview position
+                        document.addEventListener('mousemove', movePreview);
 
-        // Clean up the preview and reset the original element when drag ends (on mouseup)
-        var cleanupOnMouseUp = function() {
-            window.removeDragPreview(); // Call the cleanup function
+                        // Store the dragPreview and the original element in global variables for later use
+                        window.dragPreviewElement = dragPreview;
+                        window.originalElement = element;
 
-            // Remove the mousemove event listener when drag ends
-            document.removeEventListener('mousemove', movePreview);
-            document.removeEventListener('mouseup', cleanupOnMouseUp); // Remove the mouseup listener
-        };
+                        // Clean up the preview and reset the original element when drag ends (on mouseup)
+                        var cleanupOnMouseUp = function() {
+                            window.removeDragPreview(); // Call the cleanup function
 
-        // Add a mouseup event to clean up the preview
-        document.addEventListener('mouseup', cleanupOnMouseUp);
-    };
+                            // Remove the mousemove event listener when drag ends
+                            document.removeEventListener('mousemove', movePreview);
+                            document.removeEventListener('mouseup', cleanupOnMouseUp); // Remove the mouseup listener
+                        };
 
-    // Cleanup function to remove the drag preview and reset the original element
-    window.removeDragPreview = function() {
-        if (window.dragPreviewElement) {
-            document.body.removeChild(window.dragPreviewElement); // Remove the preview
-            window.dragPreviewElement = null; // Clear the preview reference
-        }
+                        // Add a mouseup event to clean up the preview
+                        document.addEventListener('mouseup', cleanupOnMouseUp);
+                    };
 
-        if (window.originalElement) {
-            window.originalElement.style.opacity = '1'; // Reset the original element's opacity
-            window.originalElement.style.pointerEvents = ''; // Re-enable interaction with the original element
-            window.originalElement = null; // Clear the reference to the original element
-        }
-    };
-}
-");
+                    // Cleanup function to remove the drag preview and reset the original element
+                    window.removeDragPreview = function() {
+                        if (window.dragPreviewElement) {
+                            document.body.removeChild(window.dragPreviewElement); // Remove the preview
+                            window.dragPreviewElement = null; // Clear the preview reference
+                        }
+
+                        if (window.originalElement) {
+                            window.originalElement.style.opacity = '1'; // Reset the original element's opacity
+                            window.originalElement.style.pointerEvents = ''; // Re-enable interaction with the original element
+                            window.originalElement = null; // Clear the reference to the original element
+                        }
+                    };
+                }
+                ");
 
 
 
@@ -810,12 +812,14 @@ if (!window.setupDragPreview) {
         private void OnDragStartRow(int cellRow)
         {
             draggedRow = cellRow;
+            Console.WriteLine($"Started: drag row:{cellRow}.");
         }
 
         // Method reading hovered row
         private void OnDragOverRow(int cellRow)
         {
             hoveredRow = cellRow;
+            Console.WriteLine($"Dragged over row:{cellRow}.");
         }
 
         // Method for handling en of moving layout row
@@ -994,8 +998,8 @@ if (!window.setupDragPreview) {
             }).ToList();
 
             // Save the new layout order
-            await SaveLayoutChanges();
-            StateHasChanged();  // To refresh the UI
+            //await SaveLayoutChanges();
+            //StateHasChanged();  // To refresh the UI
 
         }
 
