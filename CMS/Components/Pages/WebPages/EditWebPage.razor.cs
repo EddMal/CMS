@@ -14,6 +14,9 @@ using CMS.Services;
 using Microsoft.DotNet.Scaffolding.Shared.CodeModifier.CodeChange;
 using System.Drawing;
 using System;
+using System.Linq;
+using Markdig.Syntax;
+using System.Data;
 namespace CMS.Components.Pages.WebPages
 {
     //ToDO: Chanfe variables name from ec. WebSiteId to webSiteId
@@ -24,6 +27,7 @@ namespace CMS.Components.Pages.WebPages
         [Inject] private NavigationManager NavigationManager { get; set; } = default!;
 
         List<Content> Contents { get; set; } = new List<Content>();
+        List<Content> webPageContents { get; set; } = new List<Content>();
         [SupplyParameterFromQuery]
         public int? WebPageId { get; set; }
         private int? WebSiteId { get; set; }
@@ -44,6 +48,11 @@ namespace CMS.Components.Pages.WebPages
         private bool moveRowActive = false;
 
         private bool clicked = false;
+
+        private bool editCellsActive = false;
+        private bool infoMessage;
+        private string userInfoMessage;
+        private bool deleteContentActive;
 
         private LayoutCell? draggedCell { get; set; } = null;
 
@@ -74,7 +83,9 @@ namespace CMS.Components.Pages.WebPages
             CreateContent,
             Preview,
             Delete,
-            EditContent
+            SelectCell,
+            EditContent,
+            DeleteSelect
         }
 
         protected override async Task OnInitializedAsync()
@@ -208,6 +219,32 @@ namespace CMS.Components.Pages.WebPages
         //    // Call the JavaScript function using JS Interop
         //    await JS.InvokeVoidAsync("showAlert");
         //}
+
+        // ToDo: Centralize use for all messages and create service for messages, used in multiple files NavBarInputForm etc.
+        private void AlertMessageHide()
+        {
+            infoMessage = false;
+
+            userInfoMessage = "";
+        }
+
+        private void AlertMessage(string Message)
+        {
+            infoMessage = true;
+            userInfoMessage = Message;
+        }
+
+        private void EditCells()
+        {
+            if (editCellsActive)
+            {
+                editCellsActive = false;
+            }
+            else
+            {
+                editCellsActive = true;
+            }
+        }
         private void AddRow()
         {
             if (addRowActive)
@@ -233,8 +270,27 @@ namespace CMS.Components.Pages.WebPages
             }
         }
 
+        private void DeleteSelect()
+        {
+            if (deleteContentActive)
+            {
+                deleteContentActive = false;
+                PageExecution = ExecuteAction.EditSelect;
+            }
+            else 
+            {
+                deleteContentActive = true;
+                PageExecution = ExecuteAction.DeleteSelect;
+            }
+        }
+
         private void EditContent(Content content)
         {
+            if(content==null || content.ContentId == null)
+            {
+                Console.WriteLine("No content Selected, edit aborted.");
+                return;
+            }
             ContentForEditing = content.ContentId;
             ContentId = content.ContentId;
             Content = content;
@@ -244,6 +300,13 @@ namespace CMS.Components.Pages.WebPages
         {
             ContentForEditing = null;
             PageExecution = ExecuteAction.CreateContent;
+        }
+
+        private void SelectCell()
+        {
+            ContentForEditing = null;
+            PageExecution = ExecuteAction.SelectCell;
+
         }
 
         private void DeleteContent(int contentId)
@@ -269,12 +332,141 @@ namespace CMS.Components.Pages.WebPages
             Contents = context.Contents.Where(c => c.WebPageId == WebPageId).ToList();
             StateHasChanged();
         }
-        private void CreateDone()
+
+        private void ChooseCellForNewContent(LayoutCell cell)
+        {
+            
+
+            // If not Empty cell is choosen for new content, return.
+            if (cell.ContentId != null)
+            {
+                AlertMessage("Occupied cell choosen, select a empty cell");
+                Console.WriteLine("Occupied cell choosen, select a empty cell");
+                return;
+            }
+
+
+            int? newContentId = null;
+            AddNewContentToLayout(out newContentId, webPageContents, cell);
+            Console.WriteLine($"New content with id: {newContentId} created.");
+
+            InsertNewContentInLayout(cell, webPageContents, newContentId);
+
+        }
+
+        private void InsertNewContentInLayout(LayoutCell cell, List<Content> webPageContents, int? newContentId)
+        {
+            var newCell = new LayoutCell
+            {
+                Column = cell.Column,
+                Row = cell.Row,
+                ColumnSpan = 1,
+                RowSpan = 1,
+                ContentId = newContentId
+            };
+
+            var newCellIndex = GetCellIndex(cell);
+            ReinsertCellInLayout(newCellIndex, newCell);
+
+            Contents = webPageContents;
+
+            SaveLayoutChanges();
+
+            Console.WriteLine($"New content inserted in layout.");
+            PageExecution = ExecuteAction.EditSelect;
+        }
+
+        private void AddNewContentToLayout(out int? newContentId, List<Content> webPageContents, LayoutCell cell)
+        {
+                newContentId = webPageContents
+                .Where(c => !layout.LayoutCells.Any(cell => cell.ContentId == c.ContentId))
+                .Select(c => c.ContentId)
+                .FirstOrDefault();  // Retrieves the first (and presumably only) matching ContentID
+        }
+
+        
+        private void CreateContentDone()
+        {
+            ContentForEditing = null;
+
+            // Get current content.
+            // ToDo: evaluate, if use of callback from create component will lead to less DB calls.
+            webPageContents = context.Contents.Where(c => c.WebPageId == WebPageId).ToList();
+
+            // No content added, return to editing of webpage.
+            if (webPageContents.Count() == Contents.Count())
+            {
+                Console.WriteLine($"No new content found, creating aborted");
+                PageExecution = ExecuteAction.EditSelect;
+                return;
+            }
+
+            PageExecution = ExecuteAction.SelectCell;
+            
+        }
+        
+        private void Done()
         {
             ContentForEditing = null;
             PageExecution = ExecuteAction.EditSelect;
-            Contents = context.Contents.Where(c => c.WebPageId == WebPageId).ToList();
             StateHasChanged();
+        }
+
+        private void DeleteDone()
+        {
+            webPageContents = context.Contents.Where(c => c.WebPageId == WebPageId).ToList();
+            if (webPageContents.Count() == Contents.Count())
+            {
+                Console.WriteLine("No content removed, operation aborted.");
+                PageExecution = ExecuteAction.EditSelect;
+                return;
+
+            }
+
+            UpdateRowAfterRemovalOfContent();
+
+            Contents = webPageContents;
+            ContentForEditing = null;
+            PageExecution = ExecuteAction.EditSelect;
+            StateHasChanged();
+        }
+
+        private void UpdateRowAfterRemovalOfContent()
+        {
+            if (ContentForEditing == null)
+            {
+                Console.WriteLine("Content Id for removal is null, operation aborted.");
+                PageExecution = ExecuteAction.EditSelect;
+                return;
+            }
+
+            LayoutCell clearedCell = layout.LayoutCells.FirstOrDefault(c => c.ContentId == ContentForEditing);
+
+            ClearCellsContent(clearedCell);
+
+        }
+
+        private void ClearCellsContent(LayoutCell clearedCell)
+        {
+            int? clearedCellIndex = GetCellIndex(clearedCell);
+
+            if (clearedCellIndex == null)
+            {
+                Console.WriteLine("Could not find cell in layout, operation aborted.");
+                PageExecution = ExecuteAction.EditSelect;
+                return;
+            }
+
+            var oldColumnSpan = clearedCell.ColumnSpan;
+
+            clearedCell.ContentId = null;
+            clearedCell.ColumnSpan = 1;
+
+            // Insert Updated cell in layout.
+            ReinsertCellInLayout(clearedCellIndex, clearedCell);
+
+            // Control size and format row when needed after new size is set for a cell,
+            ShiftCellsAfterResize(clearedCell, oldColumnSpan, clearedCell.ColumnSpan);
         }
 
         private void ResumeEditContent()
@@ -385,10 +577,6 @@ namespace CMS.Components.Pages.WebPages
 
         }
 
-
-
-
-
         // Event handler for drag start
 
         private async Task OnDragStart( LayoutCell layoutCell)
@@ -482,7 +670,6 @@ namespace CMS.Components.Pages.WebPages
 
         private void GetCellsIndexesForDragAndHovered(out int? hoveredCellIndex, out int? draggedCellIndex)
         {
-            //ToDo: move checks in to this method.
             // Find the index of the cell in LayoutCells
             draggedCellIndex = layout.LayoutCells
             .Select((cell, index) => new { cell, index })
@@ -492,6 +679,15 @@ namespace CMS.Components.Pages.WebPages
             hoveredCellIndex = layout.LayoutCells
             .Select((cell, index) => new { cell, index })
             .FirstOrDefault(x => x.cell.Row == hoveredCell.Row && x.cell.Column == hoveredCell.Column)?.index;
+        }
+
+        private int? GetCellIndex(LayoutCell cell)
+        {
+            // Find the index of the cell in LayoutCells
+            return layout.LayoutCells
+            .Select((cell, index) => new { cell, index })
+            .FirstOrDefault(x => x.cell.Row == cell.Row && x.cell.Column == cell.Column)?.index;
+
         }
 
         // Method to handle drag over events

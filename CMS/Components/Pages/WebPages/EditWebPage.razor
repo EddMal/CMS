@@ -21,10 +21,12 @@
 
 
     @* Todo: Investigate the handling of the use of components, to remove excess use/"writing" of components*@
+    @if(PageExecution != ExecuteAction.SelectCell)
+    {
         <p>
              <div class="containerMainButtons">
                  <div class="button-container">
-                @if (PageExecution != ExecuteAction.Preview)
+            @if (PageExecution != ExecuteAction.Preview)
                 {
                     if (HideToolbar)
                     {
@@ -74,8 +76,35 @@
                         </div>
 
                         <div class="icon-container">
+                            @if (deleteContentActive)
+                            {
+
+                                <a class="btn overlay-btn-main" @onclick="()=> DeleteSelect()" aria-label="Avbryt" title="Avbryt">
+                                    <i class="fa fa-times" style="margin-top:0px;" aria-hidden="true"></i>
+                                </a>
+                                <span class="icon-text">Avbryt</span>
+                            }
+                            else
+                            {
+                                <a class="btn overlay-btn-main" @onclick="()=> DeleteSelect()" aria-label="Ta bort innehåll" title="Ta bort innehåll">
+                                    <i class="fa fa-trash fa-2x" style="margin-top:0px;" aria-hidden="true"></i>
+                                </a>
+                                <span class="icon-text">Ta bort innehåll</span>
+                            }
+                        </div>
+
+                    @if (editCellsActive)
+                    {
+                        <div class="icon-container">
+                            <a class="btn overlay-btn-delete" @onclick="() => EditCells()" aria-label="Ta bort" title="Flytta innehåll">
+                                <i class="fa fa-times" aria-hidden="true"></i>
+                            </a>
+                            <span class="icon-text">Avbryt flytt </span>
+                        </div>
+                        <div class="icon-container">
                             @if (moveRowActive)
                             {
+
                                 <a class="btn overlay-btn-main" @onclick="()=> DragRows()" aria-label="Flytta rad" title="Flytta rad">
                                     <i class="fa fa-times" style="margin-top:0px;" aria-hidden="true"></i>
                                 </a>
@@ -84,11 +113,23 @@
                             else
                             {
                                 <a class="btn overlay-btn-main" @onclick="()=> DragRows()" aria-label="Avbryt" title="Avbryt">
-                                        <i class="fa fa-arrows fa-2x" style="margin-top:2px; transform: rotate(180deg);" aria-hidden="true"></i>
+                                    <i class="fa fa-arrows fa-2x" style="margin-top:0px; " aria-hidden="true"></i>
                                 </a>
-                            <span class="icon-text">Flytta rad</span>
+                                <span class="icon-text">Flytta rad</span>
                             }
                         </div>
+                    }
+                    else
+                    {
+                        <div class="icon-container">
+                            <a class="btn overlay-btn-delete" @onclick="() => EditCells()" aria-label="Ta bort" title="Flytta innehåll">
+                                    <i class="fa fa-mouse-pointer fa-2x" style="margin-left:5px;" aria-hidden="true"></i>
+                            </a>
+                                <span class="icon-text">Flytta innehåll</span>
+                        </div>
+                    }
+                   
+
 
                         <div class="icon-container">
                             <a class="btn overlay-btn-main-ghost" @onclick="()=> HideTools()" aria-label="Förhandgranska" title="Förhandgranska">
@@ -97,11 +138,6 @@
                             <span class="icon-text">Göm</span>
                         </div>
 
-                 @*    <div class="icon-container">
-                    <a class="btn overlay-btn-delete" @onclick="() => ShowAlert()" aria-label="Ta bort" title="Radera">
-                        <i class="fa fa-hourglass fa-2x" aria-hidden="true"></i>
-                    </a>
-                    </div> *@
                     }
                 }
                 else
@@ -116,6 +152,7 @@
                 </div>
             </div>
         </p>
+    }
 
         @if (Contents == null)
         {
@@ -126,209 +163,339 @@
             <CascadingValue Value="WebPageId">
                 <CreateContent />
             </CascadingValue>
-            <button type="button" class="btn btn-warning" @onclick="()=> CreateDone()"> Klar </button>
+            <button type="button" class="btn btn-warning" @onclick="()=> Done()"> Klar </button>
         }
         else
         {
-        if (layout == null || layout.LayoutCells == null || !layout.LayoutCells.Any())
+            if (!editCellsActive)
             {
-            foreach (var content in Contents)
-            {
-                    @switch (PageExecution)
+                @switch (PageExecution)
+                {
+                    case ExecuteAction.EditPageinformation:
                     {
-                        case ExecuteAction.EditPageinformation:
+                        <div class="containerEditWebPageContentLayoutGridPreview" style="display: grid; grid-template-columns: repeat(12, 1fr); grid-gap: 10px;">
+                            @foreach (var cell in layout.LayoutCells)
                             {
-                            <div class="containerEditWebPageContent" style="position: relative;">
-                                <div class="content">
-                                    <ContentPreview ContentId="@content.ContentId" />
-                                    </div>
-                                        <div class="overlay-editwebpageinfo">
-                                        <CascadingValue Value="content.WebPageId">
-                                            <CMS.Components.Pages.WebPages.Edit />
-                                        </CascadingValue>
-                                            <button type="button" class="btn btn-warning btn-warning-edit" @onclick="()=> EditPageinformationDone()"> Tillbaka </button>
-                                    </div>
-                                </div>
-                                PageExecution = ExecuteAction.Preview;
-                                break;         
-                            }
-                        case ExecuteAction.EditContent:
-                            {
-                                if (content.ContentId == ContentForEditing)
+                                // Find content for the cell
+                                var contentLayout = Contents.FirstOrDefault(l => l.ContentId == cell.ContentId);
+                                if (cell != null)
                                 {
-                                    @* Todo: Change this use of templateId is not good practice: *@
-                                    if (content.TemplateId == 9)
-                                    {
-                                        <div class="containerEditWebPageContent" style="position: relative;">
-                                            <div class="content">
-                                                <CascadingValue Value="content.ContentId">
-                                                    <EditContent />
-                                                </CascadingValue>
-                                            </div>
-                                            <div class="nav-edit-done-button-container">
-                                                <button type="button" class="btn btn-warning" @onclick="()=> ResumeEditContent()"> Tillbaka </button>
-                                            </div>
-                                        </div>
-                                    }
-                                    else
-                                    {
-                                    <div class="containerEditWebPageContent" style="position: relative;">
-                                        <div class="content">
-                                            <ContentPreview ContentId="@content.ContentId" />
-                                        </div>
-                                        <div class="overlay-edit">
-                                            <CascadingValue Value="content.ContentId">
-                                                <EditContent />
-                                            </CascadingValue>
-                                            <button type="button" class="btn btn-warning" @onclick="()=> ResumeEditContent()"> Tillbaka </button>
-                                        </div>
-                                    </div>                             
-                                    }
-                            }
-                            else
-                            {
-                                <div class="content">
-                                    <ContentPreview ContentId="@content.ContentId" />
-                                    </div>
-                            }
-                                break;
-                            }
-                        case ExecuteAction.CreateContent:
-                            {
-                                <div class="containerEditWebPageContent" style="position: relative;">
-                                    <div class="content">
-                                        <ContentPreview ContentId="@content.ContentId" />
-                                    </div>
-                                    <div class="overlay-edit">
-                                        <CascadingValue Value="content.WebPageId">
-                                            <CreateContent />
-                                        </CascadingValue>
-                                    <button type="button" class="btn btn-warning btn-create" @onclick="()=> CreateDone()"> Klar </button>
-                                    </div>
-                                </div>
-                                PageExecution = ExecuteAction.Preview;
-                                break;
-                            }
-                case ExecuteAction.EditSelect:
-                    {
-                    if (layout == null || layout.LayoutCells == null || !layout.LayoutCells.Any())
-                    {
-                        // If layout doesn't exist or has no cells, show the content without layout grid
-                        <div class="containerEditWebPageContent" style="position: relative;">
-                            <div class="content">
-                                <ContentPreview ContentId="@content.ContentId" />
-                            </div>
-                            <div class="containerEditWebPagebuttons">
-                                <div class="button-container">
-                                    <a class="btn overlay-btn-edit" @onclick="()=> EditContent(content)" aria-label="Redigera" title="Redigera">
-                                        <i class="fa fa-pencil fa-2x" aria-hidden="true"></i>
-                                    </a>
-                                    <a class="btn overlay-btn-delete" @onclick="()=> DeleteContent(content.ContentId)" aria-label="Ta bort" title="Radera">
-                                        <i class="fa fa-trash-o fa-2x" aria-hidden="true"></i>
-                                    </a>
-                                </div>
-                            </div>
-                            </div>
-                        }
-                        else
-                        {
-                            // If layout exists, render the content in grid layout
-                            var layoutCell = layout.LayoutCells.FirstOrDefault(lc => lc.ContentId == content.ContentId);
+                                    <div class="content-item-layout-grid-preview"
+                                            style="grid-row: @cell.Row; grid-column: @cell.Column;
+                                                    grid-row-end: span @cell.RowSpan;
+                                                    grid-column-end: span @cell.ColumnSpan;
+                                                    position: relative;"
+                                            data-content-id="@cell.ContentId">
 
-                            if (layoutCell != null)
-                            {
-                               @*  <div class="containerEditWebPageContentLayoutGrid">
-                                    <div class="content-item-layout-grid"
-                                    draggable="true"
-                                    @ondragstart="(e) => OnDragStart(e, layoutCell)"
-                                    @ondragend="OnDragEndAsync"
-                                    @ondragover="(e) => OnDragOver(e, layoutCell.Row, layoutCell.Column, layoutCell.ContentId)"
-                                    style="grid-row: @layoutCell.Row; grid-column: @layoutCell.Column; position: relative;"
-                                    data-content-id="@layoutCell.ContentId">
-                                        <ContentPreview ContentId="@layoutCell.ContentId.Value" />
+                                        @if (cell.ContentId != null)
+                                        {
+                                            <ContentPreview ContentId="@cell.ContentId.Value" @key="@cell.ContentId" />
+                                        }
+                                        else
+                                        {
+                                            <p style="color:white;">EMPTY</p>
+                                        }
+                                    </div>
+                                }
+                            }
+                        </div>
 
-                                        <div class="containerEditWebPagebuttons">
-                                            <div class="button-container">
-                                                <a class="btn overlay-btn-edit" @onclick="() => EditContent(content)" aria-label="Redigera" title="Redigera">
-                                                    <i class="fa fa-pencil fa-2x" aria-hidden="true"></i>
-                                                </a>
-                                                <a class="btn overlay-btn-delete" @onclick="() => DeleteContent(content.ContentId)" aria-label="Ta bort" title="Radera">
-                                                    <i class="fa fa-trash-o fa-2x" aria-hidden="true"></i>
-                                                </a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div> *@
-                            }
-                            else
-                            {
-                                <div class="containerEditWebPageContent" style="position: relative;">
-                                    <div class="content">
-                                    <ContentPreview ContentId="@content.ContentId" />
-                                </div>
-                                    <div class="containerEditWebPagebuttons">
-                                        <div class="button-container">
-                                            <a class="btn overlay-btn-edit" @onclick="()=> EditContent(content)" aria-label="Redigera" title="Redigera">
-                                                    <i class="fa fa-pencil fa-2x" aria-hidden="true"></i>
-                                            </a>
-                                            <a class="btn overlay-btn-delete" @onclick="()=> DeleteContent(content.ContentId)" aria-label="Ta bort" title="Radera">
-                                                <i class="fa fa-trash-o fa-2x" aria-hidden="true"></i>
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
-                            }
+                        <div class="overlay-editwebpageinfo">
+                        <CascadingValue Value="WebPageId">
+                            <CMS.Components.Pages.WebPages.Edit />
+                        </CascadingValue>
+                            <button type="button" class="btn btn-warning btn-warning-edit" @onclick="()=> EditPageinformationDone()"> Tillbaka </button>
+                        </div>
+                        @* PageExecution = ExecuteAction.Preview; *@
+                        break;         
                     }
-                    break;
-                }
+                    case ExecuteAction.EditContent:
+                    {
 
-                        case ExecuteAction.Preview:
-                        {
-                            <div class="content">
-                                <ContentPreview ContentId="@content.ContentId" />
-                                </div>
-                                break;
-                            }
-                        case ExecuteAction.Delete:
+                        <div class="containerEditWebPageContentLayoutGridPreview" style="display: grid; grid-template-columns: repeat(12, 1fr); grid-gap: 10px;">
+                            @foreach (var cell in layout.LayoutCells)
                             {
-                                if (ContentForEditing == content.ContentId)
+                                // Find content for the cell
+                                var contentLayout = Contents.FirstOrDefault(l => l.ContentId == cell.ContentId);
+                                if (cell != null)
                                 {
-                                    Content contentdelete = new()
-                                    {
-                                        ContentId = (int)ContentForEditing
-                                    };
-                                <div class="containerEditWebPageContent" style="position: relative;">
-                                        <div class="content">
-                                            <ContentPreview ContentId="@content.ContentId" />
-                                        </div>
-                                        <div class="overlay-edit">
-                                            <CascadingValue Value="@contentdelete.ContentId">
-                                                <CMS.Components.Pages.ContentPages.Delete />
-                                            </CascadingValue>
-                                            <button type="button" class="btn btn-warning" @onclick="()=> CreateDone()"> Gå tillbaka </button>
-                                        </div>
+                                    <div class="content-item-layout-grid-preview"
+                                            style="grid-row: @cell.Row; grid-column: @cell.Column;
+                                                            grid-row-end: span @cell.RowSpan;
+                                                            grid-column-end: span @cell.ColumnSpan;
+                                                            position: relative;"
+                                            data-content-id="@cell.ContentId">
+
+                                        @if (cell.ContentId != null)
+                                        {
+                                                    
+                                            if (cell.ContentId == ContentForEditing)
+                                            {
+                                                @* Todo: Change this use of templateId is not good practice, should retrived from a injected setting file : *@
+                                            if (contentLayout.TemplateId == 9)
+                                                {
+                                                    <div class="containerEditWebPageContent" style="position: relative;">
+                                                        <div class="content">
+                                                        <CascadingValue Value="contentLayout.ContentId">
+                                                                <EditContent />
+                                                            </CascadingValue>
+                                                        </div>
+                                                        <div class="nav-edit-done-button-container">
+                                                            <button type="button" class="btn btn-warning" @onclick="()=> ResumeEditContent()"> Tillbaka </button>
+                                                        </div>
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <div class="containerEditWebPageContent" style="position: relative;">
+                                                        <div class="content">
+                                                    <ContentPreview ContentId="@cell.ContentId.Value" @key="@cell.ContentId" />
+                                                        </div>
+                                                        <div class="overlay-edit">
+                                                        <CascadingValue Value="contentLayout.ContentId">
+                                                                <EditContent />
+                                                            </CascadingValue>
+                                                            <button type="button" class="btn btn-warning" @onclick="()=> ResumeEditContent()"> Tillbaka </button>
+                                                        </div>
+                                                    </div>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <div class="content">
+                                            <ContentPreview ContentId="@cell.ContentId.Value" @key="@cell.ContentId" />
+                                                </div>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <p style="color:white;">EMPTY</p>
+                                        }
                                     </div>
                                 }
-                                else
+                            }
+                        </div>
+                                
+                        break;
+                    }
+                    case ExecuteAction.CreateContent:
+                    {
+                        <div class="containerEditWebPageContentLayoutGrid" style="display: grid; grid-template-columns: repeat(12, 1fr); grid-gap: 10px;">
+                            @foreach (var cell in layout.LayoutCells)
+                            {
+                                // Find content for the cell
+                                var contentLayout = Contents.FirstOrDefault(l => l.ContentId == cell.ContentId);
+                                if (cell != null)
                                 {
-                                    <div class="content">
-                                        <ContentPreview ContentId="@content.ContentId" />
+                                    <div class="content-item-layout-grid"
+                                            style="grid-row: @cell.Row; grid-column: @cell.Column;
+                                            grid-row-end: span @cell.RowSpan;
+                                            grid-column-end: span @cell.ColumnSpan;
+                                            position: relative;"
+                                            data-content-id="@cell.ContentId">
+
+                                        @if (cell.ContentId != null)
+                                        {
+                                            <ContentPreview ContentId="@cell.ContentId.Value" @key="@cell.ContentId" />
+                                        }
+                                        else
+                                        {
+                                            <p style="color:white;">EMPTY</p>
+                                        }
                                     </div>
                                 }
-                                break;
-                        }
-                        case ExecuteAction.Wait:
-                        {
-                            break;
-                        }
-                        default:          
-                        {
+                            }
+                        </div>
+                        <div class="overlay-edit">
+                            <CascadingValue Value="WebPageId">
+                                <CreateContent />
+                            </CascadingValue>
+                            <button type="button" class="btn btn-warning btn-create" @onclick="()=> CreateContentDone()"> Tillbaka </button>
+                        </div>
+                        @*  <div class="containerEditWebPageContent" style="position: relative;">
                             <div class="content">
                                 <ContentPreview ContentId="@content.ContentId" />
                             </div>
-                            break;
-                        }
-            }
+                            <div class="overlay-edit">
+                                <CascadingValue Value="content.WebPageId">
+                                    <CreateContent />
+                                </CascadingValue>
+                            <button type="button" class="btn btn-warning btn-create" @onclick="()=> CreateDone()"> Klar </button>
+                            </div>
+                        </div> *@
+                        @* PageExecution = ExecuteAction.Preview; *@
+                        break;
+                    }
+                    case ExecuteAction.SelectCell:
+                    {
+                        <div class="containerEditWebPageContentLayoutGrid" style="display: grid; grid-template-columns: repeat(12, 1fr); grid-gap: 10px;">
+                            @foreach (var cell in layout.LayoutCells)
+                            {
+                                // Find content for the cell
+                                var contentLayout = Contents.FirstOrDefault(l => l.ContentId == cell.ContentId);
+                                if (cell != null)
+                                {
+                                    <div @onclick="() => ChooseCellForNewContent(cell)" class="content-item-layout-grid"
+                                            style="grid-row: @cell.Row; grid-column: @cell.Column;
+                                                        grid-row-end: span @cell.RowSpan;
+                                                        grid-column-end: span @cell.ColumnSpan;
+                                                        position: relative;"
+                                            data-content-id="@cell.ContentId">
+
+                                        @if (cell.ContentId != null)
+                                        {
+                                            <ContentPreview ContentId="@cell.ContentId.Value" @key="@cell.ContentId" />
+                                        }
+                                        else
+                                        {
+                                            <p style="color:white;">EMPTY</p>
+                                        }
+                                    </div>
+                                }
+                            }
+                        </div>                
+@*                                 PageExecution = ExecuteAction.Preview; *@
+                        break;
+                    }
+                    case ExecuteAction.EditSelect:
+                    {
+                        <div class="containerEditWebPageContentLayoutGrid" style="display: grid; grid-template-columns: repeat(12, 1fr); grid-gap: 10px;">
+                            @foreach (var cell in layout.LayoutCells)
+                            {
+                                // Find content for the cell
+                                var contentLayout = Contents.FirstOrDefault(l => l.ContentId == cell.ContentId);
+                                if (cell != null)
+                                {
+                                    <div @onclick="() => EditContent(contentLayout)" class="content-item-layout-grid"
+                                        style="grid-row: @cell.Row; grid-column: @cell.Column;
+                                        grid-row-end: span @cell.RowSpan;
+                                        grid-column-end: span @cell.ColumnSpan;
+                                        position: relative;"
+                                        data-content-id="@cell.ContentId">
+
+                                        @if (cell.ContentId != null)
+                                        {
+                                            <ContentPreview ContentId="@cell.ContentId.Value" @key="@cell.ContentId" />
+                                        }
+                                        else
+                                        {
+                                            <p style="color:white;">EMPTY</p>
+                                        }
+                                    </div>
+                                }
+                            }
+                        </div>
+                        break;
+                    }
+                    case ExecuteAction.Preview:
+                    {
+                        <div class="containerEditWebPageContentLayoutGridPreview" style="display: grid; grid-template-columns: repeat(12, 1fr); grid-gap: 10px;">
+                            @foreach (var cell in layout.LayoutCells)
+                            {
+                                // Find content for the cell
+                                var contentLayout = Contents.FirstOrDefault(l => l.ContentId == cell.ContentId);
+                                if (cell != null)
+                                {
+                                    <div class="content-item-layout-grid-preview"
+                                            style="grid-row: @cell.Row; grid-column: @cell.Column;
+                                                grid-row-end: span @cell.RowSpan;
+                                                grid-column-end: span @cell.ColumnSpan;
+                                                position: relative;"
+                                            data-content-id="@cell.ContentId">
+
+                                        @if (cell.ContentId != null)
+                                        {
+                                            <ContentPreview ContentId="@cell.ContentId.Value" @key="@cell.ContentId" />
+
+                                        }
+                                        else
+                                        {
+                                            <p style="color:white;"></p>
+                                        }
+                                    </div>
+                                }
+                            }
+                        </div>
+                        break;
+                    }
+                    case ExecuteAction.DeleteSelect:
+                    {
+                        <div class="containerEditWebPageContentLayoutGrid" style="display: grid; grid-template-columns: repeat(12, 1fr); grid-gap: 10px;">
+                            @foreach (var cell in layout.LayoutCells)
+                            {
+                                // Find content for the cell
+                                var contentLayout = Contents.FirstOrDefault(l => l.ContentId == cell.ContentId);
+                                if (cell != null)
+                                {
+                                    <div @onclick="() => DeleteContent(contentLayout.ContentId)" class="content-item-layout-grid-delete"
+                                         style="grid-row: @cell.Row; grid-column: @cell.Column;
+                                            grid-row-end: span @cell.RowSpan;
+                                            grid-column-end: span @cell.ColumnSpan;
+                                            position: relative;"
+                                         data-content-id="@cell.ContentId">
+
+                                        @if (cell.ContentId != null)
+                                        {
+                                            <ContentPreview ContentId="@cell.ContentId.Value" @key="@cell.ContentId" />
+                                        }
+                                        else
+                                        {
+                                            <p style="color:white;">EMPTY</p>
+                                        }
+                                    </div>
+                                }
+                            }
+                        </div>
+                        break;
+                    }
+                    case ExecuteAction.Delete:
+                    {
+                        <div class="containerEditWebPageContentLayoutGrid" style="display: grid; grid-template-columns: repeat(12, 1fr); grid-gap: 10px;">
+                            @foreach (var cell in layout.LayoutCells)
+                            {
+                                // Find content for the cell
+                                var contentLayout = Contents.FirstOrDefault(l => l.ContentId == cell.ContentId);
+                                if (cell != null)
+                                {
+                                    <div class="content-item-layout-grid"
+                                         style="grid-row: @cell.Row; grid-column: @cell.Column;
+                                                grid-row-end: span @cell.RowSpan;
+                                                grid-column-end: span @cell.ColumnSpan;
+                                                position: relative;"
+                                         data-content-id="@cell.ContentId">
+
+                                        @if (cell.ContentId != null)
+                                        {
+                                            @* <ContentPreview ContentId="@cell.ContentId.Value" @key="@cell.ContentId" /> *@
+                                        }
+                                        else
+                                        {
+                                            <p style="color:white;">EMPTY</p>
+                                        }
+                                    </div>
+                                }
+                            }
+                        </div>
+                        <div class="overlay-editwebpageinfo">
+                            <CascadingValue Value="@ContentForEditing">
+                                <CMS.Components.Pages.ContentPages.Delete />
+                            </CascadingValue>
+                            <button type="button" class="btn btn-warning" @onclick="()=> DeleteDone()"> Tillbaka </button>
+                        </div>
+                       
+                       
+                        break;
+                    }
+                    case ExecuteAction.Wait:
+                    {
+                        break;
+                    }
+                    default:          
+                    {
+                        AlertMessage("Something went wrong. It is not you, it is us..");
+                        break;
+                    }
+                
         }
     }
     else
@@ -357,7 +524,7 @@
                             {
                                 <ContentPreview ContentId="@cell.ContentId.Value" @key="@cell.ContentId" />
 
-                                <div class="containerEditWebPagebuttons">
+                                @* <div class="containerEditWebPagebuttons">
                                     <div class="button-container">
                                         <a class="btn overlay-btn-edit" @onclick="() => EditContent(content)" aria-label="Redigera" title="Redigera">
                                             <i class="fa fa-pencil fa-2x" aria-hidden="true"></i>
@@ -366,7 +533,7 @@
                                             <i class="fa fa-trash-o fa-2x" aria-hidden="true"></i>
                                         </a>
                                     </div>
-                                </div>
+                                </div> *@
 
                                 <!-- Sliders for RowSpan and ColumnSpan -->
                                 <div class="grid-edit-controls">
@@ -391,7 +558,6 @@
                     }
                 }
             </div>
-
         }
         else
         {
@@ -418,7 +584,7 @@
                             {
                                 <ContentPreview ContentId="@cell.ContentId.Value" @key="@cell.ContentId" />
 
-                                <div class="containerEditWebPagebuttons">
+                               @*  <div class="containerEditWebPagebuttons">
                                     <div class="button-container">
                                         <a class="btn overlay-btn-edit" @onclick="() => EditContent(content)" aria-label="Redigera" title="Redigera">
                                             <i class="fa fa-pencil fa-2x" aria-hidden="true"></i>
@@ -427,7 +593,7 @@
                                             <i class="fa fa-trash-o fa-2x" aria-hidden="true"></i>
                                         </a>
                                     </div>
-                                </div>
+                                </div> *@
                             }
                             else
                             {
@@ -440,8 +606,22 @@
         }
     }
 }
-}
 
+<div classs="alert">
+
+    <!-- messages -->
+    @if (infoMessage)
+    {
+        <div class="alertMessage" role="alert" style="margin-top: 20px;">
+            @userInfoMessage
+            <div class="alert-flex">
+                <a class="btn overlay-btn-cancle-message" @onclick="AlertMessageHide" aria-label="Stäng" title="Stäng">
+                    <i class="fa fa-times fa-2x" aria-hidden="true"></i>
+                </a>
+            </div>
+        </div>
+    }
+</div>
 
 
 <style>
@@ -469,114 +649,3 @@
     }
 
 </style>
-
-@* <script>
-     // Prevent drag over default action
-    window.preventDragOverDefault = function (e) {
-        if (e.preventDefault) {  // Check if preventDefault is a function
-            e.preventDefault();
-        }
-        console.log("Drag over event handled.");
-    };
-
-    // Test
-    function showAlert() {
-        console.log('LOG TEST');
-    }
-
-    function TestDrag() {
-        console.log('Drag started JS');
-        var draggableElement = document.getElementById('navbaris');
-
-        if (draggableElement) {
-            draggableElement.addEventListener('dragstart', function (e) {
-                console.log("Drag started for element:", 'navbaris');
-                // You can add more functionality here as needed
-                // For example, create a custom drag preview or update styles
-                var dragPreview = document.createElement('div');
-                dragPreview.style.width = draggableElement.offsetWidth + 'px';
-                dragPreview.style.height = draggableElement.offsetHeight + 'px';
-                dragPreview.style.backgroundColor = '#f0f0f0';
-                dragPreview.style.border = '2px dashed #333';
-                dragPreview.style.pointerEvents = 'none';
-                dragPreview.style.opacity = '0.7';
-                dragPreview.innerText = "Dragging...";
-                e.dataTransfer.setDragImage(dragPreview, 0, 0);
-                draggableElement.style.opacity = '1';
-            });
-        }
-    }
-    
-
-    // Set up the DOMContentLoaded listener once
-    document.addEventListener('DOMContentLoaded', function () {
-        console.log("DOM loaded.");
-
-        // Select all draggable elements
-        document.querySelectorAll('[draggable="true"]').forEach(function (draggableElement) {
-            // Handle drag start
-            draggableElement.addEventListener('dragstart', function (e) {
-                console.log('Drag started JS');
-                this.classList.add('dragging');
-
-                // Create a custom drag preview
-                var dragPreview = document.createElement('div');
-                dragPreview.style.width = this.offsetWidth + 'px'; // Set width equal to the dragged element
-                dragPreview.style.height = this.offsetHeight + 'px'; // Set height equal to the dragged element
-                dragPreview.style.backgroundColor = '#f0f0f0'; // Custom background color
-                dragPreview.style.border = '2px dashed #333'; // Custom border for preview
-                dragPreview.style.pointerEvents = 'none'; // Avoid interaction with preview
-                dragPreview.style.opacity = '1'; // Set opacity for the preview
-                dragPreview.innerText = "Dragging..."; // Optional text for preview
-
-                // Set the custom preview image (using the clone)
-                e.dataTransfer.setDragImage(dragPreview, 0, 0); // Set offset to be at the top-left corner
-
-                // Optionally, apply other styles (e.g., reduce opacity) to the dragged element
-                this.style.opacity = '1'; // Change the opacity of the dragged element itself
-            });
-
-            // Handle drag end
-            draggableElement.addEventListener('dragend', function () {
-                console.log('Drag ended');
-                this.classList.remove('dragging');
-                this.style.opacity = '1'; // Reset opacity after drag ends
-            });
-        });
-    });
-
-    // This function will attach the 'dragstart' event to a specific element
-    function attachDragStartListener(elementId) {
-        var draggableElement = document.getElementById(elementId);
-
-        if (draggableElement) {
-            draggableElement.addEventListener('dragstart', function (e) {
-                console.log("Drag started for element:", elementId);
-                // You can add more functionality here as needed
-                // For example, create a custom drag preview or update styles
-                var dragPreview = document.createElement('div');
-                dragPreview.style.width = draggableElement.offsetWidth + 'px';
-                dragPreview.style.height = draggableElement.offsetHeight + 'px';
-                dragPreview.style.backgroundColor = '#f0f0f0';
-                dragPreview.style.border = '2px dashed #333';
-                dragPreview.style.pointerEvents = 'none';
-                dragPreview.style.opacity = '0.7';
-                dragPreview.innerText = "Dragging...";
-                e.dataTransfer.setDragImage(dragPreview, 0, 0);
-                draggableElement.style.opacity = '1';
-            });
-        }
-    }
-
-    // Function to trigger a drag event manually from JavaScript
-    function triggerDragStart(elementId) {
-        var element = document.getElementById(elementId);
-        if (element) {
-            const event = new DragEvent('dragstart', {
-                bubbles: true,
-                cancelable: true,
-            });
-            element.dispatchEvent(event); // Manually dispatch the dragstart event
-        }
-    }
-</script> *@

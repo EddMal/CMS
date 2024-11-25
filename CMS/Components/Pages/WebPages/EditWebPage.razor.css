@@ -229,7 +229,7 @@ header, .navbar, footer {
     cursor: grabbing;
     position: relative;
     padding: 10px;
-    background-color: #f4f4f4;
+    /*background-color: #f4f4f4;*/
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
@@ -268,15 +268,16 @@ header, .navbar, footer {
 .content-item-layout-grid {
     /* Ensure it accepts drops */
     /*border: 2px dashed #ccc;*/
-    will-change: transform, top, left;
-    transition: all 0.3s ease; /* Smooth transition */
+    /*will-change: transform, top, left;*/
+    /*transition: all 0.3s ease;*/ /* Smooth transition */
 }
 
     .content-item-layout-grid:Hover {
+       
         cursor: grabbing;
-        background-color: grey;
-        border: solid;
-        border-color: grey;
+       /* background-color: grey;*/
+        /* border: solid;
+        border-color: grey;*/
         cursor: grab;
     }
 
@@ -294,15 +295,73 @@ header, .navbar, footer {
     cursor: grabbing !important; /* Change cursor style */
 }
 
-    .content-item-layout-grid.drag-over {
-        border: 2px solid blue; /* Highlight the target area when dragging */
-        cursor: grabbing;
-    }
+.content-item-layout-grid.drag-over {
+    /*border: 2px solid blue;*/ /* Highlight the target area when dragging */
+    cursor: grabbing;
+}
 
 .content-item-layout-grid.drag-hover {
+    opacity: 0.5; /* Makes all child elements inside the div semi-transparent */
     background-color: grey;
     cursor: grabbing;
 }
+
+.containerEditWebPageContentLayoutGridDelete {
+    cursor: crosshair;
+    display: grid;
+    grid-template-columns: repeat(12, 1fr); /* 12 columns by default */
+    grid-gap: 10px;
+    position: relative;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    /* Ensure it accepts drops */
+    /*border: 2px dashed #ccc;*/
+}
+
+@media (max-width: 1024px) {
+    .containerEditWebPageContentLayoutGridDelete {
+        grid-template-columns: repeat(8, 1fr); /* 8 columns for medium screens */
+    }
+}
+
+@media (max-width: 768px) {
+    .containerEditWebPageContentLayoutGridDelete {
+        grid-template-columns: repeat(4, 1fr); /* 4 columns for small screens */
+    }
+}
+
+@media (max-width: 480px) {
+    .containerEditWebPageContentLayoutGridDelete {
+        grid-template-columns: 1fr; /* Single column for very small screens */
+    }
+}
+
+.content-item-layout-grid-delete {
+    cursor: crosshair;
+}
+
+
+    .content-item-layout-grid-delete.drag-hover {
+        cursor: not-allowed;
+        background-color: red;
+        border: solid;
+        border-color: red;
+        opacity: 0.5; /* Makes all child elements inside the div semi-transparent */
+    }
+
+    .content-item-layout-grid-delete:Hover {
+        cursor: not-allowed;
+        background-color: red;
+        border: solid;
+        border-color: red;
+        opacity: 0.5; /* Makes all child elements inside the div semi-transparent */
+    }
+
+        .content-item-layout-grid-delete:hover * {
+            cursor: not-allowed;
+            opacity: 0.5; /* Makes all child elements inside the div semi-transparent */
+        }
 
 .grid-edit-controls {
     margin-top: 10px;
@@ -334,3 +393,47 @@ header, .navbar, footer {
         margin-bottom: 10px;
     }
 
+.containerEditWebPageContentLayoutGridPreview {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr); /* 12 columns by default */
+    grid-gap: 10px;
+    position: relative;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    /* Ensure it accepts drops */
+    /*border: 2px dashed #ccc;*/
+}
+
+@media (max-width: 1024px) {
+    .containerEditWebPageContentLayoutGridPreview {
+        grid-template-columns: repeat(8, 1fr); /* 8 columns for medium screens */
+    }
+}
+
+@media (max-width: 768px) {
+    .containerEditWebPageContentLayoutGridPreview {
+        grid-template-columns: repeat(4, 1fr); /* 4 columns for small screens */
+    }
+}
+
+.content-item-layout-grid-preview {
+}
+
+@media (max-width: 480px) {
+    .containerEditWebPageContentLayoutGridPreview {
+        grid-template-columns: 1fr; /* Single column for very small screens */
+    }
+}
+
+.alertMessage {
+    background-color: white;
+    color: black;
+    border: solid 2px black;
+    border-radius: 3px;
+    padding: 10px 10px;
+    position: fixed; /* Use fixed to position relative to the viewport */
+    top: 50%; /* Position it 50% down the viewport */
+    left: 50%; /* Position it 50% from the left of the viewport */
+    transform: translate(-50%, -50%); /* Adjust the element’s position by its own size */
+}
