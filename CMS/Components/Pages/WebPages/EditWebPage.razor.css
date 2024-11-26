@@ -154,11 +154,11 @@ header, .navbar, footer {
 }
 
 .overlay-editwebpageinfo {
-    position: absolute; /* Position relative to the viewport (screen) */
-    top: 60px; /* Adjust this value as needed for how far down you want it to appear */
+    position: absolute;
     left: 50%;
-    transform: translateX(-50%); /* Offset the button by half its width */
-    z-index: 10;
+    transform: translateX(-50%);
+    z-index: 1000;
+    transition: top 0.3s ease-out;
     background-color: rgba(255, 255, 255, 1);
     color: black;
     border: 2px solid black;
@@ -219,26 +219,24 @@ header, .navbar, footer {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Define columns */
     grid-template-rows: auto; /* Adjust rows based on content */
-    gap: 10px;
     position: relative;
 }
 
 
 
-.content-item-Layout {
+/*.content-item-Layout {
     cursor: grabbing;
     position: relative;
-    padding: 10px;
+    padding: 10px;*/
     /*background-color: #f4f4f4;*/
-    border-radius: 8px;
+    /*border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
+}*/
 
 .containerEditWebPageContentLayoutGrid {
     cursor: grabbing;
     display: grid;
     grid-template-columns: repeat(12, 1fr); /* 12 columns by default */
-    grid-gap: 10px;
     position: relative;
     position: relative;
     width: 100%;
@@ -266,22 +264,33 @@ header, .navbar, footer {
 }
 
 .content-item-layout-grid {
+    user-select: none;
     /* Ensure it accepts drops */
     /*border: 2px dashed #ccc;*/
     /*will-change: transform, top, left;*/
     /*transition: all 0.3s ease;*/ /* Smooth transition */
+    position: relative;
+    overflow: visible; /* Ensure overflow doesn't cut off overlay */
 }
 
+
+
+    .content-item-layout-grid .content-wrapper {
+        pointer-events: none; /* Disable all interactions within this wrapper */
+    }
+
     .content-item-layout-grid:Hover {
-       
+        user-select: none;
         cursor: grabbing;
-       /* background-color: grey;*/
+        /* background-color: grey;*/
         /* border: solid;
         border-color: grey;*/
         cursor: grab;
+        opacity: 0.5; /* Makes all child elements inside the div semi-transparent */
     }
 
 .dragging {
+    user-select: none;
     cursor: grabbing;
     /*  
     opacity: 1 !important;
@@ -291,16 +300,21 @@ header, .navbar, footer {
 }
 
 .content-item-layout-grid.mouse-down {
+    user-select: none;
     background-color: rgba(0, 0, 0, 0.2); /* Change background color on mouse down */
     cursor: grabbing !important; /* Change cursor style */
 }
 
 .content-item-layout-grid.drag-over {
+    user-select: none;
     /*border: 2px solid blue;*/ /* Highlight the target area when dragging */
+    opacity: 0.5; /* Makes all child elements inside the div semi-transparent */
+    background-color: grey;
     cursor: grabbing;
 }
 
 .content-item-layout-grid.drag-hover {
+    user-select: none;
     opacity: 0.5; /* Makes all child elements inside the div semi-transparent */
     background-color: grey;
     cursor: grabbing;
@@ -310,7 +324,6 @@ header, .navbar, footer {
     cursor: crosshair;
     display: grid;
     grid-template-columns: repeat(12, 1fr); /* 12 columns by default */
-    grid-gap: 10px;
     position: relative;
     position: relative;
     width: 100%;
@@ -341,9 +354,13 @@ header, .navbar, footer {
     cursor: crosshair;
 }
 
+.content-item-layout-grid-delete .content-wrapper {
+    pointer-events: none; /* Disable all interactions within this wrapper */
+}
+
 
     .content-item-layout-grid-delete.drag-hover {
-        cursor: not-allowed;
+        cursor: crosshair;
         background-color: red;
         border: solid;
         border-color: red;
@@ -351,7 +368,7 @@ header, .navbar, footer {
     }
 
     .content-item-layout-grid-delete:Hover {
-        cursor: not-allowed;
+        cursor: crosshair;
         background-color: red;
         border: solid;
         border-color: red;
@@ -359,9 +376,75 @@ header, .navbar, footer {
     }
 
         .content-item-layout-grid-delete:hover * {
-            cursor: not-allowed;
+            cursor: crosshair;
             opacity: 0.5; /* Makes all child elements inside the div semi-transparent */
         }
+
+/*Create select CSS:*/
+.containerEditWebPageContentLayoutGridSelectCreate {
+    cursor: crosshair;
+    display: grid;
+    grid-template-columns: repeat(12, 1fr); /* 12 columns by default */
+    position: relative;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    /* Ensure it accepts drops */
+    /*border: 2px dashed #ccc;*/
+}
+
+@media (max-width: 1024px) {
+    .containerEditWebPageContentLayoutGridDSelectCreate {
+        grid-template-columns: repeat(8, 1fr); /* 8 columns for medium screens */
+    }
+}
+
+@media (max-width: 768px) {
+    .containerEditWebPageContentLayoutGridSelectCreate {
+        grid-template-columns: repeat(4, 1fr); /* 4 columns for small screens */
+    }
+}
+
+@media (max-width: 480px) {
+    .containerEditWebPageContentLayoutGridSelectCreate {
+        grid-template-columns: 1fr; /* Single column for very small screens */
+    }
+}
+
+.content-item-layout-grid-select-create {
+    cursor: crosshair;
+}
+
+.content-item-layout-grid-select-create .content-wrapper {
+    pointer-events: none; /* Disable all interactions within this wrapper */
+}
+
+
+    .content-item-layout-grid-select-create.drag-hover {
+        cursor: cell;
+        background-color: lightgreen;
+        border: solid;
+        border-color: lightgreen;
+        opacity: 0.5; /* Makes all child elements inside the div semi-transparent */
+    }
+
+    .content-item-layout-grid-select-create:Hover {
+        cursor: cell;
+        background-color: lightgreen;
+        border: solid;
+        border-color: lightgreen;
+        opacity: 0.5; /* Makes all child elements inside the div semi-transparent */
+    }
+
+        .content-item-layout-grid-select-create:hover * {
+            cursor: cell;
+            background-color: lightgreen;
+            border: solid;
+            border-color: lightgreen;
+            opacity: 0.5; /* Makes all child elements inside the div semi-transparent */
+        }
+/*End:after Create select CSS*/
+
 
 .grid-edit-controls {
     margin-top: 10px;
@@ -392,7 +475,7 @@ header, .navbar, footer {
     .grid-edit-controls input {
         margin-bottom: 10px;
     }
-
+/* Preview CSS*/
 .containerEditWebPageContentLayoutGridPreview {
     display: grid;
     grid-template-columns: repeat(12, 1fr); /* 12 columns by default */
@@ -419,6 +502,10 @@ header, .navbar, footer {
 
 .content-item-layout-grid-preview {
 }
+
+    .content-item-layout-grid-preview .content-wrapper {
+        pointer-events: none; /* Disable all interactions within this wrapper */
+    }
 
 @media (max-width: 480px) {
     .containerEditWebPageContentLayoutGridPreview {

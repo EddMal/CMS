@@ -100,9 +100,10 @@
                 </div>
             </div>
 
+
             <div style="margin-top: 10px;">
                 <button class="btn btn-outline-info" style=" margin-right:5px; " type="button" @onclick="PreviewImage">PreviewImage</button>
-                    @if (!MultiPageMode) // Show button only if not in multi-page mode
+                    @if (!saveSuccessful) // Show button only if not in multi-page mode
                     {
                         <button type="button" class="btn btn-outline-primary" @onclick="SaveToDatabase">Spara</button>
                     }

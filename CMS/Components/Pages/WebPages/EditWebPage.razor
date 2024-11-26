@@ -21,17 +21,17 @@
 
 
     @* Todo: Investigate the handling of the use of components, to remove excess use/"writing" of components*@
-    @if(PageExecution != ExecuteAction.SelectCell)
+    @if(pageExecution != ExecuteAction.SelectCellCreate)
     {
         <p>
              <div class="containerMainButtons">
                  <div class="button-container">
-            @if (PageExecution != ExecuteAction.Preview)
+            @if (pageExecution != ExecuteAction.Preview)
                 {
-                    if (HideToolbar)
+                    if (hideToolbar)
                     {
                         <div class="icon-container">
-                            <a class="btn overlay-btn-main" @onclick="()=> HideTools()" aria-label="Förhandgranska" title="Förhandgranska">
+                            <a class="btn overlay-btn-main" @onclick="()=> HideToolsAsync()" aria-label="Förhandgranska" title="Förhandgranska">
                                 <i class="fa fa-wrench fa-1x" aria-hidden="true"></i>
                             </a>
                             <span class="icon-text">Verktyg</span>
@@ -43,22 +43,22 @@
                             <a class="btn overlay-btn-main" @onclick="()=> PauseEditContent()" aria-label="Förhandgranska" title="Förhandgranska">
                                 <i class="fa fa-pause fa-1x" aria-hidden="true"></i>
                             </a>
-                            <span class="icon-text">Granska</span>
+                            <span class="icon-text">Granska Sida</span>
                         </div>
 
                         <div class="icon-container">
                             <a class="btn overlay-btn-main" @onclick="()=> AddContent()" aria-label="Lägg till innehåll" title="Lägg till innehåll">
                                 <i class="fa fa-plus-square-o fa-2x" style="margin-top:2px;"aria-hidden="true"></i>
                             </a>
-                            <span class="icon-text">Lägg till</span>
+                            <span class="icon-text">Nytt innehåll</span>
                         </div>
 
 
                         <div class="icon-container">
-                            <a class="btn overlay-btn-main" @onclick="()=> EditPageinformation()" aria-label="Redigera sidinformation" title="Redigera sidinformation">
+                            <a class="btn overlay-btn-main" @onclick="()=> EditPageinformationAsync()" aria-label="Redigera sidinformation" title="Redigera sidinformation">
                                 <i class="fa fa-cog fa-2x" aria-hidden="true"></i>
                             </a>
-                            <span class="icon-text">Redigera</span>
+                            <span class="icon-text">Sidinställningar</span>
                         </div>
 
                         <div class="icon-container">
@@ -72,35 +72,45 @@
                             <a class="btn overlay-btn-main" @onclick="()=> AddRow()" aria-label="Lägg till innehållsrad" title="Lägg till innehållsrad">
                                 <i class="fa fa-hand-pointer-o fa-2x" style="margin-top:2px; transform: rotate(180deg);" aria-hidden="true"></i>
                             </a>
-                            <span class="icon-text">Ny innehållsrad</span>
+                            <span class="icon-text">Ny rad</span>
                         </div>
 
                         <div class="icon-container">
                             @if (deleteContentActive)
                             {
 
-                                <a class="btn overlay-btn-main" @onclick="()=> DeleteSelect()" aria-label="Avbryt" title="Avbryt">
+                                <a class="btn overlay-btn-main" @onclick="()=> DeleteContentSelect()" aria-label="Avbryt" title="Avbryt">
                                     <i class="fa fa-times" style="margin-top:0px;" aria-hidden="true"></i>
                                 </a>
                                 <span class="icon-text">Avbryt</span>
                             }
                             else
                             {
-                                <a class="btn overlay-btn-main" @onclick="()=> DeleteSelect()" aria-label="Ta bort innehåll" title="Ta bort innehåll">
+                                <a class="btn overlay-btn-main" @onclick="()=> DeleteContentSelect()" aria-label="Ta bort innehåll" title="Ta bort innehåll">
                                     <i class="fa fa-trash fa-2x" style="margin-top:0px;" aria-hidden="true"></i>
                                 </a>
                                 <span class="icon-text">Ta bort innehåll</span>
                             }
                         </div>
 
-                    @if (editCellsActive)
-                    {
                         <div class="icon-container">
-                            <a class="btn overlay-btn-delete" @onclick="() => EditCells()" aria-label="Ta bort" title="Flytta innehåll">
-                                <i class="fa fa-times" aria-hidden="true"></i>
-                            </a>
-                            <span class="icon-text">Avbryt flytt </span>
+                            @if (deleteRowActive)
+                            {
+
+                                <a class="btn overlay-btn-main" @onclick="()=> DeleteSelectRow()" aria-label="Avbryt" title="Avbryt">
+                                    <i class="fa fa-times" style="margin-top:0px;" aria-hidden="true"></i>
+                                </a>
+                                <span class="icon-text">Avbryt</span>
+                            }
+                            else
+                            {
+                                <a class="btn overlay-btn-main" @onclick="()=> DeleteSelectRow()" aria-label="Ta bort innehåll" title="Ta bort innehåll">
+                                    <i class="fa fa-trash fa-2x" style="margin-top:0px;" aria-hidden="true"></i>
+                                </a>
+                                <span class="icon-text">Ta bort rad</span>
+                            }
                         </div>
+
                         <div class="icon-container">
                             @if (moveRowActive)
                             {
@@ -113,26 +123,49 @@
                             else
                             {
                                 <a class="btn overlay-btn-main" @onclick="()=> DragRows()" aria-label="Avbryt" title="Avbryt">
-                                    <i class="fa fa-arrows fa-2x" style="margin-top:0px; " aria-hidden="true"></i>
-                                </a>
-                                <span class="icon-text">Flytta rad</span>
+                                        <i class="fa fa-arrows fa-2x" style="margin-top:0px; " aria-hidden="true"></i>
+                                    </a>
+                                    <span class="icon-text">Flytta rad</span>
                             }
                         </div>
-                    }
-                    else
-                    {
+
                         <div class="icon-container">
-                            <a class="btn overlay-btn-delete" @onclick="() => EditCells()" aria-label="Ta bort" title="Flytta innehåll">
-                                    <i class="fa fa-mouse-pointer fa-2x" style="margin-left:5px;" aria-hidden="true"></i>
-                            </a>
-                                <span class="icon-text">Flytta innehåll</span>
+                            @if (resizeCellColumnSpanActive)
+                            {
+
+                                <a class="btn overlay-btn-main" @onclick="()=> ResizeCell()" aria-label="Avbryt" title="Avbryt">
+                                    <i class="fa fa-times" style="margin-top:0px;" aria-hidden="true"></i>
+                                </a>
+                                <span class="icon-text">Avbryt</span>
+                            }
+                            else
+                            {
+                                <a class="btn overlay-btn-main" @onclick="()=> ResizeCell()" aria-label="Ändra storlek" title="Ändra Storlek">
+                                    <i class="fa fa-sliders fa-2x" style="margin-top:0px; " aria-hidden="true"></i>
+                                </a>
+                                <span class="icon-text">Storlek</span>
+                            }
                         </div>
-                    }
-                   
-
 
                         <div class="icon-container">
-                            <a class="btn overlay-btn-main-ghost" @onclick="()=> HideTools()" aria-label="Förhandgranska" title="Förhandgranska">
+                            @if (editCellsActive)
+                            {
+                                <a class="btn overlay-btn-delete" @onclick="() => EditCells()" aria-label="Ta bort" title="Flytta innehåll">
+                                    <i class="fa fa-times" aria-hidden="true"></i>
+                                </a>
+                                <span class="icon-text">Avbryt flytt </span>
+                            }
+                            else
+                            {
+                                <a class="btn overlay-btn-delete" @onclick="() => EditCells()" aria-label="Ta bort" title="Flytta innehåll">
+                                        <i class="fa fa-mouse-pointer fa-2x" style="margin-left:5px;" aria-hidden="true"></i>
+                                </a>
+                                    <span class="icon-text">Flytta innehåll</span>
+                            }
+                        </div>
+
+                        <div class="icon-container">
+                            <a class="btn overlay-btn-main-ghost" @onclick="()=> HideToolsAsync()" aria-label="Förhandgranska" title="Förhandgranska">
                                 <i class="fa fa-snapchat-ghost fa-2x" aria-hidden="true"></i>
                             </a>
                             <span class="icon-text">Göm</span>
@@ -169,11 +202,11 @@
         {
             if (!editCellsActive)
             {
-                @switch (PageExecution)
+                @switch (pageExecution)
                 {
                     case ExecuteAction.EditPageinformation:
                     {
-                        <div class="containerEditWebPageContentLayoutGridPreview" style="display: grid; grid-template-columns: repeat(12, 1fr); grid-gap: 10px;">
+                        <div class="containerEditWebPageContentLayoutGridPreview" style="display: grid; grid-template-columns: repeat(12, 1fr);">
                             @foreach (var cell in layout.LayoutCells)
                             {
                                 // Find content for the cell
@@ -189,7 +222,9 @@
 
                                         @if (cell.ContentId != null)
                                         {
-                                            <ContentPreview ContentId="@cell.ContentId.Value" @key="@cell.ContentId" />
+                                            <div class="content-wrapper">
+                                                <ContentPreview ContentId="@cell.ContentId.Value" @key="@cell.ContentId" />
+                                            </div>
                                         }
                                         else
                                         {
@@ -212,7 +247,7 @@
                     case ExecuteAction.EditContent:
                     {
 
-                        <div class="containerEditWebPageContentLayoutGridPreview" style="display: grid; grid-template-columns: repeat(12, 1fr); grid-gap: 10px;">
+                        <div class="containerEditWebPageContentLayoutGridPreview" style="display: grid; grid-template-columns: repeat(12, 1fr);">
                             @foreach (var cell in layout.LayoutCells)
                             {
                                 // Find content for the cell
@@ -229,7 +264,7 @@
                                         @if (cell.ContentId != null)
                                         {
                                                     
-                                            if (cell.ContentId == ContentForEditing)
+                                            if (cell.ContentId == contentForEditing)
                                             {
                                                 @* Todo: Change this use of templateId is not good practice, should retrived from a injected setting file : *@
                                             if (contentLayout.TemplateId == 9)
@@ -262,8 +297,8 @@
                                             }
                                             else
                                             {
-                                                <div class="content">
-                                            <ContentPreview ContentId="@cell.ContentId.Value" @key="@cell.ContentId" />
+                                                <div class="content-wrapper">
+                                                    <ContentPreview ContentId="@cell.ContentId.Value" @key="@cell.ContentId" />
                                                 </div>
                                             }
                                         }
@@ -280,7 +315,7 @@
                     }
                     case ExecuteAction.CreateContent:
                     {
-                        <div class="containerEditWebPageContentLayoutGrid" style="display: grid; grid-template-columns: repeat(12, 1fr); grid-gap: 10px;">
+                        <div class="containerEditWebPageContentLayoutGrid" style="display: grid; grid-template-columns: repeat(12, 1fr);">
                             @foreach (var cell in layout.LayoutCells)
                             {
                                 // Find content for the cell
@@ -296,7 +331,9 @@
 
                                         @if (cell.ContentId != null)
                                         {
+                                        <div class="content-wrapper">
                                             <ContentPreview ContentId="@cell.ContentId.Value" @key="@cell.ContentId" />
+                                        </div>
                                         }
                                         else
                                         {
@@ -326,16 +363,16 @@
                         @* PageExecution = ExecuteAction.Preview; *@
                         break;
                     }
-                    case ExecuteAction.SelectCell:
+                    case ExecuteAction.SelectCellCreate:
                     {
-                        <div class="containerEditWebPageContentLayoutGrid" style="display: grid; grid-template-columns: repeat(12, 1fr); grid-gap: 10px;">
+                        <div class="containerEditWebPageContentLayoutGridSelectCreate" style="display: grid; grid-template-columns: repeat(12, 1fr);">
                             @foreach (var cell in layout.LayoutCells)
                             {
                                 // Find content for the cell
                                 var contentLayout = Contents.FirstOrDefault(l => l.ContentId == cell.ContentId);
                                 if (cell != null)
                                 {
-                                    <div @onclick="() => ChooseCellForNewContent(cell)" class="content-item-layout-grid"
+                                    <div @onclick="() => ChooseCellForNewContent(cell)" class="content-item-layout-grid-select-create"
                                             style="grid-row: @cell.Row; grid-column: @cell.Column;
                                                         grid-row-end: span @cell.RowSpan;
                                                         grid-column-end: span @cell.ColumnSpan;
@@ -344,7 +381,9 @@
 
                                         @if (cell.ContentId != null)
                                         {
+                                        <div class="content-wrapper">
                                             <ContentPreview ContentId="@cell.ContentId.Value" @key="@cell.ContentId" />
+                                        </div>
                                         }
                                         else
                                         {
@@ -359,7 +398,7 @@
                     }
                     case ExecuteAction.EditSelect:
                     {
-                        <div class="containerEditWebPageContentLayoutGrid" style="display: grid; grid-template-columns: repeat(12, 1fr); grid-gap: 10px;">
+                        <div class="containerEditWebPageContentLayoutGrid" style="display: grid; grid-template-columns: repeat(12, 1fr);">
                             @foreach (var cell in layout.LayoutCells)
                             {
                                 // Find content for the cell
@@ -375,7 +414,9 @@
 
                                         @if (cell.ContentId != null)
                                         {
-                                            <ContentPreview ContentId="@cell.ContentId.Value" @key="@cell.ContentId" />
+                                            <div class="content-wrapper">
+                                                <ContentPreview ContentId="@cell.ContentId.Value" @key="@cell.ContentId" />
+                                            </div>
                                         }
                                         else
                                         {
@@ -389,7 +430,7 @@
                     }
                     case ExecuteAction.Preview:
                     {
-                        <div class="containerEditWebPageContentLayoutGridPreview" style="display: grid; grid-template-columns: repeat(12, 1fr); grid-gap: 10px;">
+                        <div class="containerEditWebPageContentLayoutGridPreview" style="display: grid; grid-template-columns: repeat(12, 1fr);">
                             @foreach (var cell in layout.LayoutCells)
                             {
                                 // Find content for the cell
@@ -406,7 +447,6 @@
                                         @if (cell.ContentId != null)
                                         {
                                             <ContentPreview ContentId="@cell.ContentId.Value" @key="@cell.ContentId" />
-
                                         }
                                         else
                                         {
@@ -420,7 +460,7 @@
                     }
                     case ExecuteAction.DeleteSelect:
                     {
-                        <div class="containerEditWebPageContentLayoutGrid" style="display: grid; grid-template-columns: repeat(12, 1fr); grid-gap: 10px;">
+                        <div class="containerEditWebPageContentLayoutGrid" style="display: grid; grid-template-columns: repeat(12, 1fr);">
                             @foreach (var cell in layout.LayoutCells)
                             {
                                 // Find content for the cell
@@ -436,7 +476,9 @@
 
                                         @if (cell.ContentId != null)
                                         {
-                                            <ContentPreview ContentId="@cell.ContentId.Value" @key="@cell.ContentId" />
+                                            <div class="content-wrapper">
+                                                <ContentPreview ContentId="@cell.ContentId.Value" @key="@cell.ContentId" />
+                                            </div>
                                         }
                                         else
                                         {
@@ -450,7 +492,7 @@
                     }
                     case ExecuteAction.Delete:
                     {
-                        <div class="containerEditWebPageContentLayoutGrid" style="display: grid; grid-template-columns: repeat(12, 1fr); grid-gap: 10px;">
+                        <div class="containerEditWebPageContentLayoutGrid" style="display: grid; grid-template-columns: repeat(12, 1fr);">
                             @foreach (var cell in layout.LayoutCells)
                             {
                                 // Find content for the cell
@@ -466,8 +508,10 @@
 
                                         @if (cell.ContentId != null)
                                         {
-                                            @* <ContentPreview ContentId="@cell.ContentId.Value" @key="@cell.ContentId" /> *@
-                                        }
+                                            <div class="content-wrapper">
+                                                <ContentPreview ContentId="@cell.ContentId.Value" @key="@cell.ContentId" />
+                                            </div>
+                                    }
                                         else
                                         {
                                             <p style="color:white;">EMPTY</p>
@@ -477,13 +521,140 @@
                             }
                         </div>
                         <div class="overlay-editwebpageinfo">
-                            <CascadingValue Value="@ContentForEditing">
+                            <CascadingValue Value="@contentForEditing">
                                 <CMS.Components.Pages.ContentPages.Delete />
                             </CascadingValue>
-                            <button type="button" class="btn btn-warning" @onclick="()=> DeleteDone()"> Tillbaka </button>
+                            <button type="button" class="btn btn-warning" @onclick="()=> DeleteDoneAsync()"> Tillbaka </button>
                         </div>
                        
                        
+                        break;
+                    }
+                    case ExecuteAction.Resize:
+                    {
+                        <div class="containerEditWebPageContentLayoutGridPreview" style="display: grid; grid-template-columns: repeat(12, 1fr);">
+                            @foreach (var cell in layout.LayoutCells)
+                            {
+                                // Find content for the cell
+                                var content = Contents.FirstOrDefault(l => l.ContentId == cell.ContentId);
+                                if (cell != null)
+                                {
+                                    <div class="content-item-layout-grid-preview"
+                                         style="grid-row: @cell.Row; grid-column: @cell.Column;
+                                         grid-row-end: span @cell.RowSpan;
+                                         grid-column-end: span @cell.ColumnSpan;
+                                         position: relative;"
+                                         data-content-id="@cell.ContentId">
+
+                                        @if (cell.ContentId != null)
+                                        {
+                                            <div class="content-wrapper">
+                                                <ContentPreview ContentId="@cell.ContentId.Value" @key="@cell.ContentId" />
+                                            </div>
+
+                                            @* <div class="containerEditWebPagebuttons">
+                                               <div class="button-container">
+                                               <a class="btn overlay-btn-edit" @onclick="() => EditContent(content)" aria-label="Redigera" title="Redigera">
+                                               <i class="fa fa-pencil fa-2x" aria-hidden="true"></i>
+                                               </a>
+                                               <a class="btn overlay-btn-delete" @onclick="() => DeleteContent(content.ContentId)" aria-label="Ta bort" title="Radera">
+                                               <i class="fa fa-trash-o fa-2x" aria-hidden="true"></i>
+                                               </a>
+                                               </div>
+                                               </div> *@
+
+                                            <!-- Sliders for RowSpan and ColumnSpan -->
+                                            <div class="grid-edit-controls">
+                                                @* <label for="row-span-@cell.ContentId">Row Span: @cell.RowSpan</label>
+                                                   <input type="range" id="row-span-@cell.ContentId"
+                                                   value="@cell.RowSpan" min="1" max="12"
+                                                   @oninput="(e) => UpdateRowSpan(cell, int.Parse(e.Value.ToString()))"
+                                                   step="1" /> *@
+
+                                                <label for="col-span-@cell.ContentId">Column Span: @cell.ColumnSpan</label>
+                                                <input type="range" id="col-span-@cell.ContentId"
+                                                       value="@cell.ColumnSpan" min="1" max="12"
+                                                       @oninput="(e) => UpdateColumnSpan(cell, int.Parse(e.Value.ToString()))"
+                                                       step="1" />
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <p style="color:white;">EMPTY</p>
+                                        }
+                                    </div>
+                                }
+                            }
+                        </div>
+                        break;
+                    }
+                    case ExecuteAction.DragRow:
+                    {
+                        <div class="containerEditWebPageContentLayoutGrid" style="display: grid; grid-template-columns: repeat(12, 1fr);">
+                            @foreach (var cell in layout.LayoutCells)
+                            {
+                                // Find content for the cell
+                                var content = Contents.FirstOrDefault(l => l.ContentId == cell.ContentId);
+
+                                if (cell != null)
+                                {
+                                    <div class="content-item-layout-grid"
+                                         draggable="true"
+                                         @ondragstart="(e) => OnDragStartRow(cell.Row)"
+                                         @ondragend="(e) => OnDragEndRowAsync(e)"
+                                         @ondragover="(e) => OnDragOverRow(cell.Row)"
+                                         style="grid-row: @cell.Row; grid-column: @cell.Column;
+                                         grid-row-end: span @cell.RowSpan;
+                                         grid-column-end: span @cell.ColumnSpan;
+                                         position: relative;"
+                                         data-content-id="@cell.ContentId">
+
+                                        @if (cell.ContentId != null)
+                                        {
+                                            <div class="content-wrapper">
+                                                <ContentPreview ContentId="@cell.ContentId.Value" @key="@cell.ContentId" />
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <p style="color:white;">EMPTY</p>
+                                        }
+                                    </div>
+                                }
+                            }
+                        </div>
+                        break;
+                    }
+                    case ExecuteAction.DeleteRowSelect:
+                    {
+                        <div class="containerEditWebPageContentLayoutGrid" style="display: grid; grid-template-columns: repeat(12, 1fr);">
+                            @foreach (var cell in layout.LayoutCells)
+                            {
+                                // Find content for the cell
+                                var contentLayout = Contents.FirstOrDefault(l => l.ContentId == cell.ContentId);
+                                if (cell != null)
+                                {
+                                    <div @onclick="() => DeleteRow(cell.Row)" class="content-item-layout-grid-delete"
+                                        style="grid-row: @cell.Row; grid-column: @cell.Column;
+                                        grid-row-end: span @cell.RowSpan;
+                                        grid-column-end: span @cell.ColumnSpan;
+                                        position: relative;"
+                                        data-content-id="@cell.ContentId">
+
+                                    @if (cell.ContentId != null)
+                                    {
+                                        <div class="content-wrapper">
+                                            <ContentPreview ContentId="@cell.ContentId.Value" @key="@cell.ContentId" />
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <p style="color:white;">EMPTY</p>
+                                    }
+                                </div>
+                                }
+                            }
+                        </div> 
                         break;
                     }
                     case ExecuteAction.Wait:
@@ -496,115 +667,71 @@
                         break;
                     }
                 
-        }
-    }
-    else
-    {
-        if(!moveRowActive)
-        {
-            <div class="containerEditWebPageContentLayoutGrid" style="display: grid; grid-template-columns: repeat(12, 1fr); grid-gap: 10px;">
-                @foreach (var cell in layout.LayoutCells)
-                {
-                    // Find content for the cell
-                    var content = Contents.FirstOrDefault(l => l.ContentId == cell.ContentId);
-                    if (cell != null)
-                    {
-                        <div class="content-item-layout-grid"
-                             
-                             @onmousedown="() => OnDragStart( cell)"
-                             @onmouseup="() => OnDragEndAsync()"
-                             @onmouseenter="() => OnDragOver( cell.Row, cell.Column, cell.ContentId)"
-                             style="grid-row: @cell.Row; grid-column: @cell.Column;
-                            grid-row-end: span @cell.RowSpan;
-                            grid-column-end: span @cell.ColumnSpan;
-                            position: relative;"
-                             data-content-id="@cell.ContentId">
-                            
-                            @if (cell.ContentId != null)
+                }
+            }
+            else
+            {
+
+                    <div class="containerEditWebPageContentLayoutGrid" style="display: grid; grid-template-columns: repeat(12, 1fr);">
+                        @foreach (var cell in layout.LayoutCells)
+                        {
+                            // Find content for the cell
+                            var content = Contents.FirstOrDefault(l => l.ContentId == cell.ContentId);
+                            if (cell != null)
                             {
-                                <ContentPreview ContentId="@cell.ContentId.Value" @key="@cell.ContentId" />
+                                <div class="content-item-layout-grid"
+                             
+                                     @onmousedown="() => OnDragStart( cell)"
+                                     @onmouseup="() => OnDragEndAsync()"
+                                     @onmouseenter="() => OnDragOver( cell.Row, cell.Column, cell.ContentId)"
+                                     style="grid-row: @cell.Row; grid-column: @cell.Column;
+                                     grid-row-end: span @cell.RowSpan;
+                                     grid-column-end: span @cell.ColumnSpan;
+                                     position: relative;"
+                                     data-content-id="@cell.ContentId">
+                            
+                                    @if (cell.ContentId != null)
+                                    {
+                                        <div class="content-wrapper">
+                                            <ContentPreview ContentId="@cell.ContentId.Value" @key="@cell.ContentId" />
+                                        </div>
 
-                                @* <div class="containerEditWebPagebuttons">
-                                    <div class="button-container">
-                                        <a class="btn overlay-btn-edit" @onclick="() => EditContent(content)" aria-label="Redigera" title="Redigera">
-                                            <i class="fa fa-pencil fa-2x" aria-hidden="true"></i>
-                                        </a>
-                                        <a class="btn overlay-btn-delete" @onclick="() => DeleteContent(content.ContentId)" aria-label="Ta bort" title="Radera">
-                                            <i class="fa fa-trash-o fa-2x" aria-hidden="true"></i>
-                                        </a>
-                                    </div>
-                                </div> *@
+                                        @* <div class="containerEditWebPagebuttons">
+                                            <div class="button-container">
+                                                <a class="btn overlay-btn-edit" @onclick="() => EditContent(content)" aria-label="Redigera" title="Redigera">
+                                                    <i class="fa fa-pencil fa-2x" aria-hidden="true"></i>
+                                                </a>
+                                                <a class="btn overlay-btn-delete" @onclick="() => DeleteContent(content.ContentId)" aria-label="Ta bort" title="Radera">
+                                                    <i class="fa fa-trash-o fa-2x" aria-hidden="true"></i>
+                                                </a>
+                                            </div>
+                                        </div> *@
 
-                                <!-- Sliders for RowSpan and ColumnSpan -->
-                                <div class="grid-edit-controls">
-                                    @* <label for="row-span-@cell.ContentId">Row Span: @cell.RowSpan</label>
-                                    <input type="range" id="row-span-@cell.ContentId"
-                                           value="@cell.RowSpan" min="1" max="12"
-                                           @oninput="(e) => UpdateRowSpan(cell, int.Parse(e.Value.ToString()))"
-                                           step="1" /> *@
+                                        <!-- Sliders for RowSpan and ColumnSpan -->
+                                       @*  <div class="grid-edit-controls"> *@
+                                            @* <label for="row-span-@cell.ContentId">Row Span: @cell.RowSpan</label>
+                                            <input type="range" id="row-span-@cell.ContentId"
+                                                   value="@cell.RowSpan" min="1" max="12"
+                                                   @oninput="(e) => UpdateRowSpan(cell, int.Parse(e.Value.ToString()))"
+                                                   step="1" /> *@
 
-                                    <label for="col-span-@cell.ContentId">Column Span: @cell.ColumnSpan</label>
-                                    <input type="range" id="col-span-@cell.ContentId"
-                                           value="@cell.ColumnSpan" min="1" max="12"
-                                           @oninput="(e) => UpdateColumnSpan(cell, int.Parse(e.Value.ToString()))"
-                                           step="1" />
+                                            @* <label for="col-span-@cell.ContentId">Column Span: @cell.ColumnSpan</label>
+                                            <input type="range" id="col-span-@cell.ContentId"
+                                                   value="@cell.ColumnSpan" min="1" max="12"
+                                                   @oninput="(e) => UpdateColumnSpan(cell, int.Parse(e.Value.ToString()))"
+                                                   step="1" />
+                                        </div> *@
+                                    }
+                                    else
+                                    {
+                                        <p style="color:white;">EMPTY</p>
+                                    }
                                 </div>
                             }
-                            else
-                            {
-                                <p style="color:white;">EMPTY</p>
-                            }
-                        </div>
-                    }
-                }
-            </div>
-        }
-        else
-        {
-            <div class="containerEditWebPageContentLayoutGrid" style="display: grid; grid-template-columns: repeat(12, 1fr); grid-gap: 10px;">
-                @foreach (var cell in layout.LayoutCells)
-                {
-                    // Find content for the cell
-                    var content = Contents.FirstOrDefault(l => l.ContentId == cell.ContentId);
-
-                    if (cell != null)
-                    {
-                        <div class="content-item-layout-grid"
-                             draggable="true"
-                             @ondragstart="(e) => OnDragStartRow(cell.Row)"
-                             @ondragend="(e) => OnDragEndRowAsync(e)"
-                             @ondragover="(e) => OnDragOverRow(cell.Row)"
-                             style="grid-row: @cell.Row; grid-column: @cell.Column;
-                            grid-row-end: span @cell.RowSpan;
-                            grid-column-end: span @cell.ColumnSpan;
-                            position: relative;"
-                             data-content-id="@cell.ContentId">
-
-                            @if (cell.ContentId != null)
-                            {
-                                <ContentPreview ContentId="@cell.ContentId.Value" @key="@cell.ContentId" />
-
-                               @*  <div class="containerEditWebPagebuttons">
-                                    <div class="button-container">
-                                        <a class="btn overlay-btn-edit" @onclick="() => EditContent(content)" aria-label="Redigera" title="Redigera">
-                                            <i class="fa fa-pencil fa-2x" aria-hidden="true"></i>
-                                        </a>
-                                        <a class="btn overlay-btn-delete" @onclick="() => DeleteContent(content.ContentId)" aria-label="Ta bort" title="Radera">
-                                            <i class="fa fa-trash-o fa-2x" aria-hidden="true"></i>
-                                        </a>
-                                    </div>
-                                </div> *@
-                            }
-                            else
-                            {
-                                <p style="color:white;">EMPTY</p>
-                            }
-                        </div>
-                    }
-                }
-            </div>
-        }
-    }
+                        }
+                    </div>
+        
+            }
 }
 
 <div classs="alert">
