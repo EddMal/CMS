@@ -32,87 +32,106 @@ header, .navbar, footer {
     padding: 0; /* Remove padding */
 }
 
-/* Toolbar/Button Containers */
 /* Main button container */
 .containerMainButtons {
     position: fixed; /* Fixes the container */
-    bottom: 0; /* Position the container at the top of the screen */
+    bottom: 0; /* Position the container at the bottom of the screen */
     left: 0; /* Align to the left */
-    right: 0; /* Full width */
+    width: auto; /* Default width for normal state */
     background-color: rgba(255, 255, 255, 1); /* Optional: add a background */
     padding: 0px; /* Padding around the buttons */
-    border: 2px solid black;
-    border-radius: 10px;
+    border: 0px solid black;
+    border-radius: 0px;
     z-index: 100; /* Ensure it stays above other content */
     display: flex;
-    justify-content: center; /* Center the buttons */
+    flex-direction: row; /* Align items horizontally */
+    align-items: center; /* Center items vertically within the row */
+    transition: width 0.3s ease, padding 0.3s ease; /* Smooth transition for the shrinking effect */
 }
+
+    
 
 /* Button container styling */
 .button-container {
     display: flex;
-    flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
-    justify-content: center; /* Center buttons */
-    gap: 18px; /* Space between buttons */
+    flex-direction: row; /* Align buttons horizontally */
+    gap: 8px; /* Space between buttons */
+    align-items: center; /* Center buttons vertically */
+    transition: all 0.3s ease; /* Smooth transition for the container */
 }
 
 /* Icon container (individual button styling) */
 .icon-container {
     display: flex;
     flex-direction: column;
-    align-items: center; /* Align items to the center (both icon and text) */
-    justify-content: flex-start; /* Align items at the top of the container */
-    width: 50px; /* Default size for icons */
+    align-items: center; /* Align items to the center */
+    justify-content: flex-start; /* Align items at the top */
+    width: 70px; /* Default size for icons */
     text-align: center; /* Center the icon and text */
-    padding-top: 5px; /* Space from the top */
+    transition: width 0.3s ease, opacity 0.3s ease; /* Smooth transitions for shrinking */
 }
 
     /* Style icons */
     .icon-container i {
-        font-size: 14px; /* Default icon size */
+        font-size: 20px; /* Default icon size */
+        transition: font-size 0.3s ease; /* Smooth transition for icon size */
     }
 
 /* Styling for text under the icons */
 .icon-text {
-    font-size: 10px; /* Default font size for text */
+    font-size: 8px; /* Default font size for text */
     margin-top: 5px; /* Add space above the text */
-    word-wrap: break-word; /* Allow text to break onto a new line */
+    word-wrap: unset; /* Prevent text wrapping */
     text-align: center; /* Center the text */
     width: 100%; /* Ensure the text can wrap within the container */
+    white-space: nowrap; /* Prevent text from wrapping */
+    overflow: hidden; /* Hide any overflow */
+    text-overflow: ellipsis; /* Show ellipsis when text overflows */
+    display: block; /* Ensure text is displayed as a block element */
+    transition: opacity 0.3s ease; /* Smooth transition for hiding text */
 }
+
 
 /* For small screens (responsive design) */
 @media (max-width: 768px) {
     .icon-container {
-        width: 45px; /* Smaller size for icons */
+        padding-top: 1px;
+        width:29px; /* Width */
     }
 
         .icon-container i {
-            font-size: 18px; /* Smaller icons */
+            font-size: 16px; /* Smaller icons on mobile */
         }
 
     .icon-text {
-        font-size: 10px; /* Smaller text */
-        white-space: normal; /* Allow the text to wrap and break into multiple lines */
+        font-size: 8px; /* Smaller text */
+    }
+
+    .containerMainButtons.minimized {
+        width: 40px; /* Minimized size for mobile */
     }
 
     .button-container {
-        gap: 15px; /* Adjust gap for smaller screens */
+        gap: 6px; /* Smaller gap on mobile */
     }
 }
 
 /* For large screens, ensure the buttons are full-sized and in one row */
 @media (min-width: 768px) {
     .icon-container {
-        width: 70px; /* Larger size for icons */
+        width: 20px; /* Width */
     }
 
         .icon-container i {
-            font-size: 30px; /* Larger icons */
+            font-size: 17px; /* Larger icons */
         }
 
     .icon-text {
-        font-size: 12px; /* Larger text */
+        font-size: 0px; /* Larger text */
+    }
+
+    .containerMainButtons.minimized {
+        width: 50px; /* Larger minimized width for large screens */
     }
 }
 
@@ -120,6 +139,7 @@ header, .navbar, footer {
 .button-container button {
     flex: 0 0 auto; /* Ensure buttons do not stretch */
 }
+
 
 
 /* OLD ICON CONTAINER*/
@@ -162,7 +182,7 @@ header, .navbar, footer {
 .overlay-btn-edit {
     background-color: rgba(255, 255, 255, 0.9); /* Red background */
     color: black;
-    border: 2px solid black;
+    border: 1px solid black;
     border-radius: 50%; /* This makes the button round */
     padding: 20px; /* Ensure equal padding for width and height */
     width: 40px; /* Set width to ensure a fixed size */
@@ -175,11 +195,11 @@ header, .navbar, footer {
 .overlay-btn-delete {
     background-color: rgba(255, 255, 255, 0.9); /* Red background */
     color: black;
-    border: 2px solid #000000;
-    border-radius: 50%; /* This makes the button round */
-    padding: 20px; /* Ensure equal padding for width and height */
-    width: 40px; /* Set width to ensure a fixed size */
-    height: 40px; /* Set height to ensure a fixed size */
+    border: 1px solid #000000;
+    border-radius: 3%; /* This makes the button round */
+    padding: 10px; /* Ensure equal padding for width and height */
+    width: 30px; /* Set width to ensure a fixed size */
+    height: 30px; /* Set height to ensure a fixed size */
     display: flex;
     justify-content: center; /* Center the icon horizontally */
     align-items: center; /* Center the icon vertically */
@@ -188,11 +208,11 @@ header, .navbar, footer {
 .overlay-btn-main {
     background-color: rgba(255, 255, 255, 0.9); /* Red background */
     color: black;
-    border: 2px solid #000000;
-    border-radius: 50%; /* This makes the button round */
-    padding: 20px; /* Ensure equal padding for width and height */
-    width: 40px; /* Set width to ensure a fixed size */
-    height: 40px; /* Set height to ensure a fixed size */
+    border: 1px solid #000000;
+    border-radius: 3%; /* This makes the button round */
+    padding: 10px; /* Ensure equal padding for width and height */
+    width: 30px; /* Set width to ensure a fixed size */
+    height: 30px; /* Set height to ensure a fixed size */
     display: flex;
     justify-content: center; /* Center the icon horizontally */
     align-items: center; /* Center the icon vertically */
@@ -203,9 +223,9 @@ header, .navbar, footer {
     color: white;
     border: 0px solid black;
     border-radius: 50%; /* This makes the button round */
-    padding: 20px; /* Ensure equal padding for width and height */
-    width: 40px; /* Set width to ensure a fixed size */
-    height: 40px; /* Set height to ensure a fixed size */
+    padding: 10px; /* Ensure equal padding for width and height */
+    width: 23px; /* Set width to ensure a fixed size */
+    height: 23px; /* Set height to ensure a fixed size */
     display: flex;
     justify-content: center; /* Center the icon horizontally */
     align-items: center; /* Center the icon vertically */
@@ -634,14 +654,47 @@ header, .navbar, footer {
     }
 }
 
-.alertMessage {
+./*alertMessage {
     background-color: white;
     color: black;
     border: solid 2px black;
     border-radius: 3px;
     padding: 10px 10px;
-    position: fixed; /* Use fixed to position relative to the viewport */
-    top: 50%; /* Position it 50% down the viewport */
-    left: 50%; /* Position it 50% from the left of the viewport */
-    transform: translate(-50%, -50%); /* Adjust the element’s position by its own size */
+    position: fixed;*/ /* Use fixed to position relative to the viewport */
+    /*top: 50%;*/ /* Position it 50% down the viewport */
+    /*left: 50%;*/ /* Position it 50% from the left of the viewport */
+    /*transform: translate(-50%, -50%);*/ /* Adjust the element’s position by its own size */
+/*}*/
+
+/* Alert container to position the alert message */
+/*.alert {
+    margin-top: 20px;*/ /* Space between icon buttons and the alert */
+/*}*/
+
+/* Style for the alert message */
+.alertMessage {
+    display: flex;
+    align-items: center; /* Aligns the text and the 'X' button on the same line */
+    justify-content: space-between; /* Pushes the close button to the right */
+    background-color: #f9f9f9; /* Light background color for the alert */
+    border: 1px solid #ccc; /* Border for the alert */
+    padding: 2px;
+    border-radius: 0px;
+    margin-bottom: 2px;
+}
+
+/* Style the alert text */
+.alert-text {
+    font-size: 10px;
+    flex-grow: 1; /* Allows the message to take up the remaining space */
+    color: #333; /* Text color */
+}
+
+/* Style the close button */
+.overlay-btn-cancle-message {
+    padding: 0;
+    background: transparent;
+    border: none;
+    color: #999;
+    cursor: pointer;
 }

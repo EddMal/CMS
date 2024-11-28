@@ -27,162 +27,177 @@
         <p>
              <div class="containerMainButtons">
                  <div class="button-container">
-            @if (pageExecution != ExecuteAction.Preview)
-                {
-                    if (hideToolbar)
+                    @if (pageExecution != ExecuteAction.Preview)
                     {
-                        <div class="icon-container">
-                            <a class="btn overlay-btn-main" @onclick="()=> HideToolsAsync()" aria-label="Förhandgranska" title="Förhandgranska">
-                                <i class="fa fa-wrench fa-1x" aria-hidden="true"></i>
+                        if (hideToolbar)
+                        {
+                            <div class="icon-container">
+                                <a class="btn overlay-btn-main" @onclick="()=> HideToolsAsync()" aria-label="Förhandgranska" title="Förhandgranska">
+                                    <i class="fa fa-wrench fa-1x" aria-hidden="true"></i>
+                                </a>
+                                <span class="icon-text">Verktyg</span>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="icon-container">
+                                <a class="btn overlay-btn-main" @onclick="()=> PauseEditContent()" aria-label="Förhandgranska" title="Förhandgranska">
+                                    <i class="fa fa-pause fa-1x" aria-hidden="true"></i>
+                                </a>
+                                <span class="icon-text">Granska</span>
+                            </div>
+
+                            <div class="icon-container">
+                                <a class="btn overlay-btn-main" @onclick="()=> AddContent()" aria-label="Lägg till innehåll" title="Lägg till innehåll">
+                                    <i class="fa fa-plus-square-o fa-2x" style="margin-top:2px;"aria-hidden="true"></i>
+                                </a>
+                                <span class="icon-text">Nytt Innehåll</span>
+                            </div>
+
+
+                            <div class="icon-container">
+                                <a class="btn overlay-btn-main" @onclick="()=> EditPageinformation()" aria-label="Redigera sidinformation" title="Redigera sidinformation">
+                                    <i class="fa fa-cog fa-2x" aria-hidden="true"></i>
+                                </a>
+                                <span class="icon-text">Sidinställningar</span>
+                            </div>
+
+                            <div class="icon-container">
+                                <a class="btn overlay-btn-main" href="@($"webpages?websiteid={WebSiteId}")" aria-label="Tillbaka till webbsajt" title="Tillbaka till webbsajt">
+                                    <i class="fa fa-mail-reply fa-2x" aria-hidden="true"></i>
                             </a>
-                            <span class="icon-text">Verktyg</span>
-                        </div>
+                                <span class="icon-text">Tillbaka</span>
+                            </div>
+
+                            <div class="icon-container">
+                                <a class="btn overlay-btn-main" @onclick="()=> AddRowAsync()" aria-label="Lägg till innehållsrad" title="Lägg till innehållsrad">
+                                    <i class="fa fa-hand-pointer-o fa-2x" style="margin-top:2px; transform: rotate(180deg);" aria-hidden="true"></i>
+                                </a>
+                                <span class="icon-text">Ny rad</span>
+                            </div>
+
+                            <div class="icon-container">
+                                @if (deleteContentActive)
+                                {
+
+                                    <a class="btn overlay-btn-main" @onclick="()=> DeleteContentSelect()" aria-label="Avbryt" title="Avbryt">
+                                        <i class="fa fa-times" style="margin-top:0px;" aria-hidden="true"></i>
+                                    </a>
+                                    <span class="icon-text">Avbryt</span>
+                                }
+                                else
+                                {
+                                    <a class="btn overlay-btn-main" @onclick="()=> DeleteContentSelect()" aria-label="Radera innehåll" title="Radera innehåll">
+                                        <i class="fa fa-trash fa-2x" style="margin-top:0px;" aria-hidden="true"></i>
+                                    </a>
+                                    <span class="icon-text">Radera Innehåll</span>
+                                }
+                            </div>
+
+                            <div class="icon-container">
+                                @if (deleteRowActive)
+                                {
+
+                                    <a class="btn overlay-btn-main" @onclick="()=> DeleteSelectRow()" aria-label="Avbryt" title="Avbryt">
+                                        <i class="fa fa-times" style="margin-top:0px;" aria-hidden="true"></i>
+                                    </a>
+                                    <span class="icon-text">Avbryt</span>
+                                }
+                                else
+                                {
+                                    <a class="btn overlay-btn-main" @onclick="()=> DeleteSelectRow()" aria-label="Radera Rad" title="Radera Rad">
+                                        <i class="fa fa-trash fa-2x" style="margin-top:0px;" aria-hidden="true"></i>
+                                    </a>
+                                    <span class="icon-text">Radera rad</span>
+                                }
+                            </div>
+
+                            <div class="icon-container">
+                                @if (moveRowActive)
+                                {
+
+                                    <a class="btn overlay-btn-main" @onclick="()=> DragRows()" aria-label="Flytta rad" title="Flytta rad">
+                                        <i class="fa fa-times" style="margin-top:0px;" aria-hidden="true"></i>
+                                    </a>
+                                    <span class="icon-text">Avbryt</span>
+                                }
+                                else
+                                {
+                                    <a class="btn overlay-btn-main" @onclick="()=> DragRows()" aria-label="Avbryt" title="Avbryt">
+                                            <i class="fa fa-arrows fa-2x" style="margin-top:0px; " aria-hidden="true"></i>
+                                        </a>
+                                        <span class="icon-text">Flytta rad</span>
+                                }
+                            </div>
+
+                            <div class="icon-container">
+                                @if (resizeCellColumnSpanActive)
+                                {
+
+                                    <a class="btn overlay-btn-main" @onclick="()=> ResizeCell()" aria-label="Avbryt" title="Avbryt">
+                                        <i class="fa fa-times" style="margin-top:0px;" aria-hidden="true"></i>
+                                    </a>
+                                    <span class="icon-text">Avbryt</span>
+                                }
+                                else
+                                {
+                                    <a class="btn overlay-btn-main" @onclick="()=> ResizeCell()" aria-label="Ändra storlek" title="Ändra Storlek">
+                                        <i class="fa fa-sliders fa-2x" style="margin-top:0px; " aria-hidden="true"></i>
+                                    </a>
+                                    <span class="icon-text">Storlek</span>
+                                }
+                            </div>
+
+                            <div class="icon-container">
+                                @if (editCellsActive)
+                                {
+                                    <a class="btn overlay-btn-delete" @onclick="() => EditCells()" aria-label="Ta bort" title="Flytta innehåll">
+                                        <i class="fa fa-times" aria-hidden="true"></i>
+                                    </a>
+                                    <span class="icon-text">Avbryt </span>
+                                }
+                                else
+                                {
+                                    <a class="btn overlay-btn-delete" @onclick="() => EditCells()" aria-label="Ta bort" title="Flytta innehåll">
+                                            <i class="fa fa-mouse-pointer fa-2x" style="margin-left:5px;" aria-hidden="true"></i>
+                                    </a>
+                                    <span class="icon-text">Flytta innehåll</span>
+                                }
+                            </div>
+
+                            <div class="icon-container">
+                                <a class="btn overlay-btn-main-ghost" @onclick="()=> HideToolsAsync()" aria-label="Förhandgranska" title="Förhandgranska">
+                                    <i class="fa fa-snapchat-ghost fa-2x" aria-hidden="true"></i>
+                                </a>
+                                <span class="icon-text">Göm</span>
+                            </div>
+
+                        }
                     }
                     else
                     {
                         <div class="icon-container">
-                            <a class="btn overlay-btn-main" @onclick="()=> PauseEditContent()" aria-label="Förhandgranska" title="Förhandgranska">
-                                <i class="fa fa-pause fa-1x" aria-hidden="true"></i>
+                            <a class="btn overlay-btn-main-ghost" @onclick="()=> ResumeEditContent()" aria-label="Fortsätt redigera" title="Fortsätt redigera">
+                                <i class="fa fa-play fa-1x" aria-hidden="true"></i>
                             </a>
-                            <span class="icon-text">Granska Sida</span>
+                                <span class="icon-text">Redigera</span>
                         </div>
-
-                        <div class="icon-container">
-                            <a class="btn overlay-btn-main" @onclick="()=> AddContent()" aria-label="Lägg till innehåll" title="Lägg till innehåll">
-                                <i class="fa fa-plus-square-o fa-2x" style="margin-top:2px;"aria-hidden="true"></i>
-                            </a>
-                            <span class="icon-text">Nytt innehåll</span>
-                        </div>
-
-
-                        <div class="icon-container">
-                            <a class="btn overlay-btn-main" @onclick="()=> EditPageinformation()" aria-label="Redigera sidinformation" title="Redigera sidinformation">
-                                <i class="fa fa-cog fa-2x" aria-hidden="true"></i>
-                            </a>
-                            <span class="icon-text">Sidinställningar</span>
-                        </div>
-
-                        <div class="icon-container">
-                            <a class="btn overlay-btn-main" href="@($"webpages?websiteid={WebSiteId}")" aria-label="Tillbaka till webbsajt" title="Tillbaka till webbsajt">
-                                <i class="fa fa-mail-reply fa-2x" aria-hidden="true"></i>
-                        </a>
-                            <span class="icon-text">Tillbaka</span>
-                        </div>
-
-                        <div class="icon-container">
-                            <a class="btn overlay-btn-main" @onclick="()=> AddRowAsync()" aria-label="Lägg till innehållsrad" title="Lägg till innehållsrad">
-                                <i class="fa fa-hand-pointer-o fa-2x" style="margin-top:2px; transform: rotate(180deg);" aria-hidden="true"></i>
-                            </a>
-                            <span class="icon-text">Ny rad</span>
-                        </div>
-
-                        <div class="icon-container">
-                            @if (deleteContentActive)
-                            {
-
-                                <a class="btn overlay-btn-main" @onclick="()=> DeleteContentSelect()" aria-label="Avbryt" title="Avbryt">
-                                    <i class="fa fa-times" style="margin-top:0px;" aria-hidden="true"></i>
-                                </a>
-                                <span class="icon-text">Avbryt</span>
-                            }
-                            else
-                            {
-                                <a class="btn overlay-btn-main" @onclick="()=> DeleteContentSelect()" aria-label="Ta bort innehåll" title="Ta bort innehåll">
-                                    <i class="fa fa-trash fa-2x" style="margin-top:0px;" aria-hidden="true"></i>
-                                </a>
-                                <span class="icon-text">Ta bort innehåll</span>
-                            }
-                        </div>
-
-                        <div class="icon-container">
-                            @if (deleteRowActive)
-                            {
-
-                                <a class="btn overlay-btn-main" @onclick="()=> DeleteSelectRow()" aria-label="Avbryt" title="Avbryt">
-                                    <i class="fa fa-times" style="margin-top:0px;" aria-hidden="true"></i>
-                                </a>
-                                <span class="icon-text">Avbryt</span>
-                            }
-                            else
-                            {
-                                <a class="btn overlay-btn-main" @onclick="()=> DeleteSelectRow()" aria-label="Ta bort innehåll" title="Ta bort innehåll">
-                                    <i class="fa fa-trash fa-2x" style="margin-top:0px;" aria-hidden="true"></i>
-                                </a>
-                                <span class="icon-text">Ta bort rad</span>
-                            }
-                        </div>
-
-                        <div class="icon-container">
-                            @if (moveRowActive)
-                            {
-
-                                <a class="btn overlay-btn-main" @onclick="()=> DragRows()" aria-label="Flytta rad" title="Flytta rad">
-                                    <i class="fa fa-times" style="margin-top:0px;" aria-hidden="true"></i>
-                                </a>
-                                <span class="icon-text">Avbryt</span>
-                            }
-                            else
-                            {
-                                <a class="btn overlay-btn-main" @onclick="()=> DragRows()" aria-label="Avbryt" title="Avbryt">
-                                        <i class="fa fa-arrows fa-2x" style="margin-top:0px; " aria-hidden="true"></i>
-                                    </a>
-                                    <span class="icon-text">Flytta rad</span>
-                            }
-                        </div>
-
-                        <div class="icon-container">
-                            @if (resizeCellColumnSpanActive)
-                            {
-
-                                <a class="btn overlay-btn-main" @onclick="()=> ResizeCell()" aria-label="Avbryt" title="Avbryt">
-                                    <i class="fa fa-times" style="margin-top:0px;" aria-hidden="true"></i>
-                                </a>
-                                <span class="icon-text">Avbryt</span>
-                            }
-                            else
-                            {
-                                <a class="btn overlay-btn-main" @onclick="()=> ResizeCell()" aria-label="Ändra storlek" title="Ändra Storlek">
-                                    <i class="fa fa-sliders fa-2x" style="margin-top:0px; " aria-hidden="true"></i>
-                                </a>
-                                <span class="icon-text">Storlek</span>
-                            }
-                        </div>
-
-                        <div class="icon-container">
-                            @if (editCellsActive)
-                            {
-                                <a class="btn overlay-btn-delete" @onclick="() => EditCells()" aria-label="Ta bort" title="Flytta innehåll">
-                                    <i class="fa fa-times" aria-hidden="true"></i>
-                                </a>
-                                <span class="icon-text">Avbryt flytt </span>
-                            }
-                            else
-                            {
-                                <a class="btn overlay-btn-delete" @onclick="() => EditCells()" aria-label="Ta bort" title="Flytta innehåll">
-                                        <i class="fa fa-mouse-pointer fa-2x" style="margin-left:5px;" aria-hidden="true"></i>
-                                </a>
-                                    <span class="icon-text">Flytta innehåll</span>
-                            }
-                        </div>
-
-                        <div class="icon-container">
-                            <a class="btn overlay-btn-main-ghost" @onclick="()=> HideToolsAsync()" aria-label="Förhandgranska" title="Förhandgranska">
-                                <i class="fa fa-snapchat-ghost fa-2x" aria-hidden="true"></i>
-                            </a>
-                            <span class="icon-text">Göm</span>
-                        </div>
-
                     }
-                }
-                else
-                {
-                    <div class="icon-container">
-                        <a class="btn overlay-btn-main-ghost" @onclick="()=> ResumeEditContent()" aria-label="Fortsätt redigera" title="Fortsätt redigera">
-                            <i class="fa fa-play fa-1x" aria-hidden="true"></i>
-                        </a>
-                            <span class="icon-text">Redigera</span>
+                    <!-- Alert Section Below the Icons -->
+                    <div class="alert">
+                        <!-- messages -->
+                        @if (infoMessage)
+                        {
+                            <div class="alertMessage" role="alert" style="margin-top: 20px;">
+                                <span class="alert-text">
+                                    @userInfoMessage
+                                </span>
+                                <a class="btn overlay-btn-cancle-message" @onclick="AlertMessageHide" aria-label="Stäng" title="Stäng">
+                                    <i class="fa fa-times " aria-hidden="true"></i>
+                                </a>
+                            </div>
+                        }
                     </div>
-                }
                 </div>
             </div>
         </p>
@@ -740,7 +755,7 @@
 
 }
 
-<div classs="alert">
+@* <div classs="alert">
 
     <!-- messages -->
     @if (infoMessage)
@@ -754,7 +769,7 @@
             </div>
         </div>
     }
-</div>
+</div> *@
 
 <style>
     :root {
