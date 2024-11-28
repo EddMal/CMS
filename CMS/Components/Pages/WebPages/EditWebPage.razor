@@ -23,6 +23,7 @@
     @* Todo: Investigate the handling of the use of components, to remove excess use/"writing" of components*@
     @if(pageExecution != ExecuteAction.SelectCellCreate)
     {
+    
         <p>
              <div class="containerMainButtons">
                  <div class="button-container">
@@ -55,7 +56,7 @@
 
 
                         <div class="icon-container">
-                            <a class="btn overlay-btn-main" @onclick="()=> EditPageinformationAsync()" aria-label="Redigera sidinformation" title="Redigera sidinformation">
+                            <a class="btn overlay-btn-main" @onclick="()=> EditPageinformation()" aria-label="Redigera sidinformation" title="Redigera sidinformation">
                                 <i class="fa fa-cog fa-2x" aria-hidden="true"></i>
                             </a>
                             <span class="icon-text">Sidinställningar</span>
@@ -69,7 +70,7 @@
                         </div>
 
                         <div class="icon-container">
-                            <a class="btn overlay-btn-main" @onclick="()=> AddRow()" aria-label="Lägg till innehållsrad" title="Lägg till innehållsrad">
+                            <a class="btn overlay-btn-main" @onclick="()=> AddRowAsync()" aria-label="Lägg till innehållsrad" title="Lägg till innehållsrad">
                                 <i class="fa fa-hand-pointer-o fa-2x" style="margin-top:2px; transform: rotate(180deg);" aria-hidden="true"></i>
                             </a>
                             <span class="icon-text">Ny rad</span>
@@ -228,21 +229,26 @@
                                         }
                                         else
                                         {
-                                            <p style="color:white;">EMPTY</p>
+                                            <p style="color:white;"></p>
                                         }
                                     </div>
-                                }
                             }
-                        </div>
 
-                        <div class="overlay-editwebpageinfo">
-                        <CascadingValue Value="WebPageId">
-                            <CMS.Components.Pages.WebPages.Edit />
-                        </CascadingValue>
+                        }
+                        </div>
+                        <div class="overlay-edit">
+                            <CascadingValue Value="WebPageId">
+                                <CMS.Components.Pages.WebPages.Edit @key="WebPageId" />
+                            </CascadingValue>
                             <button type="button" class="btn btn-warning btn-warning-edit" @onclick="()=> EditPageinformationDone()"> Tillbaka </button>
                         </div>
-                        @* PageExecution = ExecuteAction.Preview; *@
-                        break;         
+                    @* PageExecution = ExecuteAction.Preview; *@
+                  @*   if (scrollPositionNotRestored)
+                    {
+                       
+                        scrollPositionNotRestored = false;
+                    } *@
+                    break;         
                     }
                     case ExecuteAction.EditContent:
                     {
@@ -304,7 +310,7 @@
                                         }
                                         else
                                         {
-                                            <p style="color:white;">EMPTY</p>
+                                            <p style="color:white;"></p>
                                         }
                                     </div>
                                 }
@@ -337,7 +343,7 @@
                                         }
                                         else
                                         {
-                                            <p style="color:white;">EMPTY</p>
+                                            <p style="color:white;"></p>
                                         }
                                     </div>
                                 }
@@ -387,7 +393,7 @@
                                         }
                                         else
                                         {
-                                            <p style="color:white;">EMPTY</p>
+                                            <p style="color:white;"></p>
                                         }
                                     </div>
                                 }
@@ -420,7 +426,7 @@
                                         }
                                         else
                                         {
-                                            <p style="color:white;">EMPTY</p>
+                                            <p style="color:white;"></p>
                                         }
                                     </div>
                                 }
@@ -464,10 +470,9 @@
                             @foreach (var cell in layout.LayoutCells)
                             {
                                 // Find content for the cell
-                                var contentLayout = Contents.FirstOrDefault(l => l.ContentId == cell.ContentId);
                                 if (cell != null)
                                 {
-                                    <div @onclick="() => DeleteContent(contentLayout.ContentId)" class="content-item-layout-grid-delete"
+                                    <div @onclick="() => DeleteContent(cell.ContentId)" class="content-item-layout-grid-delete"
                                          style="grid-row: @cell.Row; grid-column: @cell.Column;
                                             grid-row-end: span @cell.RowSpan;
                                             grid-column-end: span @cell.ColumnSpan;
@@ -482,7 +487,7 @@
                                         }
                                         else
                                         {
-                                            <p style="color:white;">EMPTY</p>
+                                            <p style="color:white;"></p>
                                         }
                                     </div>
                                 }
@@ -495,7 +500,7 @@
                         <div class="containerEditWebPageContentLayoutGrid" style="display: grid; grid-template-columns: repeat(12, 1fr);">
                             @foreach (var cell in layout.LayoutCells)
                             {
-                                // Find content for the cell
+                                // Todo:remove when not needed.
                                 var contentLayout = Contents.FirstOrDefault(l => l.ContentId == cell.ContentId);
                                 if (cell != null)
                                 {
@@ -514,7 +519,7 @@
                                     }
                                         else
                                         {
-                                            <p style="color:white;">EMPTY</p>
+                                            <p style="color:white;"></p>
                                         }
                                     </div>
                                 }
@@ -526,8 +531,6 @@
                             </CascadingValue>
                             <button type="button" class="btn btn-warning" @onclick="()=> DeleteDoneAsync()"> Tillbaka </button>
                         </div>
-                       
-                       
                         break;
                     }
                     case ExecuteAction.Resize:
@@ -580,7 +583,7 @@
                                         }
                                         else
                                         {
-                                            <p style="color:white;">EMPTY</p>
+                                            <p style="color:white;"></p>
                                         }
                                     </div>
                                 }
@@ -617,7 +620,7 @@
                                         }
                                         else
                                         {
-                                            <p style="color:white;">EMPTY</p>
+                                            <p style="color:white;"></p>
                                         }
                                     </div>
                                 }
@@ -649,7 +652,7 @@
                                     }
                                     else
                                     {
-                                        <p style="color:white;">EMPTY</p>
+                                        <p style="color:white;"></p>
                                     }
                                 </div>
                                 }
@@ -671,7 +674,7 @@
             }
             else
             {
-
+                // Move to statemachine
                     <div class="containerEditWebPageContentLayoutGrid" style="display: grid; grid-template-columns: repeat(12, 1fr);">
                         @foreach (var cell in layout.LayoutCells)
                         {
@@ -724,14 +727,17 @@
                                     }
                                     else
                                     {
-                                        <p style="color:white;">EMPTY</p>
+                                        <p style="color:white;"></p>
                                     }
                                 </div>
                             }
                         }
-                    </div>
-        
+                    </div>     
             }
+
+        LoadScrollPosition();
+
+
 }
 
 <div classs="alert">
@@ -749,7 +755,6 @@
         </div>
     }
 </div>
-
 
 <style>
     :root {

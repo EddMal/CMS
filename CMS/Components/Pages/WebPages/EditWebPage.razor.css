@@ -32,6 +32,123 @@ header, .navbar, footer {
     padding: 0; /* Remove padding */
 }
 
+/* Toolbar/Button Containers */
+/* Main button container */
+.containerMainButtons {
+    position: fixed; /* Fixes the container */
+    bottom: 0; /* Position the container at the top of the screen */
+    left: 0; /* Align to the left */
+    right: 0; /* Full width */
+    background-color: rgba(255, 255, 255, 1); /* Optional: add a background */
+    padding: 0px; /* Padding around the buttons */
+    border: 2px solid black;
+    border-radius: 10px;
+    z-index: 100; /* Ensure it stays above other content */
+    display: flex;
+    justify-content: center; /* Center the buttons */
+}
+
+/* Button container styling */
+.button-container {
+    display: flex;
+    flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
+    justify-content: center; /* Center buttons */
+    gap: 18px; /* Space between buttons */
+}
+
+/* Icon container (individual button styling) */
+.icon-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Align items to the center (both icon and text) */
+    justify-content: flex-start; /* Align items at the top of the container */
+    width: 50px; /* Default size for icons */
+    text-align: center; /* Center the icon and text */
+    padding-top: 5px; /* Space from the top */
+}
+
+    /* Style icons */
+    .icon-container i {
+        font-size: 14px; /* Default icon size */
+    }
+
+/* Styling for text under the icons */
+.icon-text {
+    font-size: 10px; /* Default font size for text */
+    margin-top: 5px; /* Add space above the text */
+    word-wrap: break-word; /* Allow text to break onto a new line */
+    text-align: center; /* Center the text */
+    width: 100%; /* Ensure the text can wrap within the container */
+}
+
+/* For small screens (responsive design) */
+@media (max-width: 768px) {
+    .icon-container {
+        width: 45px; /* Smaller size for icons */
+    }
+
+        .icon-container i {
+            font-size: 18px; /* Smaller icons */
+        }
+
+    .icon-text {
+        font-size: 10px; /* Smaller text */
+        white-space: normal; /* Allow the text to wrap and break into multiple lines */
+    }
+
+    .button-container {
+        gap: 15px; /* Adjust gap for smaller screens */
+    }
+}
+
+/* For large screens, ensure the buttons are full-sized and in one row */
+@media (min-width: 768px) {
+    .icon-container {
+        width: 70px; /* Larger size for icons */
+    }
+
+        .icon-container i {
+            font-size: 30px; /* Larger icons */
+        }
+
+    .icon-text {
+        font-size: 12px; /* Larger text */
+    }
+}
+
+/* Prevent buttons from stretching */
+.button-container button {
+    flex: 0 0 auto; /* Ensure buttons do not stretch */
+}
+
+
+/* OLD ICON CONTAINER*/
+/*.icon-container {
+    display: flex;
+    flex-direction: column;*/ /* Stack items vertically */
+    /*align-items: center;*/ /* Center the icon and text */
+    /*margin: 2px;*/ /* Add space between icons */
+/*}
+
+.icon-text {
+    font-size: 0.6em;*/ /* Adjust text size */
+    /*text-align: center;*/ /* Center the text */
+    /*margin-top: 0px;*/ /* Space between icon and text */
+    /*background-color: white;*/
+    /*    border-color: black;
+    border-width: 1px !important;
+    border: solid;
+    border-radius: 10%;*/
+    /*padding: 1px;
+}*/
+
+
+
+.btn {
+    font-size: 14px; /* Smaller font */
+    padding: 5px 1px; /* Smaller padding */
+}
+
 .containerEditWebPagebuttons {
     position: absolute; /* Position the buttons absolutely within the container */
     bottom: 5%; /* Adjust to control vertical position of buttons */
@@ -98,52 +215,73 @@ header, .navbar, footer {
         background-color: lightgray;
     }
 
-.button-container {
-    display: flex;
-    justify-content: flex-start; /* Align the buttons to the left */
-    flex-wrap: nowrap; /* Prevent buttons from wrapping */
-    gap: 4px; /* Space between buttons */
+
+
+/* Popup div with scrollbar, pops up at scrolled position*/
+.overlay-edit {
+    display: none; /* Hide the div initially */
+    position: fixed;
+    top: 100px; /* Position the div 100px from the top of the viewport */
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 1);
+    color: white;
+    padding: 10px;
+    border-radius: 5px;
+    border-block-color: darkslategrey;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+    opacity: 1;
+    transition: opacity 0.3s ease;
+    /* Scrollable content with always visible scrollbar */
+    min-height: 40vh; /* Minimum height of the div */
+    max-height: 80vh; /* Maximum height of the div */
+    overflow-y: scroll; /* Always show the vertical scrollbar */
+    padding-right: 20px; /* Optional: Adds space for the scrollbar */
 }
 
-    .button-container button {
-        flex: 0 0 auto; /* Ensure buttons do not stretch */
+    /* Hide the scrollbar arrows */
+    .overlay-edit::-webkit-scrollbar-button {
+        display: none; /* Hides the up/down arrows */
     }
 
-.overlay-edit {
-    position: absolute; /* Position relative to the containerEditWebPage */
-    top: 260px;
-    left: 50%; /* Position from the left (50% of the parent container) */
-    transform: translate(-50%, -50%); /* Offset the button by half its width and height */
-    z-index: 10;
-    background-color: rgba(255, 255, 255, 1);
-    color: black;
-    border: 2px solid black; /* Blue border */
-    padding: 10px 20px;
+    /* Style the scrollbar itself */
+    .overlay-edit::-webkit-scrollbar {
+        width: 5px; /* Set the width of the vertical scrollbar */
+    }
+
+    /* Style the scrollbar track (the background of the scrollbar) */
+    .overlay-edit::-webkit-scrollbar-track {
+        display: none;
+        background: rgba(0, 0, 0, 0); /* Darker background for the track */
+        border-radius: 10px; /* Rounded corners */
+    }
+
+    /* Style the draggable part of the scrollbar (the thumb) */
+    .overlay-edit::-webkit-scrollbar-thumb {
+        background-color: #888; /* Color of the draggable thumb */
+        border-radius: 10px; /* Rounded corners for the thumb */
+    }
+
+
+
+
+
+@media (min-width: 768px) {
+    .overlay-edit {
+        display: block; /* Show the div on larger screens */
+    }
+}
+
+@media (max-width: 768px) {
+    .overlay-edit {
+        display: block; /* Show the div on smaller screens */
+    }
 }
 
 .btn-create {
     margin-top: 2px!important;
     padding-left: 6px!important;
     padding-right: 6px!important;
-}
-
-.icon-container {
-    display: flex;
-    flex-direction: column; /* Stack items vertically */
-    align-items: center; /* Center the icon and text */
-    margin: 2px; /* Add space between icons */
-}
-
-.icon-text {
-    font-size: 0.6em; /* Adjust text size */
-    text-align: center; /* Center the text */
-    margin-top: 0px; /* Space between icon and text */
-    background-color: white;
-/*    border-color: black;
-    border-width: 1px !important;
-    border: solid;
-    border-radius: 10%;*/
-    padding: 1px;
 }
 
 .btn-warning-edit {
@@ -197,41 +335,12 @@ header, .navbar, footer {
     gap: 0px; /* Add space between the items */
 }
 
-/* Main button container */
-.containerMainButtons {
-    position: fixed; /* Fixes the container */
-    top: 7%; /* Always at the top of the screen */
-    left: 5%; /* Optional: Align it to the left */
-    width: auto; /* Optional: Make it full width */
-    z-index: 100; /* Ensure it stays above other content */
-    background-color: rgba(255, 255, 255, 1); /* Optional: adds a background */
-    padding: 0px; /* Padding for the container */
-    border: 2px solid black;
-    border-radius: 10px;
-}
-
-.btn {
-    font-size: 14px; /* Smaller font */
-    padding: 5px 1px; /* Smaller padding */
-}
-
 .containerEditWebPageContentLayout {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Define columns */
     grid-template-rows: auto; /* Adjust rows based on content */
     position: relative;
 }
-
-
-
-/*.content-item-Layout {
-    cursor: grabbing;
-    position: relative;
-    padding: 10px;*/
-    /*background-color: #f4f4f4;*/
-    /*border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}*/
 
 .containerEditWebPageContentLayoutGrid {
     cursor: grabbing;
@@ -273,7 +382,16 @@ header, .navbar, footer {
     overflow: visible; /* Ensure overflow doesn't cut off overlay */
 }
 
+    /* Make sure content is responsive */
+    /*.content-item-layout-grid p {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }*/
 
+.content-item-layout-grid p {
+    min-height: 30px; /* Ensures the container is at least 300px wide */
+}
 
     .content-item-layout-grid .content-wrapper {
         pointer-events: none; /* Disable all interactions within this wrapper */
@@ -361,24 +479,25 @@ header, .navbar, footer {
 
     .content-item-layout-grid-delete.drag-hover {
         cursor: crosshair;
-        background-color: red;
-        border: solid;
-        border-color: red;
+        background-color: rgb(243, 85, 85);
         opacity: 0.5; /* Makes all child elements inside the div semi-transparent */
     }
 
     .content-item-layout-grid-delete:Hover {
         cursor: crosshair;
-        background-color: red;
-        border: solid;
-        border-color: red;
+        background-color: rgb(243, 85, 85);
         opacity: 0.5; /* Makes all child elements inside the div semi-transparent */
     }
 
         .content-item-layout-grid-delete:hover * {
+            background-color: rgb(243, 85, 85);
             cursor: crosshair;
             opacity: 0.5; /* Makes all child elements inside the div semi-transparent */
         }
+
+    .content-item-layout-grid-delete p {
+        min-height: 30px; /* Ensures the container is at least 300px wide */
+    }
 
 /*Create select CSS:*/
 .containerEditWebPageContentLayoutGridSelectCreate {
@@ -415,6 +534,10 @@ header, .navbar, footer {
     cursor: crosshair;
 }
 
+    .content-item-layout-grid-select-create p {
+        min-height: 30px; /* Ensures the container is at least 300px wide */
+    }
+
 .content-item-layout-grid-select-create .content-wrapper {
     pointer-events: none; /* Disable all interactions within this wrapper */
 }
@@ -422,25 +545,19 @@ header, .navbar, footer {
 
     .content-item-layout-grid-select-create.drag-hover {
         cursor: cell;
-        background-color: lightgreen;
-        border: solid;
-        border-color: lightgreen;
+        background-color: rgb(113, 255, 122);
         opacity: 0.5; /* Makes all child elements inside the div semi-transparent */
     }
 
     .content-item-layout-grid-select-create:Hover {
         cursor: cell;
-        background-color: lightgreen;
-        border: solid;
-        border-color: lightgreen;
+        background-color: rgb(113, 255, 122);
         opacity: 0.5; /* Makes all child elements inside the div semi-transparent */
     }
 
         .content-item-layout-grid-select-create:hover * {
             cursor: cell;
-            background-color: lightgreen;
-            border: solid;
-            border-color: lightgreen;
+            background-color: rgb(113, 255, 122);
             opacity: 0.5; /* Makes all child elements inside the div semi-transparent */
         }
 /*End:after Create select CSS*/
@@ -502,6 +619,10 @@ header, .navbar, footer {
 
 .content-item-layout-grid-preview {
 }
+
+    .content-item-layout-grid-preview p {
+        min-height: 30px; /* Ensures the container is at least 300px wide */
+    }
 
     .content-item-layout-grid-preview .content-wrapper {
         pointer-events: none; /* Disable all interactions within this wrapper */
