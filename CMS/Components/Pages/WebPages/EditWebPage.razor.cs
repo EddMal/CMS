@@ -48,7 +48,7 @@ namespace CMS.Components.Pages.WebPages
 
         private bool moveRowActive = false;
 
-        private bool editCellsActive = false;
+        private bool moveCellsActive = false;
 
         private bool infoMessage = false;
 
@@ -58,8 +58,6 @@ namespace CMS.Components.Pages.WebPages
         private bool resizeCellColumnSpanActive = false;
 
         private bool deleteRowActive = false;
-
-        private bool scrollPositionNotRestored = false;
         
         private string userInfoMessage = "";
         private LayoutCell? draggedCell { get; set; } = null;
@@ -96,6 +94,7 @@ namespace CMS.Components.Pages.WebPages
             DeleteSelect,
             Resize,
             DragRow,
+            DragCell,
             DeleteRowSelect
         }
 
@@ -227,39 +226,41 @@ namespace CMS.Components.Pages.WebPages
         }
 
         // ToDo: Centralize use for all messages and create service for messages, used in multiple files NavBarInputForm etc.
-        private void AlertMessageHide()
+        private void UserInformationMessageHide()
         {
             infoMessage = false;
 
             userInfoMessage = "";
         }
 
-        private void AlertMessage(string Message)
+        private void UserInformationMessage(string Message)
         {
             infoMessage = true;
             userInfoMessage = Message;
         }
 
-        private void EditCells()
+        private void DragCells()
         {
+            UserInformationMessage("Flytta innehåll.");
             SaveScrollPosition();
-            scrollPositionNotRestored = true;
 
-            if (editCellsActive)
+            if (moveCellsActive)
             {
                 ResetMenu();
-                editCellsActive = false;
+                moveCellsActive = false;
+                pageExecution = ExecuteAction.EditSelect;
             }
             else
             {
                 ResetMenu();
-                editCellsActive = true;
+                moveCellsActive = true;
+                pageExecution = ExecuteAction.DragCell;
             }
         }
         private async Task AddRowAsync()
         {
+            UserInformationMessage("Ny rad tillagd.");
             SaveScrollPosition();
-            scrollPositionNotRestored = true;
 
             if (addRowActive)
             {
@@ -276,8 +277,8 @@ namespace CMS.Components.Pages.WebPages
 
         private void DragRows()
         {
+            UserInformationMessage("Flytta rad.");
             SaveScrollPosition();
-            scrollPositionNotRestored = true;
 
             if (moveRowActive)
             {
@@ -293,10 +294,9 @@ namespace CMS.Components.Pages.WebPages
             }
         }
 
-        private async Task DeleteContentSelect()
+        private void DeleteContentSelect()
         {
             SaveScrollPosition();
-            scrollPositionNotRestored = true;
 
             if (deleteContentActive)
             {
@@ -314,8 +314,8 @@ namespace CMS.Components.Pages.WebPages
 
         private void ResizeCell()
         {
+            UserInformationMessage("Ändra storlek.");
             SaveScrollPosition();
-            scrollPositionNotRestored = true;
 
             if (resizeCellColumnSpanActive)
             {
@@ -333,8 +333,8 @@ namespace CMS.Components.Pages.WebPages
 
         private void EditContent(Content content)
         {
+            UserInformationMessage("Redigera innehåll.");
             SaveScrollPosition();
-            scrollPositionNotRestored = true;
 
             if (content == null || content.ContentId == null)
             {
@@ -348,16 +348,16 @@ namespace CMS.Components.Pages.WebPages
         }
         private void AddContent()
         {
+            UserInformationMessage("Skapa nytt innehåll."); 
             SaveScrollPosition();
-            scrollPositionNotRestored = true;
             contentForEditing = null;
             pageExecution = ExecuteAction.CreateContent;
         }
 
         private void SelectCell()
         {
+            UserInformationMessage("Välj plats för innehåll");
             SaveScrollPosition();
-            scrollPositionNotRestored = true;
             contentForEditing = null;
             pageExecution = ExecuteAction.SelectCellCreate;
 
@@ -365,14 +365,14 @@ namespace CMS.Components.Pages.WebPages
 
         private void DeleteContent(int? contentId)
         {
+            UserInformationMessage("Raderar innehåll");
             if (contentId == null)
             {
-                AlertMessage("Can not delete emty cell.");
+                UserInformationMessage("Det går inte att radera innehåll.");
                 SaveScrollPosition();
                 return;
             }
             SaveScrollPosition();
-            scrollPositionNotRestored = true;
             contentForEditing = contentId;
             pageExecution = ExecuteAction.Delete;
         }
@@ -380,39 +380,41 @@ namespace CMS.Components.Pages.WebPages
         private void PauseEditContent()
         {
             SaveScrollPosition();
-            scrollPositionNotRestored = true;
             contentForEditing = null;
             pageExecution = ExecuteAction.Preview;
         }
         private void EditPageinformation()
         {
+            UserInformationMessage("Redigera sidans information.");
             SaveScrollPosition();
-            scrollPositionNotRestored = true;
             pageExecution = ExecuteAction.EditPageinformation;
         }
 
         private void EditPageinformationDone()
         {
+            UserInformationMessage("Redigera innehåll.");
+            SaveScrollPosition();
+            ResetMenu();
             contentForEditing = null;
             pageExecution = ExecuteAction.EditSelect;
             Contents = context.Contents.Where(c => c.WebPageId == WebPageId).ToList();
             StateHasChanged();
         }
 
-        private async Task ChooseCellForNewContent(LayoutCell cell)
+        private async Task SelectCellForNewContent(LayoutCell cell)
         {
-
+            UserInformationMessage("Välj plats för innehållets placering.");
+            SaveScrollPosition();
             // If not Empty cell is choosen for new content, return.
             if (cell.ContentId != null)
             {
-                AlertMessage("Occupied cell choosen, select a empty cell");
-                Console.WriteLine("Occupied cell choosen, select a empty cell");
+                UserInformationMessage("Upptagen plats vald, välj en ledig plats för innehållet..");
                 return;
             }
 
             int? newContentId = null;
             AddNewContentToLayout(out newContentId, webPageContents, cell);
-            Console.WriteLine($"New content with id: {newContentId} created.");
+            UserInformationMessage("Nytt innehåll skapat.");
 
             await InsertNewContentInLayoutAsync(cell, webPageContents, newContentId);
 
@@ -420,6 +422,7 @@ namespace CMS.Components.Pages.WebPages
 
         private async Task InsertNewContentInLayoutAsync(LayoutCell cell, List<Content> webPageContents, int? newContentId)
         {
+            SaveScrollPosition();
             var newCell = new LayoutCell
             {
                 Column = cell.Column,
@@ -436,7 +439,7 @@ namespace CMS.Components.Pages.WebPages
 
             await SaveLayoutChangesAsync();
 
-            Console.WriteLine($"New content inserted in layout.");
+            UserInformationMessage("Nytt innehåll har lagts till i layout:en.");
             pageExecution = ExecuteAction.EditSelect;
         }
 
@@ -450,6 +453,7 @@ namespace CMS.Components.Pages.WebPages
 
         private void CreateContentDone()
         {
+            SaveScrollPosition();
             contentForEditing = null;
 
             // Get current content.
@@ -470,6 +474,7 @@ namespace CMS.Components.Pages.WebPages
 
         private void Done()
         {
+            SaveScrollPosition();
             contentForEditing = null;
             pageExecution = ExecuteAction.EditSelect;
             StateHasChanged();
@@ -477,6 +482,7 @@ namespace CMS.Components.Pages.WebPages
 
         private async Task DeleteDoneAsync()
         {
+            SaveScrollPosition();
             if (contentForEditing != null)
             {
 
@@ -499,7 +505,7 @@ namespace CMS.Components.Pages.WebPages
             }
             else
             {
-                Console.WriteLine("Can not delete empty cell.");
+                UserInformationMessage("Tom yta vald, Det finns inget att radera. ");
             }
                 pageExecution = ExecuteAction.DeleteSelect;
         }
@@ -525,6 +531,7 @@ namespace CMS.Components.Pages.WebPages
 
             if (clearedCellIndex == null)
             {
+                UserInformationMessage("Inget innhåll valt.");
                 Console.WriteLine("Could not find cell in layout, operation aborted.");
                 pageExecution = ExecuteAction.EditSelect;
                 return;
@@ -552,6 +559,7 @@ namespace CMS.Components.Pages.WebPages
 
         private void DeleteSelectRow()
         {
+            UserInformationMessage("Välj rad att radera.");
             if (deleteRowActive)
             {
                 ResetMenu();
@@ -569,13 +577,13 @@ namespace CMS.Components.Pages.WebPages
         {
             if (row == null)
             {
-                AlertMessage("Could not find, row");
+                UserInformationMessage("Could not find, row");
                 return;
             }
 
             if(layout.LayoutCells.Any(c=>c.ContentId != null && c.Row == row))
             {
-                AlertMessage("Can not delete row with content, delete/move content first.");
+                UserInformationMessage("Kan inte radera rad med innehåll, flytta eller radera innehåll först.");
                 return;
             }
 
@@ -601,7 +609,7 @@ namespace CMS.Components.Pages.WebPages
 
             moveRowActive = false;
 
-            editCellsActive = false;
+            moveCellsActive = false;
 
             deleteContentActive = false;
 
@@ -651,7 +659,7 @@ namespace CMS.Components.Pages.WebPages
                             var previewHeight = dragPreview.offsetHeight;
 
                             // Set the preview's position to center it at the mouse cursor
-                            dragPreview.style.top = (event.clientY - previewHeight / 2) + 'px';
+                            dragPreview.style.top = event.clientY + 'px';
                             dragPreview.style.left = (event.clientX - previewWidth / 2) + 'px';
                         };
 
@@ -700,11 +708,11 @@ namespace CMS.Components.Pages.WebPages
         {
             // Save the current scroll position using localStorage in JavaScript (store as floating point number)
             JSRuntime.InvokeVoidAsync("eval", @"
-        localStorage.setItem('scrollPosition', window.scrollY); // Store the exact scrollY value
-        console.log('scroll position saved:', window.scrollY);
-        localStorage.setItem('retries', 0); // Initialize retries in localStorage
-        console.log('retries initialized:', 0);
-    ");
+                localStorage.setItem('scrollPosition', window.scrollY); // Store the exact scrollY value
+                console.log('scroll position saved:', window.scrollY);
+                localStorage.setItem('retries', 0); // Initialize retries in localStorage
+                console.log('retries initialized:', 0);
+            ");
         }
 
         //Todo:Verifications and best practises needs to be handled, see git projects scrumboard.
@@ -712,45 +720,46 @@ namespace CMS.Components.Pages.WebPages
         {
             // Run JavaScript to attempt restoring the scroll position
             JSRuntime.InvokeVoidAsync("eval", @"
-    (function attemptToRestoreScrollPosition() {
-        // Retrieve retries from localStorage.
-        let retries = parseInt(localStorage.getItem('retries'), 10) || 0;
+                (function attemptToRestoreScrollPosition() {
+                    // Retrieve retries from localStorage.
+                    let retries = parseInt(localStorage.getItem('retries'), 10) || 0;
 
-        // If retrying is not allowed, stop the function.
-        if (retries > 3) {
-            console.log('Restoration already attempted. Aborting further retries.');
-            return; // Stop further execution.
-        }
-        console.log('retries:', retries);
+                    // If retrying is not allowed, stop the function.
+                    if (retries > 3) {
+                        console.log('Restoration already attempted. Aborting further retries.');
+                        return; // Stop further execution.
+                    }
+                    console.log('retries:', retries);
 
-        // Get stored scroll position from localStorage.
-        var storedScrollPosition = localStorage.getItem('scrollPosition');
+                    // Get stored scroll position from localStorage.
+                    var storedScrollPosition = localStorage.getItem('scrollPosition');
 
-        // Ensure stored position exists and convert it to a floating-point number.
-        storedScrollPosition = parseFloat(storedScrollPosition);
+                    // Ensure stored position exists and convert it to a floating-point number.
+                    storedScrollPosition = parseFloat(storedScrollPosition);
 
-        // Retrieve the current scroll position (window.scrollY) as a floating-point number.
-        var currentScrollPosition = window.scrollY;
-        console.log('current scroll position:', currentScrollPosition);
+                    // Retrieve the current scroll position (window.scrollY) as a floating-point number.
+                    var currentScrollPosition = window.scrollY;
+                    console.log('current scroll position:', currentScrollPosition);
 
-        // Check if stored position exists and retries.
-        if (!isNaN(storedScrollPosition) && retries < 2) {
-            window.scrollTo(0, storedScrollPosition); // Scroll to the saved position.
-            console.log('Scroll position restored:', storedScrollPosition);
-            console.log('Current window.scrollY:', window.scrollY);
+                    // Check if stored position exists and retries.
+                    if (!isNaN(storedScrollPosition) && retries < 2) {
+                        window.scrollTo(0, storedScrollPosition); // Scroll to the saved position.
+                        console.log('Scroll position restored:', storedScrollPosition);
+                        console.log('Current window.scrollY:', window.scrollY);
 
-            retries++;  // Increment the retry counter.
-            localStorage.setItem('retries', retries); // Update retries count in localStorage.
+                        retries++;  // Increment the retry counter.
+                        localStorage.setItem('retries', retries); // Update retries count in localStorage.
 
-            // Retry after 50ms, delay for timing issues
-            setTimeout(attemptToRestoreScrollPosition, 50); // Retry with a 50ms delay.
-        } else {
-            // If position is restored or matches, stop further retries
-            localStorage.setItem('retries', retries); // Store the retries count in localStorage.
-            console.log('Scroll position is already at or restored to:', storedScrollPosition);
-        }
-    })();
-    ");
+                        // Retry after 50ms, delay for timing issues
+                        setTimeout(attemptToRestoreScrollPosition, 50); // Retry with a 50ms delay.
+                    } else {
+                        // If position is restored or matches, stop further retries
+                        localStorage.setItem('retries', retries); // Store the retries count in localStorage.
+                        console.log('Scroll position is already at or restored to:', storedScrollPosition);
+                        localStorage.setItem('retries', 0); //Reset
+                    }
+                })();
+            ");
         }
 
 
@@ -760,6 +769,7 @@ namespace CMS.Components.Pages.WebPages
         // Drag cell/content
         private async Task OnDragStart( LayoutCell layoutCell)
         {
+            SaveScrollPosition();
             if (layoutCell.ContentId != null)
             {
                
@@ -803,6 +813,7 @@ namespace CMS.Components.Pages.WebPages
 
         private async Task OnDragEndAsync()
         {
+            SaveScrollPosition();
             //ToDo: Add column span:
             // If the dragged cell is set, update layout
             if (draggedCell != null )
@@ -844,7 +855,7 @@ namespace CMS.Components.Pages.WebPages
                 }
             }
 
-            Console.WriteLine("Drag ended.");
+            UserInformationMessage("Innehåll flyttat.");
         }
 
         private void GetCellsIndexesForDragAndHovered(out int? hoveredCellIndex, out int? draggedCellIndex)
@@ -872,6 +883,7 @@ namespace CMS.Components.Pages.WebPages
         // Method to handle drag over events
         private void OnDragOver( int row, int column, int? contentId)
         {
+            SaveScrollPosition();
             //ToDo: Add column span:
             // Update the hovered cell using the rowShift, column, and ContentId passed
             hoveredCell = layout.LayoutCells.FirstOrDefault(cell =>
@@ -889,6 +901,7 @@ namespace CMS.Components.Pages.WebPages
         // Method to update ColumnSpan for a cell
         private async Task UpdateColumnSpan(LayoutCell cell, int newColumnSpan)
         {
+            SaveScrollPosition();
             var targetCell = layout.LayoutCells.FirstOrDefault(c => c.ContentId == cell.ContentId);
             if (targetCell != null)
             {
@@ -908,6 +921,41 @@ namespace CMS.Components.Pages.WebPages
             else
             {
                 Console.WriteLine("Update aborted, cell id was null(empty cell)");
+            }
+        }
+
+        // Overload Method to update ColumnSpan for a cell
+
+        private async Task UpdateColumnSpan(LayoutCell cell, string newColumnSpan)
+        {
+            SaveScrollPosition();
+            // Check if the string can be parsed to an integer without using the output value
+            if (int.TryParse(newColumnSpan, out int newColumnspanInt))
+            {
+                var targetCell = layout.LayoutCells.FirstOrDefault(c => c.ContentId == cell.ContentId);
+                if (targetCell != null)
+                {
+                    // Store old ColumnSpan to calculate affected area
+                    //ToDo: Use targetcell.ColumnSpan instead?
+                    int oldColumnSpan = targetCell.ColumnSpan;
+
+
+                    // Shift cells that will be pushed to the right due to the expanded column span
+                    ShiftCellsAfterResize(targetCell, oldColumnSpan, newColumnspanInt);
+
+                    // Optionally, save the new layout order
+                    await SaveLayoutChangesAsync(); // Save the layout changes to persistent storage
+
+                    StateHasChanged(); // Refresh the UI
+                }
+                else
+                {
+                    Console.WriteLine("Update aborted, cell id was null(empty cell)");
+                }
+            }
+            else
+            {
+                Console.WriteLine("The parsing of column span to int failed.");
             }
         }
 
@@ -1450,7 +1498,7 @@ namespace CMS.Components.Pages.WebPages
                 layoutSave.LastUpdated = DateOnly.FromDateTime(DateTime.Now);
                 layoutSave.LayoutCellsSerialized = JsonConvert.SerializeObject(layout.LayoutCells);
                 await LayoutService.UpdateLayoutAsync(layoutSave);
-                Console.WriteLine("Layout updates saved!");
+                UserInformationMessage("Ändringarna Sparades.");
             }
             else
             {
@@ -1463,7 +1511,7 @@ namespace CMS.Components.Pages.WebPages
                     LayoutCellsSerialized = JsonConvert.SerializeObject(layout.LayoutCells)
                 };
                 await LayoutService.SaveLayoutAsync(layoutSave);
-                Console.WriteLine("New layout saved!");
+                UserInformationMessage("Ny layout skapad.");
             }
 
         }

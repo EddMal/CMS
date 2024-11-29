@@ -582,36 +582,119 @@ header, .navbar, footer {
         }
 /*End:after Create select CSS*/
 
+/* Column span size tools */
 
+/* Style the container that holds the slider and the input field */
+/* Ensure the parent container is positioned relatively so that the slider can be positioned absolutely */
+/* Make the container a positioned element */
 .grid-edit-controls {
     margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    position: absolute; /* Position it relative to the parent div */
+    top: 0; /* Adjust based on where you want to position it vertically */
+    left: 0; /* Adjust based on where you want to position it horizontally */
+    right: 0; /* If you want it to span the full width of the parent */
+    z-index: 10; /* Ensure it appears above other elements */
 }
 
+/* Style the slider (input[type="range"]) */
+input[type="range"].slider {
+    position: absolute; /* Position the slider absolutely inside the parent container */
+    top: 50%; /* Place the slider at the vertical center of the parent */
+    left: 50%; /* Place it horizontally at the center */
+    transform: translate(-50%, -50%); /* Offset it by half of its size to center it exactly */
+    width: 100%; /* Make the slider span the entire width of the parent */
+    height: 4px;
+    background: #ddd;
+    border-radius: 3px;
+    outline: none;
+    transition: background 0.3s ease;
+}
+
+    input[type="range"].slider::-webkit-slider-runnable-track {
+        height: 8px;
+        background: #ddd;
+    }
+
+    input[type="range"].slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        margin-top: -4px;
+        width: 24px;
+        height: 24px;
+        background: #4CAF50;
+        border-radius: 50%;
+        cursor: pointer;
+    }
+
+/* Style the input field under the slider */
+.slider-value-container {
+    position: absolute; /* Position the input field absolutely inside the parent container */
+    top: 65%; /* Adjust the distance from the slider */
+    left: 50%; /* Center it horizontally */
+    transform: translateX(-50%); /* Offset to ensure it's perfectly centered */
+}
+
+input[type="number"].slider-value {
+    width: 40px; /* Width of the input field */
+    height: 30px;
+    text-align: left;
+    font-size: 16px;
+    padding: 5px;
+    margin-left: 0px;
+    margin-top: 10px;
+    border: 1px solid black;
+    border-radius: 5px;
+    outline: none;
+}
+
+/* Optional: Style for when the slider is focused */
+input[type="range"].slider:focus {
+    background: #45a049;
+}
+
+/* Optional: Focus style for the input field */
+input[type="number"].slider-value:focus {
+    border-color: #45a049;
+}
+
+input[type="number"].slider-value::-webkit-outer-spin-button,
+input[type="number"].slider-value::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type="number"].slider-value::-moz-appearance: textfield;
+/*.grid-edit-controls {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    position: absolute;*/ /* Position it relative to the parent div */
+/*top: 0;*/ /* Adjust based on where you want to position it vertically */
+/*left: 0;*/ /* Adjust based on where you want to position it horizontally */
+/*right: 0;*/ /* If you want it to span the full width of the parent */
+/*z-index: 10;*/ /* Ensure it appears above other elements */
+/*}
+
     .grid-edit-controls input[type="range"] {
-        width: 100%; /* Make the slider take up the full width of the container */
-        margin-bottom: 5px;
+        width: 100%;*/ /* Make the slider take up the full width of the container */
+/*margin-bottom: 5px;
     }
 
     .grid-edit-controls label {
         display: block;
         margin-bottom: 5px;
         font-size: 14px;
-    }
-
-.grid-edit-controls {
-    margin-top: 10px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-    .grid-edit-controls label {
-        font-weight: bold;
-    }
+        font-weight: bold;*/ /* Optional: Make the label bold */
+/*}
 
     .grid-edit-controls input {
         margin-bottom: 10px;
-    }
+    }*/
+/* End: Column span size tools*/
 /* Preview CSS*/
 .containerEditWebPageContentLayoutGridPreview {
     display: grid;
@@ -653,23 +736,6 @@ header, .navbar, footer {
         grid-template-columns: 1fr; /* Single column for very small screens */
     }
 }
-
-./*alertMessage {
-    background-color: white;
-    color: black;
-    border: solid 2px black;
-    border-radius: 3px;
-    padding: 10px 10px;
-    position: fixed;*/ /* Use fixed to position relative to the viewport */
-    /*top: 50%;*/ /* Position it 50% down the viewport */
-    /*left: 50%;*/ /* Position it 50% from the left of the viewport */
-    /*transform: translate(-50%, -50%);*/ /* Adjust the element’s position by its own size */
-/*}*/
-
-/* Alert container to position the alert message */
-/*.alert {
-    margin-top: 20px;*/ /* Space between icon buttons and the alert */
-/*}*/
 
 /* Style for the alert message */
 .alertMessage {

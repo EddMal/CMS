@@ -311,7 +311,7 @@ namespace BlazorComponents.HtmlTemplates.InputFormsForTemplates
                     else
                     {
                         SetInparametersForMenuOptions(MenuItems.FirstOrDefault().Key, MenuItems.FirstOrDefault().Value);
-                        //AlertMessage("Lägg till ett eget alternativ för menyn.");
+                        //UserInformationMessage("Lägg till ett eget alternativ för menyn.");
                         
                     }
                     currentStep = InputStep.Edit;
