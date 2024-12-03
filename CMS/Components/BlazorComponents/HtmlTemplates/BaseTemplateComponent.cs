@@ -17,7 +17,7 @@ namespace CMS.Components.BlazorComponents.HtmlTemplates
         [Parameter] public string CardTitle { get; set; } = "Titel";
         [Parameter] public string CardText1 { get; set; } = "Underrubrik 1";
         [Parameter] public string CardText2 { get; set; } = "Underrubrik 2";
-        [Parameter] public string BackgroundColor { get; set; } = "grey";
+        [Parameter] public string BackgroundColor { get; set; } = "white";
         [Parameter] public string TextColor { get; set; } = "black";
     }
     public class BaseImageTemplate : BaseTemplateComponent
@@ -67,7 +67,7 @@ namespace CMS.Components.BlazorComponents.HtmlTemplates
         [Parameter] public string ContentName { get; set; } = string.Empty;
         [Parameter] public string TextInput1 { get; set; } = "Rubrik";
         [Parameter] public string TextInput2 { get; set; } = "Underrubrik";
-        [Parameter] public string BackgroundColor { get; set; } = "grey";
+        [Parameter] public string BackgroundColor { get; set; } = "white";
         [Parameter] public string TextColor { get; set; } = "black";
     }
     public class BaseHeaderTemplate : BaseTemplateComponent
@@ -75,14 +75,14 @@ namespace CMS.Components.BlazorComponents.HtmlTemplates
         [Parameter] public string ContentName { get; set; } = string.Empty;
         [Parameter] public string TextInput1 { get; set; } = "Rubrik";
         [Parameter] public string TextInput2 { get; set; } = "Underrubrik";
-        [Parameter] public string BackgroundColor { get; set; } = "grey";
+        [Parameter] public string BackgroundColor { get; set; } = "white";
         [Parameter] public string TextColor { get; set; } = "black";
     }
     public class BaseNavBarTemplate : BaseTemplateComponent
     {
         [Parameter] public string ContentName { get; set; } = string.Empty;
         [Parameter] public Dictionary<string, string> MenuItems { get; set; } = new Dictionary<string, string>() { { "Innehåll saknas", "Länk Saknas" } };
-        [Parameter] public string BackgroundColor { get; set; } = "grey";
+        [Parameter] public string BackgroundColor { get; set; } = "white";
         [Parameter] public string TextColor { get; set; } = "black";
     }
 

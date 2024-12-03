@@ -95,7 +95,8 @@ namespace CMS.Components.Pages.WebPages
             Resize,
             DragRow,
             DragCell,
-            DeleteRowSelect
+            DeleteRowSelect,
+            AddRowSelect
         }
 
         protected override async Task OnInitializedAsync()
@@ -229,7 +230,6 @@ namespace CMS.Components.Pages.WebPages
         private void UserInformationMessageHide()
         {
             infoMessage = false;
-
             userInfoMessage = "";
         }
 
@@ -241,35 +241,38 @@ namespace CMS.Components.Pages.WebPages
 
         private void DragCells()
         {
-            UserInformationMessage("Flytta innehåll.");
             SaveScrollPosition();
 
             if (moveCellsActive)
             {
                 ResetMenu();
                 moveCellsActive = false;
+                UserInformationMessage("Redigera innehåll");
                 pageExecution = ExecuteAction.EditSelect;
             }
             else
             {
                 ResetMenu();
+                UserInformationMessage("Flytta innehåll.");
                 moveCellsActive = true;
                 pageExecution = ExecuteAction.DragCell;
             }
         }
         private async Task AddRowAsync()
         {
-            UserInformationMessage("Ny rad tillagd.");
-            SaveScrollPosition();
+            //ToDo: select for add row.
+            //SaveScrollPosition();
 
             if (addRowActive)
             {
                 ResetMenu();
+                UserInformationMessage("Redigera innehåll");
                 addRowActive = false;
             }
             else
             {
                 ResetMenu();
+                UserInformationMessage("Ny rad tillagd.");
                 addRowActive = true;
                 await CreateNewRowAsync();
             }
@@ -277,18 +280,19 @@ namespace CMS.Components.Pages.WebPages
 
         private void DragRows()
         {
-            UserInformationMessage("Flytta rad.");
-            SaveScrollPosition();
+           SaveScrollPosition();
 
             if (moveRowActive)
             {
                 ResetMenu();
+                UserInformationMessage("Redigera innehåll");
                 pageExecution = ExecuteAction.EditSelect;
                 moveRowActive = false;
             }
             else
             {
                 ResetMenu();
+                UserInformationMessage("Flytta rad.");
                 moveRowActive = true;
                 pageExecution = ExecuteAction.DragRow;
             }
@@ -301,12 +305,14 @@ namespace CMS.Components.Pages.WebPages
             if (deleteContentActive)
             {
                 ResetMenu();
+                UserInformationMessage("Redigera innehåll");
                 deleteContentActive = false;
                 pageExecution = ExecuteAction.EditSelect;
             }
             else
             {
                 ResetMenu();
+                UserInformationMessage("Radera innehåll.");
                 deleteContentActive = true;
                 pageExecution = ExecuteAction.DeleteSelect;
             }
@@ -314,12 +320,12 @@ namespace CMS.Components.Pages.WebPages
 
         private void ResizeCell()
         {
-            UserInformationMessage("Ändra storlek.");
             SaveScrollPosition();
 
             if (resizeCellColumnSpanActive)
             {
                 ResetMenu();
+                UserInformationMessage("Redigera innehåll");
                 resizeCellColumnSpanActive = false;
                 pageExecution = ExecuteAction.EditSelect;
             }
@@ -327,6 +333,7 @@ namespace CMS.Components.Pages.WebPages
             {
                 ResetMenu();
                 resizeCellColumnSpanActive = true;
+                UserInformationMessage("Ändra storlek.");
                 pageExecution = ExecuteAction.Resize;
             }
         }
@@ -365,10 +372,9 @@ namespace CMS.Components.Pages.WebPages
 
         private void DeleteContent(int? contentId)
         {
-            UserInformationMessage("Raderar innehåll");
             if (contentId == null)
             {
-                UserInformationMessage("Det går inte att radera innehåll.");
+                UserInformationMessage("Inget innehåll hittat att radera.");
                 SaveScrollPosition();
                 return;
             }
@@ -477,6 +483,7 @@ namespace CMS.Components.Pages.WebPages
             SaveScrollPosition();
             contentForEditing = null;
             pageExecution = ExecuteAction.EditSelect;
+            UserInformationMessage("Redigera innehåll");
             StateHasChanged();
         }
 
@@ -513,9 +520,8 @@ namespace CMS.Components.Pages.WebPages
         private async Task UpdateRowAfterRemovalOfContentAsync()
         {
             if (contentForEditing == null)
-            {
+            {   // ToDo: evaluate, if actions is needed.
                 Console.WriteLine("Content Id for removal is null, operation aborted.");
-                pageExecution = ExecuteAction.EditSelect;
                 return;
             }
 
@@ -533,7 +539,6 @@ namespace CMS.Components.Pages.WebPages
             {
                 UserInformationMessage("Inget innhåll valt.");
                 Console.WriteLine("Could not find cell in layout, operation aborted.");
-                pageExecution = ExecuteAction.EditSelect;
                 return;
             }
 
@@ -559,25 +564,27 @@ namespace CMS.Components.Pages.WebPages
 
         private void DeleteSelectRow()
         {
-            UserInformationMessage("Välj rad att radera.");
+            SaveScrollPosition();
             if (deleteRowActive)
             {
                 ResetMenu();
+                UserInformationMessage("Redigera innehåll");
                 deleteRowActive = false;
                 pageExecution = ExecuteAction.EditSelect;
             }
             else
             {
                 ResetMenu();
+                UserInformationMessage("Radera rad.");
                 deleteRowActive = true;
                 pageExecution = ExecuteAction.DeleteRowSelect;
             }
         }
-        private void DeleteRow(int? row)
+        private async Task DeleteRowAsync(int? row)
         {
             if (row == null)
             {
-                UserInformationMessage("Could not find, row");
+                UserInformationMessage("Ingen rad vald att radera.");
                 return;
             }
 
@@ -588,6 +595,10 @@ namespace CMS.Components.Pages.WebPages
             }
 
             DeleteRowInLayout(row.Value);
+            await SaveLayoutChangesAsync();
+
+            UserInformationMessage("Rad raderad");
+
         }
 
         // Hides tool bar
@@ -646,8 +657,9 @@ namespace CMS.Components.Pages.WebPages
                         dragPreview.style.zIndex = '9999'; // Make sure the preview is above other elements
                         dragPreview.style.pointerEvents = 'none'; // Prevent interaction with the preview
                         dragPreview.style.opacity = '1'; // Make the preview fully visible
-                        dragPreview.style.width = '20%';
-
+                        dragPreview.style.width = '60%';
+                        dragPreview.style.height = '60%';
+                        dragPreview.style.border = 'none';
 
                         // Append the preview to the body
                         document.body.appendChild(dragPreview);
@@ -658,9 +670,12 @@ namespace CMS.Components.Pages.WebPages
                             var previewWidth = dragPreview.offsetWidth;
                             var previewHeight = dragPreview.offsetHeight;
 
-                            // Set the preview's position to center it at the mouse cursor
-                            dragPreview.style.top = event.clientY + 'px';
-                            dragPreview.style.left = (event.clientX - previewWidth / 2) + 'px';
+                            // Get the current scroll position to adjust the preview position
+                            var scrollTop = window.scrollY;
+
+                            // Adjust the preview's position based on the mouse position and scroll position
+                            dragPreview.style.top = (event.clientY + scrollTop) + 'px'//(event.clientY + scrollTop - previewHeight / 2) + 'px';  // Center vertically
+                            dragPreview.style.left = (event.clientX - previewWidth / 2) + 'px';  // Center horizontally
                         };
 
                         // Immediately position the preview at the mouse cursor's position (centered)
@@ -700,6 +715,7 @@ namespace CMS.Components.Pages.WebPages
                         }
                     };
                 }
+
             ");
         }
 
@@ -770,27 +786,30 @@ namespace CMS.Components.Pages.WebPages
         private async Task OnDragStart( LayoutCell layoutCell)
         {
             SaveScrollPosition();
+            if (layoutCell == null)
+            {
+                Console.WriteLine("Cell null, operation aborted.");
+            }
             if (layoutCell.ContentId != null)
             {
-               
-                
-                    draggedCell = layoutCell;
+                draggedCell = layoutCell;
 
-                    // First, ensure that the JavaScript is initialized and ready
-                    await InitializeDrag();
+                // First, ensure that the JavaScript is initialized and ready
+                await InitializeDrag();
 
-                    // Get the element to be dragged (you can use `document.querySelector` or pass the element directly)
-                    var elementId = layoutCell.ContentId; // Or use any identifier for the draggable element
-                    await JSRuntime.InvokeVoidAsync("setupDragPreview", layoutCell.ContentId);
+                // Get the element to be dragged (you can use `document.querySelector` or pass the element directly)
+                var elementId = layoutCell.ContentId; // Or use any identifier for the draggable element
+                await JSRuntime.InvokeVoidAsync("setupDragPreview", layoutCell.ContentId);
 
-                    // Optionally, store any other information or state
-                    Console.WriteLine($"Started dragging: {layoutCell.ContentId}");
+                // Optionally, store any other information or state
+                Console.WriteLine($"Started dragging: {layoutCell.ContentId}");
 
             }
             else
             {
                 Console.WriteLine("Empty cell, operation aborted.");
             }
+
         }
 
         //private async Task OnDragStart(DragEventArgs e, LayoutCell layoutCell)
@@ -825,7 +844,7 @@ namespace CMS.Components.Pages.WebPages
                     int? hoveredCellIndex;
 
                     //Get cells indexes.
-                    GetCellsIndexesForDragAndHovered(out draggedCellIndex,out hoveredCellIndex);
+                    GetCellsIndexesForDragAndHovered(out hoveredCellIndex , out draggedCellIndex);
 
                     // Check if swap is legit.
                     if (draggedCellIndex.Value != hoveredCellIndex.Value)
@@ -833,7 +852,7 @@ namespace CMS.Components.Pages.WebPages
                             Console.WriteLine("Drag ended, updating layout.");
                             
                             // Swap positions in layout
-                            SwapCellsPositions(draggedCellIndex, hoveredCellIndex, hoveredCell, draggedCell);
+                            SwapCellsPositions(draggedCellIndex, hoveredCellIndex, draggedCell, hoveredCell);
    
                             // Save the new layout order
                             await SaveLayoutChangesAsync();
@@ -1134,7 +1153,7 @@ namespace CMS.Components.Pages.WebPages
 
             }
         }
-        private void SwapCellsPositions(int? draggedCellIndex, int? hoveredCellIndex, LayoutCell hoveredCell, LayoutCell draggedCell)
+        private void SwapCellsPositions(int? draggedCellIndex, int? hoveredCellIndex, LayoutCell draggedCell, LayoutCell hoveredCell)
         {
             // ToDo: move checks in to this method.
             //Swap Content IDs and row spans.
@@ -1148,8 +1167,8 @@ namespace CMS.Components.Pages.WebPages
 
             // Insert cells at swapped indexes.
 
-                ReinsertCellInLayout(hoveredCellIndex, draggedCell);
-                ReinsertCellInLayout(draggedCellIndex, hoveredCell);
+                ReinsertCellInLayout(draggedCellIndex, draggedCell);
+                ReinsertCellInLayout(hoveredCellIndex, hoveredCell);
 
 
             if (hoveredCell.ColumnSpan != draggedCell.ColumnSpan)

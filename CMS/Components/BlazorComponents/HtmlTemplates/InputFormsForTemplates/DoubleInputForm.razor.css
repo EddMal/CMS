@@ -1,6 +1,7 @@
 ﻿.instruction-text {
-    font-size: 9px;
-    font-style:;
+    font-size: 11px;
+    font-weight: bold;
+    color: #ccc;
     margin: 0; /* Remove default margin */
     padding: 0; /* Remove default padding */
     line-height: 1.5; /* Adjust line height if needed */
@@ -28,9 +29,12 @@ input[type="checkbox"] {
 /* Initially hide the toggle content */
 .toggle-content {
     display: none; /* Hide the content by default */
-    padding: 10px; /* Add padding for better readability */
+    font-size: 10px;
+
+    padding: 6px; /* Add padding for better readability */
     border: 1px solid #ccc; /* Optional border */
-    background-color: #f9f9f9; /* Optional background color */
+    background-color: #808080; /* Optional background color */
+    color: black!important;
 }
 
 /* Style the arrow */

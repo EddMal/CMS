@@ -32,24 +32,38 @@ header, .navbar, footer {
     padding: 0; /* Remove padding */
 }
 
-/* Main button container */
+/*Toolbar and user info message*/
+
+/* The container holding both toolbar and alert message */
+.tools-and-infomessage {
+    display: flex;
+    height: auto;
+    flex-direction: column; /* Stack the toolbar and alert vertically */
+    left: 0; /* Align to the left */
+    z-index: 100; /* Ensure toolbar stays above other content */
+    position: fixed; /* Use relative positioning for placement control */
+    width: auto; /* Ensure it spans the entire screen width */
+    bottom: 0;
+    padding: 0px; /* Padding for the alert */
+}
+
+/* Toolbar container */
 .containerMainButtons {
-    position: fixed; /* Fixes the container */
     bottom: 0; /* Position the container at the bottom of the screen */
     left: 0; /* Align to the left */
-    width: auto; /* Default width for normal state */
+    width: auto;
     background-color: rgba(255, 255, 255, 1); /* Optional: add a background */
     padding: 0px; /* Padding around the buttons */
     border: 0px solid black;
     border-radius: 0px;
-    z-index: 100; /* Ensure it stays above other content */
     display: flex;
-    flex-direction: row; /* Align items horizontally */
+    flex-direction: row; /* Place toolbar buttons in a row */
     align-items: center; /* Center items vertically within the row */
     transition: width 0.3s ease, padding 0.3s ease; /* Smooth transition for the shrinking effect */
+    z-index: 100; /* Make sure the toolbar stays above the alert */
 }
 
-    
+
 
 /* Button container styling */
 .button-container {
@@ -104,7 +118,7 @@ header, .navbar, footer {
         }
 
     .icon-text {
-        font-size: 8px; /* Smaller text */
+        font-size: 0px; /* Smaller text */
     }
 
     .containerMainButtons.minimized {
@@ -140,6 +154,49 @@ header, .navbar, footer {
     flex: 0 0 auto; /* Ensure buttons do not stretch */
 }
 
+/*End: Toolbar*/
+
+/* Style for the alert message */
+/* Alert message */
+.user-info-message {
+    position: relative; /* Positioned absolutely inside the container */
+    height: 14px;
+    width: 100%; /* Ensure it spans the full width */
+    display: flex;
+    flex-direction: row; /* Align the text and 'X' button horizontally */
+    justify-content: flex-start; /* Align the text to the left */
+    align-items: flex-start; /* Align the text and button to the top */
+    background-color: #f3f3f3;
+    border: 1px solid white;
+    padding: 0px;
+    padding-left:3px;
+    margin-bottom:0px;
+    border-radius: 0px;
+    z-index: 100;
+}
+
+/* Alert text */
+.user-info-message-text {
+    font-size: 10px;
+    color: #5a5959; /* Text color */
+    flex-grow: 1; /* Allows the message to take up the remaining space */
+    padding: 0px; /* Padding for the alert */
+    justify-content: flex-start;
+    margin-bottom: 1px;
+}
+
+/* Style the close button */
+.cancle-info-message {
+    font-size: 10px;
+    padding: 0;
+    margin: 0px;
+    margin-bottom: 1px;
+    background: transparent;
+    border: none;
+    color: lightgray;
+    cursor: pointer;
+    justify-content: flex-start; /* Align the x to the top of the container */
+}
 
 
 /* OLD ICON CONTAINER*/
@@ -251,6 +308,7 @@ header, .navbar, footer {
     border-block-color: darkslategrey;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
     opacity: 1;
+    z-index: 100;
     transition: opacity 0.3s ease;
     /* Scrollable content with always visible scrollbar */
     min-height: 40vh; /* Minimum height of the div */
@@ -281,10 +339,6 @@ header, .navbar, footer {
         background-color: #888; /* Color of the draggable thumb */
         border-radius: 10px; /* Rounded corners for the thumb */
     }
-
-
-
-
 
 @media (min-width: 768px) {
     .overlay-edit {
@@ -355,74 +409,206 @@ header, .navbar, footer {
     gap: 0px; /* Add space between the items */
 }
 
-.containerEditWebPageContentLayout {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Define columns */
-    grid-template-rows: auto; /* Adjust rows based on content */
-    position: relative;
-}
+/*Layout base*/
 
-.containerEditWebPageContentLayoutGrid {
+/*.container-content-layout-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);*/ /* Always 12 columns */
+    /*grid-template-rows: auto;*/ /* Automatically adjust rows based on content */
+    /*position: relative;
+    width: 100vw;*/ /* Ensure it takes up the full available viewport width */
+    /*max-width: 100vw;*/ /* Limit the maximum width to the viewport width */
+    /*overflow: hidden;*/ /* Prevent content overflow */
+/*}*/
+.container-content-layout-grid {
     cursor: grabbing;
     display: grid;
-    grid-template-columns: repeat(12, 1fr); /* 12 columns by default */
+    grid-template-columns: repeat(12, 1fr); /* 12 columns */
     position: relative;
-    position: relative;
-    width: 100%;
-    height: 100%;
-    /* Ensure it accepts drops */
-    /*border: 2px dashed #ccc;*/
+    width: 100vw; /* Grid takes full viewport width */
+    max-width: 100vw; /* Limit the grid to viewport width */
+    height: auto; /* Height adjusts based on the content */
+    overflow-x: hidden; /* Prevent horizontal overflow */
+    overflow-y: auto; /* Allow vertical scroll if needed */
 }
 
 @media (max-width: 1024px) {
-    .containerEditWebPageContentLayoutGrid {
-        grid-template-columns: repeat(8, 1fr); /* 8 columns for medium screens */
+    .container-content-layout-grid {
+        grid-template-columns: repeat(12, 1fr); /* Keep 12 columns */
+    }
+    .content-item {
+        width: 100%; /* Ensure content fills the entire cell */
+        max-width: 100%; /* Prevent overflow of content */
     }
 }
 
 @media (max-width: 768px) {
-    .containerEditWebPageContentLayoutGrid {
-        grid-template-columns: repeat(4, 1fr); /* 4 columns for small screens */
+    .container-content-layout-grid {
+        grid-template-columns: repeat(12, 1fr); /* Keep 12 columns */
+    }
+    .content-item {
+        width: 100%; /* Ensure content fills the entire cell */
+        max-width: 100%; /* Prevent overflow of content */
     }
 }
 
 @media (max-width: 480px) {
-    .containerEditWebPageContentLayoutGrid {
-        grid-template-columns: 1fr; /* Single column for very small screens */
+    .container-content-layout-grid {
+        grid-template-columns: repeat(12, 1fr); /* Keep 12 columns */
+    }
+    .content-item {
+        width: 100%; /* Ensure content fills the entire cell */
+        max-width: 100%; /* Prevent overflow of content */
+        font-size: 3vw;
     }
 }
 
-.content-item-layout-grid {
+.content-item {
     user-select: none;
-    /* Ensure it accepts drops */
-    /*border: 2px dashed #ccc;*/
-    /*will-change: transform, top, left;*/
-    /*transition: all 0.3s ease;*/ /* Smooth transition */
     position: relative;
-    overflow: visible; /* Ensure overflow doesn't cut off overlay */
+    overflow: hidden; /* Prevent overflow */
+    box-sizing: border-box; /* Ensure padding doesn't affect width */
+    height: auto; /* Let the height adjust based on content */
+    padding: 0; /* Remove extra padding if necessary */
+    word-wrap: break-word; /* Allow long words to break and wrap onto the next line */
+    overflow-wrap: break-word; /* Fallback for some browsers */
+    hyphens: auto !important; /* Hyphenation for headings */
 }
 
-    /* Make sure content is responsive */
-    /*.content-item-layout-grid p {
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }*/
-
-.content-item-layout-grid p {
-    min-height: 30px; /* Ensures the container is at least 300px wide */
-}
-
-    .content-item-layout-grid .content-wrapper {
-        pointer-events: none; /* Disable all interactions within this wrapper */
+    .content-item p {
+        min-height: 30px; /* Minimum height for each cell */
+        width: 100%; /* Ensure content fills the full width */
+        max-width: 100%; /* Ensure content does not overflow */
+        box-sizing: border-box; /* Ensure the width includes padding */
+        word-wrap: break-word; /* Break words to prevent overflow */
+        overflow-wrap: break-word; /* Fallback for some browsers */
+        hyphens: auto !important; /* Hyphenation for headings */
     }
 
-    .content-item-layout-grid:Hover {
+    /* If you have headings or other text elements that may need wrapping, apply this too */
+    .content-item h1,
+    .content-item h2,
+    .content-item h3,
+    .content-item h4,
+    .content-item h5,
+    .content-item h6 {
+        word-wrap: break-word; /* Apply word wrap for headings */
+        overflow-wrap: break-word; /* Fallback for headings */
+        hyphens: auto !important; /* Hyphenation for headings */
+    }
+
+    /* Apply hyphenation to the links within content items */
+    .content-item a {
+        hyphens: auto !important; /* Enable hyphenation for links */
+        word-wrap: break-word !important; /* Allow word breaks */
+        overflow-wrap: break-word !important; /* Prevent overflow */
+        white-space: normal !important; /* Allow line breaks */
+    }
+
+/*End: Layout base*/
+
+/*Drag cell layout styling*/
+.container-content-layout-grid-drag-cell {
+    cursor: grabbing;
+    display: grid;
+    grid-template-columns: repeat(12, 1fr); /* 12 columns */
+    position: relative;
+    width: 100vw; /* Grid takes full viewport width */
+    max-width: 100vw; /* Limit the grid to viewport width */
+    height: auto; /* Height adjusts based on the content */
+    overflow-x: hidden; /* Prevent horizontal overflow */
+    overflow-y: auto; /* Allow vertical scroll if needed */
+}
+
+@media (max-width: 1024px) {
+    .container-content-layout-grid-drag-cell {
+        grid-template-columns: repeat(12, 1fr); /* Keep 12 columns */
+    }
+
+    .container-content-layout-grid-drag-cell {
+        width: 100%; /* Ensure content fills the entire cell */
+        max-width: 100%; /* Prevent overflow of content */
+    }
+}
+
+@media (max-width: 768px) {
+    .container-content-layout-grid-drag-cell {
+        grid-template-columns: repeat(12, 1fr); /* Keep 12 columns */
+    }
+
+    .container-content-layout-grid-drag-cell {
+        width: 100%; /* Ensure content fills the entire cell */
+        max-width: 100%; /* Prevent overflow of content */
+    }
+}
+
+@media (max-width: 480px) {
+    .container-content-layout-grid-drag-cell {
+        grid-template-columns: repeat(12, 1fr); /* Keep 12 columns */
+    }
+
+    .content-item-drag-cell {
+        width: 100%; /* Ensure content fills the entire cell */
+        max-width: 100%; /* Prevent overflow of content */
+        font-size: 3vw;
+    }
+}
+
+.content-item-drag-cell {
+    border: 1px dotted #ccc; /* Border for grid items */
+    box-sizing: border-box; /* Include border in the element's total width and height */
+    user-select: none;
+    position: relative;
+    overflow: hidden; /* Prevent overflow */
+    box-sizing: border-box; /* Ensure padding doesn't affect width */
+    height: auto; /* Let the height adjust based on content */
+    padding: 0; /* Remove extra padding if necessary */
+    word-wrap: break-word; /* Allow long words to break and wrap onto the next line */
+    overflow-wrap: break-word; /* Fallback for some browsers */
+    hyphens: auto !important; /* Hyphenation for headings */
+}
+
+    .content-item-drag-cell p {
+        min-height: 30px; /* Minimum height for each cell */
+        width: 100%; /* Ensure content fills the full width */
+        max-width: 100%; /* Ensure content does not overflow */
+        box-sizing: border-box; /* Ensure the width includes padding */
+        word-wrap: break-word; /* Break words to prevent overflow */
+        overflow-wrap: break-word; /* Fallback for some browsers */
+        hyphens: auto !important; /* Hyphenation for headings */
+    }
+
+    /* If you have headings or other text elements that may need wrapping, apply this too */
+    .content-item-drag-cell,
+    .content-item-drag-cell,
+    .content-item-drag-cell,
+    .content-item-drag-cell,
+    .content-item-drag-cell,
+    .content-item-drag-cell {
+        word-wrap: break-word; /* Apply word wrap for headings */
+        overflow-wrap: break-word; /* Fallback for headings */
+        hyphens: auto !important; /* Hyphenation for headings */
+    }
+
+    /* Apply hyphenation to the links within content items */
+        .content-item-drag-cell a {
+            hyphens: auto !important; /* Enable hyphenation for links */
+            word-wrap: break-word !important; /* Allow word breaks */
+            overflow-wrap: break-word !important; /* Prevent overflow */
+            white-space: normal !important; /* Allow line breaks */
+        }
+
+/* Ensure content-wrapper is not blocking interactions */
+.content-item-drag-cell .content-wrapper {
+    pointer-events: none; /* Disable all interactions within this wrapper */
+}
+
+    .content-item-drag-cell:Hover {
         user-select: none;
         cursor: grabbing;
-        /* background-color: grey;*/
+        background-color: lightgray
         /* border: solid;
-        border-color: grey;*/
+            border-color: grey;*/
         cursor: grab;
         opacity: 0.5; /* Makes all child elements inside the div semi-transparent */
     }
@@ -430,20 +616,15 @@ header, .navbar, footer {
 .dragging {
     user-select: none;
     cursor: grabbing;
-    /*  
-    opacity: 1 !important;
-    cursor: move !important;
-    opacity: 1 !important;
-    border: 10px solid yellow;*/ /* Highlight the target area when dragging */
 }
 
-.content-item-layout-grid.mouse-down {
+.content-item-drag-cell.mouse-down {
     user-select: none;
     background-color: rgba(0, 0, 0, 0.2); /* Change background color on mouse down */
     cursor: grabbing !important; /* Change cursor style */
 }
 
-.content-item-layout-grid.drag-over {
+.content-item-drag-cell.drag-over {
     user-select: none;
     /*border: 2px solid blue;*/ /* Highlight the target area when dragging */
     opacity: 0.5; /* Makes all child elements inside the div semi-transparent */
@@ -451,136 +632,341 @@ header, .navbar, footer {
     cursor: grabbing;
 }
 
-.content-item-layout-grid.drag-hover {
+.content-item-drag-cell.drag-hover {
     user-select: none;
     opacity: 0.5; /* Makes all child elements inside the div semi-transparent */
     background-color: grey;
     cursor: grabbing;
 }
 
-.containerEditWebPageContentLayoutGridDelete {
-    cursor: crosshair;
+/*End Layout*/
+
+/*Delete row/content layout styling*/
+
+.container-content-layout-grid-delete {
+    cursor: grabbing;
     display: grid;
-    grid-template-columns: repeat(12, 1fr); /* 12 columns by default */
+    grid-template-columns: repeat(12, 1fr); /* 12 columns */
     position: relative;
-    position: relative;
-    width: 100%;
-    height: 100%;
-    /* Ensure it accepts drops */
-    /*border: 2px dashed #ccc;*/
+    width: 100vw; /* Grid takes full viewport width */
+    max-width: 100vw; /* Limit the grid to viewport width */
+    height: auto; /* Height adjusts based on the content */
+    overflow-x: hidden; /* Prevent horizontal overflow */
+    overflow-y: auto; /* Allow vertical scroll if needed */
 }
 
 @media (max-width: 1024px) {
-    .containerEditWebPageContentLayoutGridDelete {
-        grid-template-columns: repeat(8, 1fr); /* 8 columns for medium screens */
+    .container-content-layout-grid-delete {
+        grid-template-columns: repeat(12, 1fr); /* Keep 12 columns */
+    }
+
+    .content-item-delete {
+        width: 100%; /* Ensure content fills the entire cell */
+        max-width: 100%; /* Prevent overflow of content */
     }
 }
 
 @media (max-width: 768px) {
-    .containerEditWebPageContentLayoutGridDelete {
-        grid-template-columns: repeat(4, 1fr); /* 4 columns for small screens */
+    .container-content-layout-grid-delete {
+        grid-template-columns: repeat(12, 1fr); /* Keep 12 columns */
+    }
+
+    .content-item-delete {
+        width: 100%; /* Ensure content fills the entire cell */
+        max-width: 100%; /* Prevent overflow of content */
     }
 }
 
 @media (max-width: 480px) {
-    .containerEditWebPageContentLayoutGridDelete {
-        grid-template-columns: 1fr; /* Single column for very small screens */
+    .container-content-layout-grid-delete {
+        grid-template-columns: repeat(12, 1fr); /* Keep 12 columns */
+    }
+
+    .content-item-delete {
+        width: 100%; /* Ensure content fills the entire cell */
+        max-width: 100%; /* Prevent overflow of content */
+        font-size: 3vw;
     }
 }
 
-.content-item-layout-grid-delete {
+
+.content-item-delete {
     cursor: crosshair;
+    user-select: none;
+    position: relative;
+    overflow: hidden; /* Prevent overflow */
+    box-sizing: border-box; /* Ensure padding doesn't affect width */
+    height: auto; /* Let the height adjust based on content */
+    padding: 0; /* Remove extra padding if necessary */
+    word-wrap: break-word; /* Allow long words to break and wrap onto the next line */
+    overflow-wrap: break-word; /* Fallback for some browsers */
+    hyphens: auto !important; /* Hyphenation for headings */
 }
 
-.content-item-layout-grid-delete .content-wrapper {
+.content-item-delete .content-wrapper {
     pointer-events: none; /* Disable all interactions within this wrapper */
 }
 
 
-    .content-item-layout-grid-delete.drag-hover {
+    .content-item-delete.drag-hover {
         cursor: crosshair;
         background-color: rgb(243, 85, 85);
         opacity: 0.5; /* Makes all child elements inside the div semi-transparent */
     }
 
-    .content-item-layout-grid-delete:Hover {
+    .content-item-delete:Hover {
         cursor: crosshair;
         background-color: rgb(243, 85, 85);
         opacity: 0.5; /* Makes all child elements inside the div semi-transparent */
     }
 
-        .content-item-layout-grid-delete:hover * {
+        .content-item-delete:hover * {
             background-color: rgb(243, 85, 85);
             cursor: crosshair;
             opacity: 0.5; /* Makes all child elements inside the div semi-transparent */
         }
 
-    .content-item-layout-grid-delete p {
-        min-height: 30px; /* Ensures the container is at least 300px wide */
+.content-item-delete p {
+    min-height: 30px; /* Minimum height for each cell */
+    width: 100%; /* Ensure content fills the full width */
+    max-width: 100%; /* Ensure content does not overflow */
+    box-sizing: border-box; /* Ensure the width includes padding */
+    word-wrap: break-word; /* Break words to prevent overflow */
+    overflow-wrap: break-word; /* Fallback for some browsers */
+    hyphens: auto !important; /* Hyphenation for headings */
+}
+
+/* If you have headings or other text elements that may need wrapping, apply this too */
+    .content-item-delete h1,
+    .content-item-delete h2,
+    .content-item-delete h3,
+    .content-item-delete h4,
+    .content-item-delete h5,
+    .content-item-delete h6 {
+        word-wrap: break-word; /* Apply word wrap for headings */
+        overflow-wrap: break-word; /* Fallback for headings */
+        hyphens: auto !important; /* Hyphenation for headings */
     }
 
-/*Create select CSS:*/
-.containerEditWebPageContentLayoutGridSelectCreate {
-    cursor: crosshair;
+/* Apply hyphenation to the links within content items */
+.content-item-delete a {
+    hyphens: auto !important; /* Enable hyphenation for links */
+    word-wrap: break-word !important; /* Allow word breaks */
+    overflow-wrap: break-word !important; /* Prevent overflow */
+    white-space: normal !important; /* Allow line breaks */
+}
+/*End: Delete row/content layout styling*/
+
+/*Create content select layout styling:*/
+
+.container-content-layout-grid-create {
+    cursor: grabbing;
     display: grid;
-    grid-template-columns: repeat(12, 1fr); /* 12 columns by default */
+    grid-template-columns: repeat(12, 1fr); /* 12 columns */
     position: relative;
-    position: relative;
-    width: 100%;
-    height: 100%;
-    /* Ensure it accepts drops */
-    /*border: 2px dashed #ccc;*/
+    width: 100vw; /* Grid takes full viewport width */
+    max-width: 100vw; /* Limit the grid to viewport width */
+    height: auto; /* Height adjusts based on the content */
+    overflow-x: hidden; /* Prevent horizontal overflow */
+    overflow-y: auto; /* Allow vertical scroll if needed */
 }
 
 @media (max-width: 1024px) {
-    .containerEditWebPageContentLayoutGridDSelectCreate {
-        grid-template-columns: repeat(8, 1fr); /* 8 columns for medium screens */
+    .container-content-layout-grid-create {
+        grid-template-columns: repeat(12, 1fr); /* Keep 12 columns */
+    }
+
+    .content-item-create {
+        width: 100%; /* Ensure content fills the entire cell */
+        max-width: 100%; /* Prevent overflow of content */
     }
 }
 
 @media (max-width: 768px) {
-    .containerEditWebPageContentLayoutGridSelectCreate {
-        grid-template-columns: repeat(4, 1fr); /* 4 columns for small screens */
+    .container-content-layout-grid-create {
+        grid-template-columns: repeat(12, 1fr); /* Keep 12 columns */
+    }
+
+    .content-item-create {
+        width: 100%; /* Ensure content fills the entire cell */
+        max-width: 100%; /* Prevent overflow of content */
     }
 }
 
 @media (max-width: 480px) {
-    .containerEditWebPageContentLayoutGridSelectCreate {
-        grid-template-columns: 1fr; /* Single column for very small screens */
+    .container-content-layout-grid-create {
+        grid-template-columns: repeat(12, 1fr); /* Keep 12 columns */
+    }
+
+    .content-item-create {
+        width: 100%; /* Ensure content fills the entire cell */
+        max-width: 100%; /* Prevent overflow of content */
+        font-size: 3vw;
     }
 }
 
-.content-item-layout-grid-select-create {
-    cursor: crosshair;
+.content-item-create {
+    cursor: cell;
+    user-select: none;
+    position: relative;
+    overflow: hidden; /* Prevent overflow */
+    box-sizing: border-box; /* Ensure padding doesn't affect width */
+    height: auto; /* Let the height adjust based on content */
+    padding: 0; /* Remove extra padding if necessary */
+    word-wrap: break-word; /* Allow long words to break and wrap onto the next line */
+    overflow-wrap: break-word; /* Fallback for some browsers */
+    hyphens: auto !important; /* Hyphenation for headings */
 }
 
-    .content-item-layout-grid-select-create p {
-        min-height: 30px; /* Ensures the container is at least 300px wide */
-    }
+.content-item-create p {
+    min-height: 30px; /* Minimum height for each cell */
+    width: 100%; /* Ensure content fills the full width */
+    max-width: 100%; /* Ensure content does not overflow */
+    box-sizing: border-box; /* Ensure the width includes padding */
+    word-wrap: break-word; /* Break words to prevent overflow */
+    overflow-wrap: break-word; /* Fallback for some browsers */
+    hyphens: auto !important; /* Hyphenation for headings */
+}
 
-.content-item-layout-grid-select-create .content-wrapper {
+/* If you have headings or other text elements that may need wrapping, apply this too */
+.content-item-create h1,
+.content-item-create h2,
+.content-item-create h3,
+.content-item-create h4,
+.content-item-create h5,
+.content-item-create h6 {
+    word-wrap: break-word; /* Apply word wrap for headings */
+    overflow-wrap: break-word; /* Fallback for headings */
+    hyphens: auto !important; /* Hyphenation for headings */
+}
+
+/* Apply hyphenation to the links within content items */
+.content-item-create a {
+    hyphens: auto !important; /* Enable hyphenation for links */
+    word-wrap: break-word !important; /* Allow word breaks */
+    overflow-wrap: break-word !important; /* Prevent overflow */
+    white-space: normal !important; /* Allow line breaks */
+}
+
+.content-item-create .content-wrapper {
     pointer-events: none; /* Disable all interactions within this wrapper */
 }
 
 
-    .content-item-layout-grid-select-create.drag-hover {
+    .content-item-create.drag-hover {
         cursor: cell;
         background-color: rgb(113, 255, 122);
         opacity: 0.5; /* Makes all child elements inside the div semi-transparent */
     }
 
-    .content-item-layout-grid-select-create:Hover {
+    .content-item-create:Hover {
         cursor: cell;
         background-color: rgb(113, 255, 122);
         opacity: 0.5; /* Makes all child elements inside the div semi-transparent */
     }
 
-        .content-item-layout-grid-select-create:hover * {
+        .content-item-create:hover * {
             cursor: cell;
             background-color: rgb(113, 255, 122);
             opacity: 0.5; /* Makes all child elements inside the div semi-transparent */
         }
-/*End:after Create select CSS*/
+/*End:Create content layout styling*/
+
+
+/* Preview layout styling*/
+.content-item-preview {
+    cursor: grabbing;
+    display: grid;
+    grid-template-columns: repeat(12, 1fr); /* 12 columns */
+    position: relative;
+    width: 100vw; /* Grid takes full viewport width */
+    max-width: 100vw; /* Limit the grid to viewport width */
+    height: auto; /* Height adjusts based on the content */
+    overflow-x: hidden; /* Prevent horizontal overflow */
+    overflow-y: auto; /* Allow vertical scroll if needed */
+}
+
+@media (max-width: 1024px) {
+    .content-item-preview {
+        grid-template-columns: repeat(12, 1fr); /* Keep 12 columns */
+    }
+
+    .content-item-preview {
+        width: 100%; /* Ensure content fills the entire cell */
+        max-width: 100%; /* Prevent overflow of content */
+    }
+}
+
+@media (max-width: 768px) {
+    .content-item-preview {
+        grid-template-columns: repeat(12, 1fr); /* Keep 12 columns */
+    }
+
+    .content-item-preview {
+        width: 100%; /* Ensure content fills the entire cell */
+        max-width: 100%; /* Prevent overflow of content */
+    }
+}
+
+@media (max-width: 480px) {
+    .content-item-preview {
+        grid-template-columns: repeat(12, 1fr); /* Keep 12 columns */
+    }
+
+    .content-item-preview {
+        width: 100%; /* Ensure content fills the entire cell */
+        max-width: 100%; /* Prevent overflow of content */
+        font-size: 3vw;
+    }
+}
+
+.content-item-preview {
+    user-select: none;
+    position: relative;
+    overflow: hidden; /* Prevent overflow */
+    box-sizing: border-box; /* Ensure padding doesn't affect width */
+    height: auto; /* Let the height adjust based on content */
+    padding: 0; /* Remove extra padding if necessary */
+    word-wrap: break-word; /* Allow long words to break and wrap onto the next line */
+    overflow-wrap: break-word; /* Fallback for some browsers */
+    hyphens: auto !important; /* Hyphenation for headings */
+}
+
+    .content-item-preview p {
+        min-height: 30px; /* Minimum height for each cell */
+        width: 100%; /* Ensure content fills the full width */
+        max-width: 100%; /* Ensure content does not overflow */
+        box-sizing: border-box; /* Ensure the width includes padding */
+        word-wrap: break-word; /* Break words to prevent overflow */
+        overflow-wrap: break-word; /* Fallback for some browsers */
+        hyphens: auto !important; /* Hyphenation for headings */
+    }
+
+    /* If you have headings or other text elements that may need wrapping, apply this too */
+    .content-item-preview h1,
+    .content-item-preview h2,
+    .content-item-preview h3,
+    .content-item-preview h4,
+    .content-item-preview h5,
+    .content-item-preview h6 {
+        word-wrap: break-word; /* Apply word wrap for headings */
+        overflow-wrap: break-word; /* Fallback for headings */
+        hyphens: auto !important; /* Hyphenation for headings */
+    }
+
+    /* Apply hyphenation to the links within content items */
+    .content-item-preview a {
+        hyphens: auto !important; /* Enable hyphenation for links */
+        word-wrap: break-word !important; /* Allow word breaks */
+        overflow-wrap: break-word !important; /* Prevent overflow */
+        white-space: normal !important; /* Allow line breaks */
+    }
+
+    /* Ensure content-wrapper is not blocking interactions */
+.content-item-preview .content-wrapper {
+    pointer-events: none; /* Disable all interactions within this wrapper */
+}
+/*End: Preview layout styling*/
 
 /* Column span size tools */
 
@@ -599,7 +985,7 @@ header, .navbar, footer {
     z-index: 10; /* Ensure it appears above other elements */
 }
 
-/* Style the slider (input[type="range"]) */
+/* Style slider (input[type="range"]) */
 input[type="range"].slider {
     position: absolute; /* Position the slider absolutely inside the parent container */
     top: 50%; /* Place the slider at the vertical center of the parent */
@@ -667,100 +1053,5 @@ input[type="number"].slider-value::-webkit-inner-spin-button {
 }
 
 input[type="number"].slider-value::-moz-appearance: textfield;
-/*.grid-edit-controls {
-    margin-top: 10px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    position: absolute;*/ /* Position it relative to the parent div */
-/*top: 0;*/ /* Adjust based on where you want to position it vertically */
-/*left: 0;*/ /* Adjust based on where you want to position it horizontally */
-/*right: 0;*/ /* If you want it to span the full width of the parent */
-/*z-index: 10;*/ /* Ensure it appears above other elements */
-/*}
 
-    .grid-edit-controls input[type="range"] {
-        width: 100%;*/ /* Make the slider take up the full width of the container */
-/*margin-bottom: 5px;
-    }
-
-    .grid-edit-controls label {
-        display: block;
-        margin-bottom: 5px;
-        font-size: 14px;
-        font-weight: bold;*/ /* Optional: Make the label bold */
-/*}
-
-    .grid-edit-controls input {
-        margin-bottom: 10px;
-    }*/
 /* End: Column span size tools*/
-/* Preview CSS*/
-.containerEditWebPageContentLayoutGridPreview {
-    display: grid;
-    grid-template-columns: repeat(12, 1fr); /* 12 columns by default */
-    grid-gap: 10px;
-    position: relative;
-    position: relative;
-    width: 100%;
-    height: 100%;
-    /* Ensure it accepts drops */
-    /*border: 2px dashed #ccc;*/
-}
-
-@media (max-width: 1024px) {
-    .containerEditWebPageContentLayoutGridPreview {
-        grid-template-columns: repeat(8, 1fr); /* 8 columns for medium screens */
-    }
-}
-
-@media (max-width: 768px) {
-    .containerEditWebPageContentLayoutGridPreview {
-        grid-template-columns: repeat(4, 1fr); /* 4 columns for small screens */
-    }
-}
-
-.content-item-layout-grid-preview {
-}
-
-    .content-item-layout-grid-preview p {
-        min-height: 30px; /* Ensures the container is at least 300px wide */
-    }
-
-    .content-item-layout-grid-preview .content-wrapper {
-        pointer-events: none; /* Disable all interactions within this wrapper */
-    }
-
-@media (max-width: 480px) {
-    .containerEditWebPageContentLayoutGridPreview {
-        grid-template-columns: 1fr; /* Single column for very small screens */
-    }
-}
-
-/* Style for the alert message */
-.alertMessage {
-    display: flex;
-    align-items: center; /* Aligns the text and the 'X' button on the same line */
-    justify-content: space-between; /* Pushes the close button to the right */
-    background-color: #f9f9f9; /* Light background color for the alert */
-    border: 1px solid #ccc; /* Border for the alert */
-    padding: 2px;
-    border-radius: 0px;
-    margin-bottom: 2px;
-}
-
-/* Style the alert text */
-.alert-text {
-    font-size: 10px;
-    flex-grow: 1; /* Allows the message to take up the remaining space */
-    color: #333; /* Text color */
-}
-
-/* Style the close button */
-.overlay-btn-cancle-message {
-    padding: 0;
-    background: transparent;
-    border: none;
-    color: #999;
-    cursor: pointer;
-}
