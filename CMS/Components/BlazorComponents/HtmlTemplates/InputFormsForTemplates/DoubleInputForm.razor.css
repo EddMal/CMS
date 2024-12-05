@@ -30,7 +30,6 @@ input[type="checkbox"] {
 .toggle-content {
     display: none; /* Hide the content by default */
     font-size: 10px;
-
     padding: 6px; /* Add padding for better readability */
     border: 1px solid #ccc; /* Optional border */
     background-color: #808080; /* Optional background color */

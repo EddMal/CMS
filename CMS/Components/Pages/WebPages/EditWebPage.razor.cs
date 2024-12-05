@@ -18,6 +18,11 @@ using System.Linq;
 using Markdig.Syntax;
 using System.Data;
 using CMS.Migrations;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using Microsoft.Extensions.Logging;
+using NuGet.Protocol;
+using System.Diagnostics;
+using System.Numerics;
 namespace CMS.Components.Pages.WebPages
 {
     //ToDO: Chanfe variables name from ec. WebSiteId to webSiteId
@@ -58,8 +63,10 @@ namespace CMS.Components.Pages.WebPages
         private bool resizeCellColumnSpanActive = false;
 
         private bool deleteRowActive = false;
-        
+
         private string userInfoMessage = "";
+        private bool isScrollSaved = false;
+
         private LayoutCell? draggedCell { get; set; } = null;
 
         private LayoutCell? hoveredCell { get; set; } = null;
@@ -67,6 +74,7 @@ namespace CMS.Components.Pages.WebPages
         private int? draggedRow { get; set; } = null;
 
         private int? hoveredRow { get; set; } = null;
+        private int hoveredRowDelete { get; set; } = 0;
         public WebPageLayout? layout { get; set; } = new WebPageLayout();
 
         public LayoutCell? layoutCell { get; set; } = null;
@@ -136,7 +144,6 @@ namespace CMS.Components.Pages.WebPages
             }
 
             WebSiteId = webPage.WebSiteId;
-
         }
 
         //ToDo: move to separate class used in several files in the application.
@@ -242,7 +249,6 @@ namespace CMS.Components.Pages.WebPages
         private void DragCells()
         {
             SaveScrollPosition();
-
             if (moveCellsActive)
             {
                 ResetMenu();
@@ -280,7 +286,7 @@ namespace CMS.Components.Pages.WebPages
 
         private void DragRows()
         {
-           SaveScrollPosition();
+            SaveScrollPosition();
 
             if (moveRowActive)
             {
@@ -355,7 +361,7 @@ namespace CMS.Components.Pages.WebPages
         }
         private void AddContent()
         {
-            UserInformationMessage("Skapa nytt innehåll."); 
+            UserInformationMessage("Skapa nytt innehåll.");
             SaveScrollPosition();
             contentForEditing = null;
             pageExecution = ExecuteAction.CreateContent;
@@ -498,7 +504,7 @@ namespace CMS.Components.Pages.WebPages
                 if (webPageContents.Count() == Contents.Count())
                 {
                     Console.WriteLine("No content removed, operation aborted.");
-                    pageExecution = ExecuteAction.EditSelect;
+                    pageExecution = ExecuteAction.DeleteSelect;
                     return;
 
                 }
@@ -514,7 +520,7 @@ namespace CMS.Components.Pages.WebPages
             {
                 UserInformationMessage("Tom yta vald, Det finns inget att radera. ");
             }
-                pageExecution = ExecuteAction.DeleteSelect;
+            pageExecution = ExecuteAction.DeleteSelect;
         }
 
         private async Task UpdateRowAfterRemovalOfContentAsync()
@@ -582,13 +588,14 @@ namespace CMS.Components.Pages.WebPages
         }
         private async Task DeleteRowAsync(int? row)
         {
+            SaveScrollPosition();
             if (row == null)
             {
                 UserInformationMessage("Ingen rad vald att radera.");
                 return;
             }
 
-            if(layout.LayoutCells.Any(c=>c.ContentId != null && c.Row == row))
+            if (layout.LayoutCells.Any(c => c.ContentId != null && c.Row == row))
             {
                 UserInformationMessage("Kan inte radera rad med innehåll, flytta eller radera innehåll först.");
                 return;
@@ -604,6 +611,7 @@ namespace CMS.Components.Pages.WebPages
         // Hides tool bar
         private void HideToolsAsync()
         {
+            SaveScrollPosition();
             if (hideToolbar)
             {
                 hideToolbar = false;
@@ -719,68 +727,609 @@ namespace CMS.Components.Pages.WebPages
             ");
         }
 
+        //Primitive methods for restoring the scrollY after reset to top after rewrite/rerendering of html.
+
         //Todo:Verifications and best practises needs to be handled, see git projects scrumboard.
+        //private void SaveScrollPosition()
+        //{
+        //    // Save the current scroll position using localStorage in JavaScript (store as floating point number)
+        //    JSRuntime.InvokeVoidAsync("eval", @"
+        //        localStorage.setItem('scrollPosition', window.scrollY); // Store the exact scrollY value
+        //        console.log('scroll position saved:', window.scrollY);
+        //        localStorage.setItem('retries', 0); // Initialize retries in localStorage
+        //        console.log('retries initialized:', 0);
+
+        //    ");
+        //}
+
+        ////Todo:Verifications and best practises needs to be handled, see git projects scrumboard.
+        //private void LoadScrollPosition()
+        //{
+        //    //InitializeScrollTracking();
+        //    //Run JavaScript to attempt restoring the scroll position
+        //    JSRuntime.InvokeVoidAsync("eval", @"
+        //        (function attemptToRestoreScrollPosition() {
+        //             Retrieve retries from localStorage.
+        //            let retries = parseInt(localStorage.getItem('retries'), 10) || 0;
+
+        //             If retrying is not allowed, stop the function.
+        //            if (retries > 3) {
+        //                console.log('Restoration already attempted. Aborting further retries.');
+        //                return; // Stop further execution.
+        //            }
+        //            console.log('retries:', retries);
+
+        //             Get stored scroll position from localStorage.
+        //            var storedScrollPosition = localStorage.getItem('scrollPosition');
+
+        //             Ensure stored position exists and convert it to a floating-point number.
+        //            storedScrollPosition = parseFloat(storedScrollPosition);
+
+        //             Retrieve the current scroll position (window.scrollY) as a floating-point number.
+        //            var currentScrollPosition = window.scrollY;
+        //            console.log('current scroll position:', currentScrollPosition);
+
+        //             Check if stored position exists and retries.
+        //            if (!isNaN(storedScrollPosition) && retries < 2) {
+        //                window.scrollTo(0, storedScrollPosition); // Scroll to the saved position.
+        //                console.log('Scroll position restored:', storedScrollPosition);
+        //                console.log('Current window.scrollY:', window.scrollY);
+
+        //                retries++;  // Increment the retry counter.
+        //                localStorage.setItem('retries', retries); // Update retries count in localStorage.
+
+        //                 Retry after 50ms, delay for timing issues
+        //                setTimeout(attemptToRestoreScrollPosition, 50); // Retry with a 50ms delay.
+        //            } else {
+        //                 If position is restored or matches, stop further retries
+        //                localStorage.setItem('retries', retries); // Store the retries count in localStorage.
+        //                console.log('Scroll position is already at or restored to:', storedScrollPosition);
+        //                localStorage.setItem('retries', 0); //Reset
+        //            }
+        //        })();
+        //    ");
+        //}
+
+        //Primitive time intense/agressive short intervals, restoring repeat  during a timespan restoring for determining if it is a
+        //    viable fallback approach for
+        //removing flickering at redraw/rerender of content(page reset scrollY to top).
+        //Results: greate improvement with ocational/glitches/twitch/flickering.
+
+        //    private void SaveScrollPosition()
+        //    {
+        //        // Save the current scroll position using localStorage in JavaScript
+        //        JSRuntime.InvokeVoidAsync("eval", @"
+        //    localStorage.setItem('scrollPosition', window.scrollY); // Store the exact scrollY value
+        //    localStorage.setItem('retries', 0); // Initialize retries in localStorage
+        //    console.log('scroll position saved:', window.scrollY);
+        //");
+
+        //        // Show the transitional div when starting the scroll restoration
+        //        JSRuntime.InvokeVoidAsync("eval", @"
+        //    addFullScreenDiv(); // Show full-screen overlay
+        //");
+
+        //        // Add a retry mechanism for restoring the scroll position
+        //        JSRuntime.InvokeVoidAsync("eval", @"
+        //    (function attemptRestoreScrollPosition() {
+        //        // Get the stored scroll position
+        //        var storedScrollPosition = localStorage.getItem('scrollPosition');
+        //        storedScrollPosition = parseFloat(storedScrollPosition);
+
+        //        if (!isNaN(storedScrollPosition)) {
+        //            var retries = 0;
+        //            var maxRetries = 500; // Maximum retries
+        //            var interval = 1; // Retry every 1ms
+
+        //            // Retry restoring the scroll position every 1ms
+        //            function restoreScroll() {
+        //                // Check if the scroll position needs to be restored
+        //                var currentScrollPosition = window.scrollY;
+        //                if (currentScrollPosition !== storedScrollPosition) {
+        //                    window.scrollTo(0, storedScrollPosition);
+        //                    console.log('Scroll position restored to:', storedScrollPosition);
+        //                } else {
+        //                    console.log('Scroll position already at:', storedScrollPosition);
+        //                }
+
+        //                retries++;
+        //                if (retries < maxRetries) {
+        //                    // Retry after 1ms
+        //                    setTimeout(restoreScroll, interval);
+        //                } else {
+        //                    // After retries stop, remove the full-screen overlay
+        //                    removeFullScreenDiv(); // Hide full-screen overlay
+        //                }
+        //            }
+
+        //            // Start the restoration process
+        //            restoreScroll();
+        //        } else {
+        //            console.log('No valid scroll position to restore.');
+        //            // Remove the full-screen overlay in case no scroll position is found
+        //            removeFullScreenDiv();
+        //        }
+        //    })();
+        //");
+        //    }
+
+
+
+        //Primitive time intense/agressive short intervals v2
+        // Added transit div to soften the rendering
+        //, restoring repeat during a timespan restoring for determining if it is a
+        //    viable fallback approach for
+        //removing flickering at redraw/rerender of content(page reset scrollY to top).
+        //Results: greate improvement with ocational/glitches/twitch/flickering.
+
+
         private void SaveScrollPosition()
         {
-            // Save the current scroll position using localStorage in JavaScript (store as floating point number)
-            JSRuntime.InvokeVoidAsync("eval", @"
-                localStorage.setItem('scrollPosition', window.scrollY); // Store the exact scrollY value
-                console.log('scroll position saved:', window.scrollY);
-                localStorage.setItem('retries', 0); // Initialize retries in localStorage
-                console.log('retries initialized:', 0);
-            ");
-        }
+            // Show the transition overlay first
+            TransitionCoverDiv(150, 70, webPageBackgroundColor);
 
-        //Todo:Verifications and best practises needs to be handled, see git projects scrumboard.
-        private void LoadScrollPosition()
-        {
-            // Run JavaScript to attempt restoring the scroll position
-            JSRuntime.InvokeVoidAsync("eval", @"
-                (function attemptToRestoreScrollPosition() {
-                    // Retrieve retries from localStorage.
-                    let retries = parseInt(localStorage.getItem('retries'), 10) || 0;
+            // Save the current scroll position using localStorage in JavaScript
+            JSRuntime.InvokeVoidAsync("eval", $@"
+        // Save the scroll position and initialize retries
+        localStorage.setItem('scrollPosition', window.scrollY);
+        localStorage.setItem('retries', 0);
+        console.log('scroll position saved:', window.scrollY);
 
-                    // If retrying is not allowed, stop the function.
-                    if (retries > 3) {
-                        console.log('Restoration already attempted. Aborting further retries.');
-                        return; // Stop further execution.
-                    }
-                    console.log('retries:', retries);
+        // Add a retry mechanism for restoring the scroll position
+        (function attemptRestoreScrollPosition() {{
+            var storedScrollPosition = localStorage.getItem('scrollPosition');
+            storedScrollPosition = parseFloat(storedScrollPosition);
 
-                    // Get stored scroll position from localStorage.
-                    var storedScrollPosition = localStorage.getItem('scrollPosition');
+            if (!isNaN(storedScrollPosition)) {{
+                var retries = 0;
+                var maxRetries = 2; // Maximum retries
+                var interval = 45; // Retry every 1ms
 
-                    // Ensure stored position exists and convert it to a floating-point number.
-                    storedScrollPosition = parseFloat(storedScrollPosition);
-
-                    // Retrieve the current scroll position (window.scrollY) as a floating-point number.
+                // Retry restoring the scroll position every 1ms
+                function restoreScroll() {{
                     var currentScrollPosition = window.scrollY;
-                    console.log('current scroll position:', currentScrollPosition);
+                    if (currentScrollPosition !== storedScrollPosition) {{
+                        window.scrollTo(0, storedScrollPosition);
+                        console.log('Scroll position restored to:', storedScrollPosition);
+                    }} else {{
+                        console.log('Scroll position already at:', storedScrollPosition);
+                    }}
 
-                    // Check if stored position exists and retries.
-                    if (!isNaN(storedScrollPosition) && retries < 2) {
-                        window.scrollTo(0, storedScrollPosition); // Scroll to the saved position.
-                        console.log('Scroll position restored:', storedScrollPosition);
-                        console.log('Current window.scrollY:', window.scrollY);
+                    retries++;
+                    if (retries < maxRetries) {{
+                        setTimeout(restoreScroll, interval);
+                    }}
+                }}
 
-                        retries++;  // Increment the retry counter.
-                        localStorage.setItem('retries', retries); // Update retries count in localStorage.
+                // Start the restoration process
+                restoreScroll();
+            }} else {{
+                console.log('No valid scroll position to restore.');
+            }}
+        }})();
+    ");
+        }
 
-                        // Retry after 50ms, delay for timing issues
-                        setTimeout(attemptToRestoreScrollPosition, 50); // Retry with a 50ms delay.
-                    } else {
-                        // If position is restored or matches, stop further retries
-                        localStorage.setItem('retries', retries); // Store the retries count in localStorage.
-                        console.log('Scroll position is already at or restored to:', storedScrollPosition);
-                        localStorage.setItem('retries', 0); //Reset
-                    }
-                })();
-            ");
+        // This method adds a full-screen transition overlay
+        public void TransitionCoverDiv(int displayDurationMs, int fadeOutDurationMs, string backgroundColor)
+        {
+            JSRuntime.InvokeVoidAsync("eval", $@"
+        function addFullScreenDiv(displayDurationMs, fadeOutDurationMs) {{
+            // Create the div element
+            const div = document.createElement('div');
+            div.classList.add('transitional-overlay'); // Adding a class instead of an ID
+
+            // Set the styles to cover the viewport with a solid color
+            div.style.position = 'fixed';  // Position it fixed to the viewport
+            div.style.top = '0';
+            div.style.left = '0';
+            div.style.width = '100vw';  // Cover full viewport width
+            div.style.height = '100vh'; // Cover full viewport height
+            div.style.backgroundColor = '{backgroundColor}'; // Div color
+            div.style.zIndex = '9999';  // Ensure it appears above other content
+            div.style.opacity = '1';  // Set initial opacity to 1 (visible)
+            div.style.transition = 'opacity ' + fadeOutDurationMs + 'ms ease'; // Smooth fade-out transition
+
+            // Append the div to the body
+            document.body.appendChild(div);
+
+            // Set a timer to remove the div after the specified displayDurationMs
+            setTimeout(function() {{
+                removeFullScreenDiv(fadeOutDurationMs);
+            }}, displayDurationMs); // e.g., 2000ms = 2 seconds
+        }}
+
+        function removeFullScreenDiv(fadeOutDurationMs) {{
+            // Select the first div with the class 'transitional-overlay' to remove it
+            const div = document.querySelector('.transitional-overlay');  // Use class to select the div
+            if (div) {{
+                // Add smooth fade-out before removal
+                div.style.opacity = '0'; // Fade out
+                setTimeout(function() {{
+                    document.body.removeChild(div); // Remove div after fade-out
+                }}, fadeOutDurationMs); // Use the provided fade-out duration
+            }}
+        }}
+
+        // Call function to show the div with dynamic display and fade-out times
+        addFullScreenDiv({displayDurationMs}, {fadeOutDurationMs});
+    ");
         }
 
 
 
 
+
+
+
+        // Attempt to log the time for reset: inconsisten results with flickering during restoring the scrollY .
+
+        //    private void LoadScrollPosition()
+        //    {
+        //        InitializeScrollTracking();
+
+        //        // Run JavaScript to attempt restoring the scroll position after the page layout is updated
+        //        JSRuntime.InvokeVoidAsync("eval", @"
+        //    (function attemptToRestoreScrollPosition() {
+        //        // Retrieve retries from localStorage.
+        //        let retries = parseInt(localStorage.getItem('retries'), 10) || 0;
+
+        //        // If retrying is not allowed, stop the function.
+        //        if (retries > 3) {
+        //            console.log('Restoration attempts exceeded. Aborting further retries.');
+        //            return; // Stop further execution.
+        //        }
+
+        //        // Get stored scroll position from localStorage.
+        //        var storedScrollPosition = localStorage.getItem('scrollPosition');
+
+        //        // Ensure stored position exists and convert it to a floating-point number.
+        //        storedScrollPosition = parseFloat(storedScrollPosition);
+
+        //        // Check if stored position exists and handle the restoration attempt.
+        //        if (!isNaN(storedScrollPosition)) {
+        //            // Request the next frame to restore scroll position after layout has stabilized
+        //            function restoreScroll() {
+        //                // Get the current scroll position
+        //                var currentScrollPosition = window.scrollY;
+
+        //                // Only restore scroll position if it's different from the current position
+        //                if (currentScrollPosition !== storedScrollPosition) {
+        //                    window.scrollTo(0, storedScrollPosition);
+        //                    console.log('Scroll position restored to:', storedScrollPosition);
+        //                } else {
+        //                    console.log('Scroll position is already restored to:', storedScrollPosition);
+        //                }
+
+        //                // Increment retry counter
+        //                retries++;
+        //                localStorage.setItem('retries', retries);
+
+        //                // Retry if necessary (with a 50ms delay)
+        //                if (retries < 3) {
+        //                    setTimeout(restoreScroll, 50);
+        //                }
+        //            }
+
+        //            // Use requestAnimationFrame for smoother transition
+        //            requestAnimationFrame(restoreScroll);
+        //        } else {
+        //            console.log('No valid scroll position to restore.');
+        //        }
+        //    })();
+        //");
+        //    }
+
+        //version 2 time logging. Results: cuts down the missed restorations to top position of page, still high amount of results with flickering.
+        //    private void SaveScrollPosition()
+        //    {
+        //        // Save the current scroll position using localStorage in JavaScript (store as floating point number)
+        //        JSRuntime.InvokeVoidAsync("eval", @"
+        //    localStorage.setItem('scrollPosition', window.scrollY); // Store the exact scrollY value
+        //    localStorage.setItem('retries', 0); // Initialize retries in localStorage
+        //    console.log('scroll position saved:', window.scrollY);
+        //");
+
+        //        // Add a retry mechanism for restoring the scroll position with reasonable intervals
+        //        JSRuntime.InvokeVoidAsync("eval", @"
+        //    (function attemptRestoreScrollPosition() {
+        //        var storedScrollPosition = localStorage.getItem('scrollPosition');
+        //        storedScrollPosition = parseFloat(storedScrollPosition);
+
+        //        if (!isNaN(storedScrollPosition)) {
+        //            var retries = 0;
+        //            var maxRetries = 500;
+        //            var interval = 5; // Increase interval to 5ms
+        //            var startTime = Date.now();
+        //            var matchCount = 0;
+
+        //            function restoreScroll() {
+        //                // First attempt to restore
+        //                window.scrollTo(0, storedScrollPosition);
+        //                console.log('First restore attempt to:', storedScrollPosition);
+
+        //                // Wait 5ms before the second attempt
+        //                setTimeout(function() {
+        //                    window.scrollTo(0, storedScrollPosition);
+        //                    console.log('Second restore attempt to:', storedScrollPosition);
+
+        //                    // Check if scroll position matches after second attempt
+        //                    if (window.scrollY === storedScrollPosition) {
+        //                        matchCount++;
+        //                        console.log('Scroll position matched at:', window.scrollY);
+
+        //                        // Stop retrying if the condition is met twice
+        //                        if (matchCount >= 2) {
+        //                            var endTime = Date.now();
+        //                            console.log('Restoration successful after', retries, 'retries.');
+        //                            console.log('Time taken:', endTime - startTime, 'ms');
+        //                            return; // Stop retrying
+        //                        }
+        //                    }
+
+        //                    retries++;
+        //                    if (retries < maxRetries) {
+        //                        setTimeout(restoreScroll, interval); // Retry every 5ms
+        //                    } else {
+        //                        var endTime = Date.now();
+        //                        console.log('Max retries reached. Time taken:', endTime - startTime, 'ms');
+        //                    }
+        //                }, 10); // Add a small delay between first and second attempt
+        //            }
+
+        //            // Start the restoration process
+        //            restoreScroll();
+        //        } else {
+        //            console.log('No valid scroll position to restore.');
+        //        }
+        //    })();
+        //");
+        //    }
+
+        // version 3 logging little better timing,  not much better than original primitive method.
+        //    private void SaveScrollPosition()
+        //    {
+        //        // Save the current scroll position using localStorage in JavaScript
+        //        JSRuntime.InvokeVoidAsync("eval", @"
+        //    localStorage.setItem('scrollPosition', window.scrollY);
+        //    localStorage.setItem('retries', 0);
+        //    console.log('scroll position saved:', window.scrollY);
+        //");
+
+        //        // Retry mechanism for restoring scroll position
+        //        JSRuntime.InvokeVoidAsync("eval", @"
+        //    (function attemptRestoreScrollPosition() {
+        //        var storedScrollPosition = localStorage.getItem('scrollPosition');
+        //        storedScrollPosition = parseFloat(storedScrollPosition);
+
+        //        if (!isNaN(storedScrollPosition)) {
+        //            var retries = 0;
+        //            var maxRetries = 1000; // Increase retries to handle edge cases
+        //            var interval = 5; // Retry every 5ms
+        //            var matchCount = 0;
+        //            var startTime = Date.now();
+
+        //            function restoreScroll() {
+        //                // First attempt to restore scroll position
+        //                window.scrollTo(0, storedScrollPosition);
+        //                console.log('First restore attempt to:', storedScrollPosition);
+
+        //                // Wait 20ms before second attempt to ensure page stabilization
+        //                setTimeout(function() {
+        //                    window.scrollTo(0, storedScrollPosition);
+        //                    console.log('Second restore attempt to:', storedScrollPosition);
+
+        //                    // Check if scroll position matches
+        //                    if (window.scrollY === storedScrollPosition) {
+        //                        matchCount++;
+        //                        console.log('Scroll position matched at:', window.scrollY);
+        //                    }
+
+        //                    // Stop retrying if the condition is met twice
+        //                    if (matchCount >= 2) {
+        //                        var endTime = Date.now();
+        //                        console.log('Restoration successful after', retries, 'retries.');
+        //                        console.log('Time taken:', endTime - startTime, 'ms');
+        //                        return; // Stop retrying
+        //                    }
+
+        //                    retries++;
+        //                    if (retries < maxRetries) {
+        //                        setTimeout(restoreScroll, interval); // Retry after 5ms
+        //                    } else {
+        //                        var endTime = Date.now();
+        //                        console.log('Max retries reached. Time taken:', endTime - startTime, 'ms');
+        //                    }
+        //                }, 20); // Delay of 20ms between attempts
+        //            }
+
+        //            // Start the restoration process
+        //            restoreScroll();
+        //        } else {
+        //            console.log('No valid scroll position to restore.');
+        //        }
+        //    })();
+        //");
+        //    }
+
+        //Not improvments:
+        // You can suppress or throttle scroll events during the restoration process to prevent them from interfering.
+        // Setting a flag during scroll restoration and temporarily disabling scroll handling until the restoration is complete.
+        //    private void SaveScrollPosition()
+        //    {
+        //        JSRuntime.InvokeVoidAsync("eval", @"
+        //var isRestoringScroll = false;
+        //function restoreScrollPosition()
+        //{
+        //    if (isRestoringScroll) return; // Prevent nested restore calls
+        //    isRestoringScroll = true;
+
+        //    var storedScrollPosition = localStorage.getItem('scrollPosition');
+        //    storedScrollPosition = parseFloat(storedScrollPosition);
+
+        //    if (!isNaN(storedScrollPosition))
+        //    {
+        //        var retries = 0;
+        //        var maxRetries = 500;
+        //        var interval = 10;
+
+        //        var restoreInterval = setInterval(function() {
+        //            requestAnimationFrame(function() {
+        //                window.scrollTo(0, storedScrollPosition);
+        //            });
+
+        //            retries++;
+        //            if (retries > maxRetries || window.scrollY === storedScrollPosition)
+        //            {
+        //                clearInterval(restoreInterval);
+        //                isRestoringScroll = false; // Allow further restores
+        //                if (window.scrollY === storedScrollPosition)
+        //                {
+        //                    console.log('Scroll position successfully restored after', retries, 'attempts.');
+        //                }
+        //                else
+        //                {
+        //                    console.log('Max retries reached, scroll position not restored.');
+        //                }
+        //            }
+        //        }, interval);
+        //    }
+        //    else
+        //    {
+        //        console.log('No scroll position saved.');
+        //    }
+        //}
+        //restoreScrollPosition(); //invoke 
+        //");
+        //    }
+
+
+
+        //potential fallback solution use agressive primitive savefunction when  clicked,
+        //clicked or the actions/rewrite rerender after click seems to trigger the flickering.
+
+        //TESTING PROBE:
+        //<button @onclick="InitializeScrollTracking">Start Scroll Tracking</button>
+        // C# method to initialize scroll tracking
+        private void InitializeScrollTracking()
+        {
+            JSRuntime.InvokeVoidAsync("eval", @"
+        function initializeScrollTracking() {
+            console.log('PROBE: Script is running');  // Log script start
+            
+            let resetCause = '';
+
+            // Function to log the scroll position and reset cause
+            function logScrollPosition(message) {
+                console.log('PROBE:', message);
+                console.log('PROBE: Current Scroll Position:', window.scrollY);
+                console.log('PROBE: Reset Cause:', resetCause);  // Log reset cause
+            }
+
+            // Function to probe scroll position regularly
+            function probeScrollPosition() {
+                const scrollY = window.scrollY;
+
+                // Log when the viewport is reset to top (scrollY === 0)
+                if (scrollY === 0) {
+                    logScrollPosition('Viewport reset to top');
+                }
+
+                // Continue probing the scroll position every 100ms
+                setTimeout(probeScrollPosition, 100);
+            }
+
+            // Start probing scroll position immediately after page load
+            window.addEventListener('load', function() {
+                resetCause = 'Page Loaded';  // Page load triggers the reset cause
+                probeScrollPosition();
+                logScrollPosition('Page Loaded and Probing Started');
+
+                // Restore scroll position if it's saved in localStorage
+                const storedScrollPosition = localStorage.getItem('scrollPosition');
+                if (storedScrollPosition !== null) {
+                    resetCause = 'Restoring scroll position';
+                    console.log('PROBE: Restoring scroll position:', storedScrollPosition);
+                    window.scrollTo(0, storedScrollPosition);  // Smooth scroll to restored position
+                    logScrollPosition('Restoring scroll position');
+                }
+            });
+
+            // Detect page unload (refresh or navigation)
+            window.addEventListener('beforeunload', function() {
+                resetCause = 'Before Unload: Saving scroll position';  // Save cause before unload
+                logScrollPosition('Before Unload: Saving scroll position');
+                localStorage.setItem('scrollPosition', window.scrollY);  // Save scroll position
+            });
+
+            // Detect SPA page navigation or re-renders (popstate event)
+            window.addEventListener('popstate', function() {
+                resetCause = 'SPA Navigation or Re-render Detected';
+                logScrollPosition('SPA Navigation or Re-render triggered');
+            });
+
+            // Detect toggling between Edit and Drag actions
+            window.addEventListener('click', function(event) {
+                if (event.target && event.target.closest('.btn')) {
+                    resetCause = 'Button Clicked: Action toggled';
+                    logScrollPosition('Button clicked, action toggled');
+                }
+            });
+
+            // Listen for changes in the layout (drag or edit actions)
+            document.getElementById('myButton')?.addEventListener('click', function() {
+                resetCause = 'Button Clicked: Resetting scroll position';
+                window.scrollTo(0, 0);  // Example: Reset scroll to top
+                logScrollPosition('Button clicked, scroll reset');
+            });
+
+            // Listen for other actions (content change, modal opening, etc.)
+            document.getElementById('contentChanged')?.addEventListener('click', function() {
+                resetCause = 'Content Changed: Resetting scroll position';
+                window.scrollTo(0, 0);  // Reset scroll to top after content changes
+                logScrollPosition('Content changed, scroll reset');
+            });
+        }
+
+        // Initialize the scroll tracking functionality
+        initializeScrollTracking();
+    ");
+        }
+
+
+
+
+
+
+
+
+        //private bool firstRender = true;
+        //protected override async Task OnAfterRenderAsync(bool firstRender)
+        //{
+        //    if (firstRender)
+        //    {
+        //        await InitializeScrollTracking();
+        //    }
+        //}
+
+        //End testing probe
+
+        private void GetCellsRow(LayoutCell cell) 
+        {
+            SaveScrollPosition();
+            //SaveScrollPosition();
+            if (cell != null)
+            {
+                hoveredRowDelete = cell.Row;
+            }
+            else
+            {
+                hoveredRowDelete = 0;
+                Console.WriteLine("Hovered cell is null.");
+                return;
+            
+            }
+        }
 
         // Drag cell/content
         private async Task OnDragStart( LayoutCell layoutCell)
@@ -789,6 +1338,7 @@ namespace CMS.Components.Pages.WebPages
             if (layoutCell == null)
             {
                 Console.WriteLine("Cell null, operation aborted.");
+                return;
             }
             if (layoutCell.ContentId != null)
             {
@@ -1258,6 +1808,7 @@ namespace CMS.Components.Pages.WebPages
         // Method for start of moving layout row.
         private void OnDragStartRow(int cellRow)
         {
+            SaveScrollPosition();
             draggedRow = cellRow;
             Console.WriteLine($"Started: drag row:{cellRow}.");
         }
@@ -1265,6 +1816,7 @@ namespace CMS.Components.Pages.WebPages
         // Method reading hovered row
         private void OnDragOverRow(int cellRow)
         {
+            SaveScrollPosition();
             hoveredRow = cellRow;
             Console.WriteLine($"Dragged over row:{cellRow}.");
         }
@@ -1272,6 +1824,7 @@ namespace CMS.Components.Pages.WebPages
         // Method for handling en of moving layout row
         private async Task OnDragEndRowAsync(DragEventArgs e)
         {
+            SaveScrollPosition();
             if (draggedRow != null)
             {
                 if (hoveredRow != null)
@@ -1306,7 +1859,7 @@ namespace CMS.Components.Pages.WebPages
         // Method for creating a new rowShift for layout.
         private async Task CreateNewRowAsync(Content? addedContent = null)
         {
-            //ToDo: optimize
+            //ToDo: optimize, add select the row should position in layout.
             // Create a new list to hold layout cells
             var newLayoutCells = new List<LayoutCell>();
             int column = 1;
