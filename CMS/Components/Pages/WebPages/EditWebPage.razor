@@ -26,8 +26,8 @@
     @if(pageExecution != ExecuteAction.SelectCellCreate)
     {
       
-        @if (pageExecution != ExecuteAction.Preview)
-        {
+    @if (pageExecution != ExecuteAction.Preview)
+            {
             <div class="tools-and-infomessage">
                 <div class="containerMainButtons">
                     <div class="button-container">
@@ -179,22 +179,25 @@
                     </div>
                     <!-- Alert Section Below the Icons -->   
                     <!-- messages -->
-                    <div class="user-info-message">
-                        @if (infoMessage)
-                        {
-                            <span class="user-info-message-text">
-                                @userInfoMessage
-                            </span>
-                            <a class="cancle-info-message" @onclick="UserInformationMessageHide" aria-label="Stäng" title="Stäng">
-                                <i class="fa fa-times " aria-hidden="true"></i>
-                            </a>
-                        }
-                    </div>
+                    @if (!hideToolbar)
+                    {@* ToDo: Restructure ifstatements *@
+                        <div class="user-info-message">
+                            @if (infoMessage)
+                            {
+                                <span class="user-info-message-text">
+                                    @userInfoMessage
+                                </span>
+                                <a class="cancle-info-message" @onclick="UserInformationMessageHide" aria-label="Stäng" title="Stäng">
+                                    <i class="fa fa-times " aria-hidden="true"></i>
+                                </a>
+                            }
+                        </div>
+                    }
             </div>
         }
         else
-        {
-            <div class="tools-and-infomessage">
+    { @* ToDo: Clean divs *@
+        <div class="tools-and-infomessage">
                 <div class="containerMainButtons">
                     <div class="button-container">
                         <div class="icon-container">
@@ -653,18 +656,13 @@
                                         data-content-id="@cell.ContentId">
                                     @if (cell.ContentId != null)
                                     {
-                                            <div class="content-wrapper">
-                                                <div class="border-wrapper">
+                                            <div class="content-wrapper">                                            
                                                     <ContentPreview ContentId="@cell.ContentId.Value" @key="@cell.ContentId" />
-                                                </div>
                                             </div>
                                     }
                                     else
                                     {
-                                        <div class="border-wrapper">
                                             <p style="color:white;"></p>
-                                        </div>
-
                                     }
                                 </div>
                             
@@ -778,9 +776,7 @@
                 }
                 
             }
-        @* LoadScrollPosition(); *@
-
-
+    @* LoadScrollPosition(); *@
 }
 
 <style>

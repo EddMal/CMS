@@ -861,15 +861,34 @@ namespace CMS.Components.Pages.WebPages
         //    viable fallback approach for
         //removing flickering at redraw/rerender of content(page reset scrollY to top).
         //Results: greate improvement with ocational/glitches/twitch/flickering.
+        
+    //    private void ProbeDragcellContainer()
+    //    {
+    //        JSRuntime.InvokeVoidAsync("eval", $@"
+    //    console.log('Grid drag cell container width:', document.querySelector('.container-content-layout-grid-drag-cell').offsetHeight);
+    //");
+    //    }
 
+    //    private void ProbeContainer()
+    //    {
+    //        JSRuntime.InvokeVoidAsync("eval", $@"
+    //        console.log('Grid container width:', document.querySelector('.container-content-layout-grid').offsetHeight);
+    //");
+    //    }
 
-        private void SaveScrollPosition()
+        private void SaveScrollPosition(bool coverTransition = true)
         {
-            // Show the transition overlay first
-            TransitionCoverDiv(150, 70, webPageBackgroundColor);
+
+            if(coverTransition)
+            {
+                // Transition overlay
+                TransitionCoverDiv(150, 70, webPageBackgroundColor);
+            }
+
 
             // Save the current scroll position using localStorage in JavaScript
             JSRuntime.InvokeVoidAsync("eval", $@"
+
         // Save the scroll position and initialize retries
         localStorage.setItem('scrollPosition', window.scrollY);
         localStorage.setItem('retries', 0);
@@ -929,6 +948,7 @@ namespace CMS.Components.Pages.WebPages
             div.style.zIndex = '9999';  // Ensure it appears above other content
             div.style.opacity = '1';  // Set initial opacity to 1 (visible)
             div.style.transition = 'opacity ' + fadeOutDurationMs + 'ms ease'; // Smooth fade-out transition
+            div.style.border ='none';
 
             // Append the div to the body
             document.body.appendChild(div);
@@ -1211,113 +1231,96 @@ namespace CMS.Components.Pages.WebPages
         //TESTING PROBE:
         //<button @onclick="InitializeScrollTracking">Start Scroll Tracking</button>
         // C# method to initialize scroll tracking
-        private void InitializeScrollTracking()
-        {
-            JSRuntime.InvokeVoidAsync("eval", @"
-        function initializeScrollTracking() {
-            console.log('PROBE: Script is running');  // Log script start
+    //    private void InitializeScrollTracking()
+    //    {
+    //        JSRuntime.InvokeVoidAsync("eval", @"
+    //    function initializeScrollTracking() {
+    //        console.log('PROBE: Script is running');  // Log script start
             
-            let resetCause = '';
+    //        let resetCause = '';
 
-            // Function to log the scroll position and reset cause
-            function logScrollPosition(message) {
-                console.log('PROBE:', message);
-                console.log('PROBE: Current Scroll Position:', window.scrollY);
-                console.log('PROBE: Reset Cause:', resetCause);  // Log reset cause
-            }
+    //        // Function to log the scroll position and reset cause
+    //        function logScrollPosition(message) {
+    //            console.log('PROBE:', message);
+    //            console.log('PROBE: Current Scroll Position:', window.scrollY);
+    //            console.log('PROBE: Reset Cause:', resetCause);  // Log reset cause
+    //        }
 
-            // Function to probe scroll position regularly
-            function probeScrollPosition() {
-                const scrollY = window.scrollY;
+    //        // Function to probe scroll position regularly
+    //        function probeScrollPosition() {
+    //            const scrollY = window.scrollY;
 
-                // Log when the viewport is reset to top (scrollY === 0)
-                if (scrollY === 0) {
-                    logScrollPosition('Viewport reset to top');
-                }
+    //            // Log when the viewport is reset to top (scrollY === 0)
+    //            if (scrollY === 0) {
+    //                logScrollPosition('Viewport reset to top');
+    //            }
 
-                // Continue probing the scroll position every 100ms
-                setTimeout(probeScrollPosition, 100);
-            }
+    //            // Continue probing the scroll position every 100ms
+    //            setTimeout(probeScrollPosition, 100);
+    //        }
 
-            // Start probing scroll position immediately after page load
-            window.addEventListener('load', function() {
-                resetCause = 'Page Loaded';  // Page load triggers the reset cause
-                probeScrollPosition();
-                logScrollPosition('Page Loaded and Probing Started');
+    //        // Start probing scroll position immediately after page load
+    //        window.addEventListener('load', function() {
+    //            resetCause = 'Page Loaded';  // Page load triggers the reset cause
+    //            probeScrollPosition();
+    //            logScrollPosition('Page Loaded and Probing Started');
 
-                // Restore scroll position if it's saved in localStorage
-                const storedScrollPosition = localStorage.getItem('scrollPosition');
-                if (storedScrollPosition !== null) {
-                    resetCause = 'Restoring scroll position';
-                    console.log('PROBE: Restoring scroll position:', storedScrollPosition);
-                    window.scrollTo(0, storedScrollPosition);  // Smooth scroll to restored position
-                    logScrollPosition('Restoring scroll position');
-                }
-            });
+    //            // Restore scroll position if it's saved in localStorage
+    //            const storedScrollPosition = localStorage.getItem('scrollPosition');
+    //            if (storedScrollPosition !== null) {
+    //                resetCause = 'Restoring scroll position';
+    //                console.log('PROBE: Restoring scroll position:', storedScrollPosition);
+    //                window.scrollTo(0, storedScrollPosition);  // Smooth scroll to restored position
+    //                logScrollPosition('Restoring scroll position');
+    //            }
+    //        });
 
-            // Detect page unload (refresh or navigation)
-            window.addEventListener('beforeunload', function() {
-                resetCause = 'Before Unload: Saving scroll position';  // Save cause before unload
-                logScrollPosition('Before Unload: Saving scroll position');
-                localStorage.setItem('scrollPosition', window.scrollY);  // Save scroll position
-            });
+    //        // Detect page unload (refresh or navigation)
+    //        window.addEventListener('beforeunload', function() {
+    //            resetCause = 'Before Unload: Saving scroll position';  // Save cause before unload
+    //            logScrollPosition('Before Unload: Saving scroll position');
+    //            localStorage.setItem('scrollPosition', window.scrollY);  // Save scroll position
+    //        });
 
-            // Detect SPA page navigation or re-renders (popstate event)
-            window.addEventListener('popstate', function() {
-                resetCause = 'SPA Navigation or Re-render Detected';
-                logScrollPosition('SPA Navigation or Re-render triggered');
-            });
+    //        // Detect SPA page navigation or re-renders (popstate event)
+    //        window.addEventListener('popstate', function() {
+    //            resetCause = 'SPA Navigation or Re-render Detected';
+    //            logScrollPosition('SPA Navigation or Re-render triggered');
+    //        });
 
-            // Detect toggling between Edit and Drag actions
-            window.addEventListener('click', function(event) {
-                if (event.target && event.target.closest('.btn')) {
-                    resetCause = 'Button Clicked: Action toggled';
-                    logScrollPosition('Button clicked, action toggled');
-                }
-            });
+    //        // Detect toggling between Edit and Drag actions
+    //        window.addEventListener('click', function(event) {
+    //            if (event.target && event.target.closest('.btn')) {
+    //                resetCause = 'Button Clicked: Action toggled';
+    //                logScrollPosition('Button clicked, action toggled');
+    //            }
+    //        });
 
-            // Listen for changes in the layout (drag or edit actions)
-            document.getElementById('myButton')?.addEventListener('click', function() {
-                resetCause = 'Button Clicked: Resetting scroll position';
-                window.scrollTo(0, 0);  // Example: Reset scroll to top
-                logScrollPosition('Button clicked, scroll reset');
-            });
+    //        // Listen for changes in the layout (drag or edit actions)
+    //        document.getElementById('myButton')?.addEventListener('click', function() {
+    //            resetCause = 'Button Clicked: Resetting scroll position';
+    //            window.scrollTo(0, 0);  // Example: Reset scroll to top
+    //            logScrollPosition('Button clicked, scroll reset');
+    //        });
 
-            // Listen for other actions (content change, modal opening, etc.)
-            document.getElementById('contentChanged')?.addEventListener('click', function() {
-                resetCause = 'Content Changed: Resetting scroll position';
-                window.scrollTo(0, 0);  // Reset scroll to top after content changes
-                logScrollPosition('Content changed, scroll reset');
-            });
-        }
+    //        // Listen for other actions (content change, modal opening, etc.)
+    //        document.getElementById('contentChanged')?.addEventListener('click', function() {
+    //            resetCause = 'Content Changed: Resetting scroll position';
+    //            window.scrollTo(0, 0);  // Reset scroll to top after content changes
+    //            logScrollPosition('Content changed, scroll reset');
+    //        });
+    //    }
 
-        // Initialize the scroll tracking functionality
-        initializeScrollTracking();
-    ");
-        }
-
-
-
-
-
-
-
-
-        //private bool firstRender = true;
-        //protected override async Task OnAfterRenderAsync(bool firstRender)
-        //{
-        //    if (firstRender)
-        //    {
-        //        await InitializeScrollTracking();
-        //    }
-        //}
+    //    // Initialize the scroll tracking functionality
+    //    initializeScrollTracking();
+    //");
+    //    }
 
         //End testing probe
 
         private void GetCellsRow(LayoutCell cell) 
         {
-            SaveScrollPosition();
-            //SaveScrollPosition();
+            SaveScrollPosition(false);
             if (cell != null)
             {
                 hoveredRowDelete = cell.Row;
@@ -1334,7 +1337,6 @@ namespace CMS.Components.Pages.WebPages
         // Drag cell/content
         private async Task OnDragStart( LayoutCell layoutCell)
         {
-            SaveScrollPosition();
             if (layoutCell == null)
             {
                 Console.WriteLine("Cell null, operation aborted.");
@@ -1382,7 +1384,6 @@ namespace CMS.Components.Pages.WebPages
 
         private async Task OnDragEndAsync()
         {
-            SaveScrollPosition();
             //ToDo: Add column span:
             // If the dragged cell is set, update layout
             if (draggedCell != null )
@@ -1452,7 +1453,6 @@ namespace CMS.Components.Pages.WebPages
         // Method to handle drag over events
         private void OnDragOver( int row, int column, int? contentId)
         {
-            SaveScrollPosition();
             //ToDo: Add column span:
             // Update the hovered cell using the rowShift, column, and ContentId passed
             hoveredCell = layout.LayoutCells.FirstOrDefault(cell =>

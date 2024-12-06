@@ -429,62 +429,32 @@ header, .navbar, footer {
     gap: 0px; /* Add space between the items */
 }
 
-/*Layout base*/
+/* Base Layout Styling */
 
-/*.container-content-layout-grid {
-    display: grid;
-    grid-template-columns: repeat(12, 1fr);*/ /* Always 12 columns */
-    /*grid-template-rows: auto;*/ /* Automatically adjust rows based on content */
-    /*position: relative;
-    width: 100vw;*/ /* Ensure it takes up the full available viewport width */
-    /*max-width: 100vw;*/ /* Limit the maximum width to the viewport width */
-    /*overflow: hidden;*/ /* Prevent content overflow */
-/*}*/
-.container-content-layout-grid {
-    scroll-snap-type: y mandatory; /* Snap along the vertical axis */
-    cursor: default;
+/* Common grid container styling for all sections */
+.container-content-layout-grid,
+.container-content-layout-grid-drag-cell,
+.container-content-layout-grid-delete,
+.container-content-layout-grid-create,
+.content-item-preview {
     display: grid;
     grid-template-columns: repeat(12, 1fr); /* 12 columns */
     position: relative;
-    width: 100vw; /* Grid takes full viewport width */
-    max-width: 100vw; /* Limit the grid to viewport width */
-    height: auto; /* Height adjusts based on the content */
+    width: 100%; /* Ensures proper width */
+    height: auto; /* Height adjusts based on content */
     overflow-x: hidden; /* Prevent horizontal overflow */
     overflow-y: auto; /* Allow vertical scroll if needed */
+    grid-auto-rows: minmax(30px, auto);
+    cursor: default; /* Default cursor for both */
 }
 
-@media (max-width: 1024px) {
-    .container-content-layout-grid {
-        grid-template-columns: repeat(12, 1fr); /* Keep 12 columns */
-    }
-    .content-item {
-        width: 100%; /* Ensure content fills the entire cell */
-        max-width: 100%; /* Prevent overflow of content */
-    }
-}
-
-@media (max-width: 768px) {
-    .container-content-layout-grid {
-        grid-template-columns: repeat(12, 1fr); /* Keep 12 columns */
-    }
-    .content-item {
-        width: 100%; /* Ensure content fills the entire cell */
-        max-width: 100%; /* Prevent overflow of content */
-    }
-}
-
-@media (max-width: 480px) {
-    .container-content-layout-grid {
-        grid-template-columns: repeat(12, 1fr); /* Keep 12 columns */
-    }
-    .content-item {
-        width: 100%; /* Ensure content fills the entire cell */
-        max-width: 100%; /* Prevent overflow of content */
-        font-size: 3vw;
-    }
-}
-
-.content-item {
+/* Shared content item styles for content-create, delete, drag-cell, and preview */
+.content-item,
+.content-item-drag-cell,
+.content-item-delete,
+.content-item-create,
+.content-item-preview {
+    min-height: 30px; /* Prevent extreme height changes */
     margin: 0px;
     user-select: none;
     position: relative;
@@ -495,13 +465,16 @@ header, .navbar, footer {
     word-wrap: break-word; /* Allow long words to break and wrap onto the next line */
     overflow-wrap: break-word; /* Fallback for some browsers */
     hyphens: auto !important; /* Hyphenation for headings */
+    transition: all 0.3s ease-out; /* Smooth transition */
+    scroll-snap-align: start; /* Each item will snap to the top of the viewport */
 }
 
-.content-item, .content-item-drag-cell {
-    scroll-snap-align: start; /* Each item will snap to the top of the viewport */
-    transition: all 0.3s ease-out; /* Smooth transition */
-}
-    .content-item p {
+    /* Content item styles for paragraphs */
+    .content-item p,
+    .content-item-drag-cell p,
+    .content-item-delete p,
+    .content-item-create p,
+    .content-item-preview p {
         min-height: 30px; /* Minimum height for each cell */
         width: 100%; /* Ensure content fills the full width */
         max-width: 100%; /* Ensure content does not overflow */
@@ -511,250 +484,99 @@ header, .navbar, footer {
         hyphens: auto !important; /* Hyphenation for headings */
     }
 
-    /* If you have headings or other text elements that may need wrapping, apply this too */
+    /* Headings and Links styles */
     .content-item h1,
     .content-item h2,
     .content-item h3,
     .content-item h4,
     .content-item h5,
-    .content-item h6 {
-        word-wrap: break-word; /* Apply word wrap for headings */
-        overflow-wrap: break-word; /* Fallback for headings */
-        hyphens: auto !important; /* Hyphenation for headings */
+    .content-item h6,
+    .content-item a,
+    .content-item-drag-cell a,
+    .content-item-delete a,
+    .content-item-create a,
+    .content-item-preview a {
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        hyphens: auto !important; /* Hyphenation for headings and links */
     }
 
-    /* Apply hyphenation to the links within content items */
-    .content-item a {
-        hyphens: auto !important; /* Enable hyphenation for links */
-        word-wrap: break-word !important; /* Allow word breaks */
-        overflow-wrap: break-word !important; /* Prevent overflow */
-        white-space: normal !important; /* Allow line breaks */
+    .content-item a,
+    .content-item-drag-cell a,
+    .content-item-delete a,
+    .content-item-create a,
+    .content-item-preview a {
+        white-space: normal !important; /* Allow line breaks for links */
     }
 
-/*End: Layout base*/
-
-/*Drag cell layout styling*/
-.container-content-layout-grid-drag-cell {
-    scroll-snap-type: y mandatory; /* Snap along the vertical axis */
-    cursor: grabbing;
-    display: grid;
-    grid-template-columns: repeat(12, 1fr); /* 12 columns */
-    position: relative;
-    width: 100vw; /* Grid takes full viewport width */
-    max-width: 100vw; /* Limit the grid to viewport width */
-    height: auto; /* Height adjusts based on the content */
-    overflow-x: hidden; /* Prevent horizontal overflow */
-    overflow-y: auto; /* Allow vertical scroll if needed */
-}
-
-@media (max-width: 1024px) {
-    .container-content-layout-grid-drag-cell {
+/* Media queries for responsiveness */
+@media (max-width: 1024px), @media (max-width: 768px), @media (max-width: 480px) {
+    .container-content-layout-grid-create,
+    .container-content-layout-grid-drag-cell,
+    .container-content-layout-grid-delete,
+    .content-item-preview {
         grid-template-columns: repeat(12, 1fr); /* Keep 12 columns */
     }
 
-    .container-content-layout-grid-drag-cell {
+    .content-item-create,
+    .content-item-drag-cell,
+    .content-item-delete,
+    .content-item-preview {
         width: 100%; /* Ensure content fills the entire cell */
         max-width: 100%; /* Prevent overflow of content */
     }
 }
 
-@media (max-width: 768px) {
-    .container-content-layout-grid-drag-cell {
-        grid-template-columns: repeat(12, 1fr); /* Keep 12 columns */
-    }
+/* End of Base Layout Styling */
 
-    .container-content-layout-grid-drag-cell {
-        width: 100%; /* Ensure content fills the entire cell */
-        max-width: 100%; /* Prevent overflow of content */
-    }
-}
 
-@media (max-width: 480px) {
-    .container-content-layout-grid-drag-cell {
-        grid-template-columns: repeat(12, 1fr); /* Keep 12 columns */
-    }
+/* Drag Cell Layout and Styling */
 
-    .content-item-drag-cell {
-        width: 100%; /* Ensure content fills the entire cell */
-        max-width: 100%; /* Prevent overflow of content */
-        font-size: 3vw;
-    }
-}
-
+/* Unique styles for content-item-drag-cell */
 .content-item-drag-cell {
-   /* border: 1px dotted #ccc;*/ /* Border for grid items */
-    box-sizing: border-box; /* Include border in the element's total width and height */
-    user-select: none;
-    position: relative;
-    overflow: hidden; /* Prevent overflow */
-    height: auto; /* Let the height adjust based on content */
-    padding: 0; /* Remove extra padding if necessary */
-    margin:0;
-    word-wrap: break-word; /* Allow long words to break and wrap onto the next line */
-    overflow-wrap: break-word; /* Fallback for some browsers */
-    hyphens: auto !important; /* Hyphenation for headings */
+    outline: 1px dotted #ccc; /* Border for grid items */
+    cursor: grabbing; /* Grabbing cursor for drag */
 }
 
-.border-wrapper {
-    margin: 0px;
-    border-collapse: collapse;
-    box-sizing: border-box;
-    padding: 0px;
-    z-index: 8000;
-    width: calc(100% - 1px); /* Subtract border size from parent container width */
-    height: calc(100% - 1px); /* Subtract border size from parent container height */
-}
-
-/* Optional: Hover effect for buttons */
-.overlay-btn-edit:hover, .overlay-btn-delete:hover, .overlay-btn-main:hover {
-    background-color: lightgray;
-}
-
-    .content-item-drag-cell p {
-        min-height: 30px; /* Minimum height for each cell */
-        width: 100%; /* Ensure content fills the full width */
-        max-width: 100%; /* Ensure content does not overflow */
-        box-sizing: border-box; /* Ensure the width includes padding */
-        word-wrap: break-word; /* Break words to prevent overflow */
-        overflow-wrap: break-word; /* Fallback for some browsers */
-        hyphens: auto !important; /* Hyphenation for headings */
-    }
-
-    /* If you have headings or other text elements that may need wrapping, apply this too */
-    .content-item-drag-cell,
-    .content-item-drag-cell,
-    .content-item-drag-cell,
-    .content-item-drag-cell,
-    .content-item-drag-cell,
-    .content-item-drag-cell {
-        word-wrap: break-word; /* Apply word wrap for headings */
-        overflow-wrap: break-word; /* Fallback for headings */
-        hyphens: auto !important; /* Hyphenation for headings */
-    }
-
-    /* Apply hyphenation to the links within content items */
-        .content-item-drag-cell a {
-            hyphens: auto !important; /* Enable hyphenation for links */
-            word-wrap: break-word !important; /* Allow word breaks */
-            overflow-wrap: break-word !important; /* Prevent overflow */
-            white-space: normal !important; /* Allow line breaks */
-        }
-
-/* Ensure content-wrapper is not blocking interactions */
-.content-item-drag-cell .content-wrapper {
-    pointer-events: none; /* Disable all interactions within this wrapper */
-}
-
-    .content-item-drag-cell:Hover {
+    /* Hover and interaction states for drag-cell */
+    .content-item-drag-cell:hover,
+    .content-item-drag-cell.mouse-down,
+    .content-item-drag-cell.drag-over,
+    .content-item-drag-cell.drag-hover {
         user-select: none;
-        cursor: grabbing;
-        background-color: lightgray;
-        cursor: grab;
+        background-color: grey;
         opacity: 0.5; /* Makes all child elements inside the div semi-transparent */
+        cursor: grabbing;
     }
 
-.dragging {
-    user-select: none;
-    cursor: grabbing;
-}
+    /* Ensure content-wrapper is not blocking interactions */
+    .content-item-drag-cell .content-wrapper {
+        pointer-events: none; /* Disable all interactions within this wrapper */
+    }
 
-.content-item-drag-cell.mouse-down {
-    user-select: none;
-    background-color: rgba(0, 0, 0, 0.2); /* Change background color on mouse down */
-    cursor: grabbing !important; /* Change cursor style */
-}
+/* End of Drag Cell Layout and Styling */
 
-.content-item-drag-cell.drag-over {
-    user-select: none;
-    /*border: 2px solid blue;*/ /* Highlight the target area when dragging */
-    opacity: 0.5; /* Makes all child elements inside the div semi-transparent */
-    background-color: grey;
-    cursor: grabbing;
-}
 
-.content-item-drag-cell.drag-hover {
-    user-select: none;
-    opacity: 0.5; /* Makes all child elements inside the div semi-transparent */
-    background-color: grey;
-    cursor: grabbing;
-}
+/* Delete Layout and Styling */
 
-/*End drag cell layout styling*/
-
-/*Delete row/content layout styling*/
-
+/* Delete grid styling */
 .container-content-layout-grid-delete {
     cursor: default;
-    display: grid;
-    grid-template-columns: repeat(12, 1fr); /* 12 columns */
-    position: relative;
-    width: 100vw; /* Grid takes full viewport width */
-    max-width: 100vw; /* Limit the grid to viewport width */
-    height: auto; /* Height adjusts based on the content */
-    overflow-x: hidden; /* Prevent horizontal overflow */
-    overflow-y: auto; /* Allow vertical scroll if needed */
 }
 
-@media (max-width: 1024px) {
-    .container-content-layout-grid-delete {
-        grid-template-columns: repeat(12, 1fr); /* Keep 12 columns */
-    }
-
-    .content-item-delete {
-        width: 100%; /* Ensure content fills the entire cell */
-        max-width: 100%; /* Prevent overflow of content */
-    }
-}
-
-@media (max-width: 768px) {
-    .container-content-layout-grid-delete {
-        grid-template-columns: repeat(12, 1fr); /* Keep 12 columns */
-    }
-
-    .content-item-delete {
-        width: 100%; /* Ensure content fills the entire cell */
-        max-width: 100%; /* Prevent overflow of content */
-    }
-}
-
-@media (max-width: 480px) {
-    .container-content-layout-grid-delete {
-        grid-template-columns: repeat(12, 1fr); /* Keep 12 columns */
-    }
-
-    .content-item-delete {
-        width: 100%; /* Ensure content fills the entire cell */
-        max-width: 100%; /* Prevent overflow of content */
-        font-size: 3vw;
-    }
-}
-
-
+/* Delete hover and interaction */
 .content-item-delete {
     cursor: crosshair;
-    user-select: none;
-    position: relative;
-    overflow: hidden; /* Prevent overflow */
-    box-sizing: border-box; /* Ensure padding doesn't affect width */
-    height: auto; /* Let the height adjust based on content */
-    padding: 0; /* Remove extra padding if necessary */
-    word-wrap: break-word; /* Allow long words to break and wrap onto the next line */
-    overflow-wrap: break-word; /* Fallback for some browsers */
-    hyphens: auto !important; /* Hyphenation for headings */
 }
 
-.content-item-delete .content-wrapper {
-    pointer-events: none; /* Disable all interactions within this wrapper */
-}
-
-
-    .content-item-delete.drag-hover {
-        cursor: crosshair;
-        background-color: rgb(243, 85, 85);
-        opacity: 0.5; /* Makes all child elements inside the div semi-transparent */
+    /* Disable interactions within delete wrapper */
+    .content-item-delete .content-wrapper {
+        pointer-events: none; /* Disable all interactions within this wrapper */
     }
 
-    .content-item-delete:Hover {
+    /* Hover states for delete */
+    .content-item-delete.drag-hover,
+    .content-item-delete:hover {
         cursor: crosshair;
         background-color: rgb(243, 85, 85);
         opacity: 0.5; /* Makes all child elements inside the div semi-transparent */
@@ -766,161 +588,80 @@ header, .navbar, footer {
             opacity: 0.5; /* Makes all child elements inside the div semi-transparent */
         }
 
-.content-item-delete p {
-    min-height: 30px; /* Minimum height for each cell */
-    width: 100%; /* Ensure content fills the full width */
-    max-width: 100%; /* Ensure content does not overflow */
-    box-sizing: border-box; /* Ensure the width includes padding */
-    word-wrap: break-word; /* Break words to prevent overflow */
-    overflow-wrap: break-word; /* Fallback for some browsers */
-    hyphens: auto !important; /* Hyphenation for headings */
+.content-item-delete-row {
+    position: relative;
+    user-select: none;
+    overflow: hidden;
+    box-sizing: border-box;
+    height: auto;
+    padding: 0;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto !important;
+    background-color: rgb(243, 85, 85);
+    opacity: 0.3;
 }
-
-/* If you have headings or other text elements that may need wrapping, apply this too */
-    .content-item-delete h1,
-    .content-item-delete h2,
-    .content-item-delete h3,
-    .content-item-delete h4,
-    .content-item-delete h5,
-    .content-item-delete h6 {
-        word-wrap: break-word; /* Apply word wrap for headings */
-        overflow-wrap: break-word; /* Fallback for headings */
-        hyphens: auto !important; /* Hyphenation for headings */
-    }
-
-/* Apply hyphenation to the links within content items */
-.content-item-delete a {
-    hyphens: auto !important; /* Enable hyphenation for links */
-    word-wrap: break-word !important; /* Allow word breaks */
-    overflow-wrap: break-word !important; /* Prevent overflow */
-    white-space: normal !important; /* Allow line breaks */
-}
-
-/*Delete Row hover styling*/
 
 .content-item-delete-row {
-    cursor: crosshair;
-    user-select: none;
+    cursor:crosshair;
     position: relative;
-    overflow: hidden; /* Prevent overflow */
-    box-sizing: border-box; /* Ensure padding doesn't affect width */
-    height: auto; /* Let the height adjust based on content */
-    padding: 0; /* Remove extra padding if necessary */
-    word-wrap: break-word; /* Allow long words to break and wrap onto the next line */
-    overflow-wrap: break-word; /* Fallback for some browsers */
-    hyphens: auto !important; /* Hyphenation for headings */
-    border-top: 20px solid rgb(243, 85, 85); /* Top border */
-    border-bottom: 20px solid rgb(243, 85, 85); /* Bottom border */
+    user-select: none;
+    overflow: hidden;
+    box-sizing: border-box;
+    height: auto;
+    padding: 0;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto !important;
     background-color: rgb(243, 85, 85);
-    opacity: 0.3; /* Makes all child elements inside the div semi-transparent */
+    opacity: 0.3;
 }
+/*Dotted border top and bottom for delete row*/
+    .content-item-delete-row::before,
+    .content-item-delete-row::after {
+        content: "";
+        position: absolute;
+        width: 100%;
+        height: 2px; /* Adjust the height to control the thickness of the dotted line */
+        background: repeating-linear-gradient( to right, #ccc 0px, #ccc 1px, /* 1px for the dot size */
+        transparent 1px, transparent 2px /* 1px gap between the dots */
+        );
+    }
+
+    .content-item-delete-row::before {
+        top: 0; /* Position at the top */
+    }
+
+    .content-item-delete-row::after {
+        bottom: 0; /* Position at the bottom */
+    }
+/* End: Dotted border top and bottom for delete row*/
+
+/* End of Delete Layout and Styling */
 
 
-/*End: Delete row/content layout styling*/
+/* Create Layout and Styling */
 
-/*Create content select layout styling:*/
-
+/* Unique styles for container-content-layout-grid-create */
 .container-content-layout-grid-create {
     cursor: grabbing;
-    display: grid;
-    grid-template-columns: repeat(12, 1fr); /* 12 columns */
-    position: relative;
-    width: 100vw; /* Grid takes full viewport width */
     max-width: 100vw; /* Limit the grid to viewport width */
-    height: auto; /* Height adjusts based on the content */
-    overflow-x: hidden; /* Prevent horizontal overflow */
-    overflow-y: auto; /* Allow vertical scroll if needed */
+    width: 100vw; /* Grid takes full viewport width */
 }
 
-@media (max-width: 1024px) {
-    .container-content-layout-grid-create {
-        grid-template-columns: repeat(12, 1fr); /* Keep 12 columns */
-    }
-
-    .content-item-create {
-        width: 100%; /* Ensure content fills the entire cell */
-        max-width: 100%; /* Prevent overflow of content */
-    }
-}
-
-@media (max-width: 768px) {
-    .container-content-layout-grid-create {
-        grid-template-columns: repeat(12, 1fr); /* Keep 12 columns */
-    }
-
-    .content-item-create {
-        width: 100%; /* Ensure content fills the entire cell */
-        max-width: 100%; /* Prevent overflow of content */
-    }
-}
-
-@media (max-width: 480px) {
-    .container-content-layout-grid-create {
-        grid-template-columns: repeat(12, 1fr); /* Keep 12 columns */
-    }
-
-    .content-item-create {
-        width: 100%; /* Ensure content fills the entire cell */
-        max-width: 100%; /* Prevent overflow of content */
-        font-size: 3vw;
-    }
-}
-
+/* Unique styles for content-item-create */
 .content-item-create {
     cursor: cell;
-    user-select: none;
-    position: relative;
-    overflow: hidden; /* Prevent overflow */
-    box-sizing: border-box; /* Ensure padding doesn't affect width */
-    height: auto; /* Let the height adjust based on content */
-    padding: 0; /* Remove extra padding if necessary */
-    word-wrap: break-word; /* Allow long words to break and wrap onto the next line */
-    overflow-wrap: break-word; /* Fallback for some browsers */
-    hyphens: auto !important; /* Hyphenation for headings */
 }
 
-.content-item-create p {
-    min-height: 30px; /* Minimum height for each cell */
-    width: 100%; /* Ensure content fills the full width */
-    max-width: 100%; /* Ensure content does not overflow */
-    box-sizing: border-box; /* Ensure the width includes padding */
-    word-wrap: break-word; /* Break words to prevent overflow */
-    overflow-wrap: break-word; /* Fallback for some browsers */
-    hyphens: auto !important; /* Hyphenation for headings */
-}
-
-/* If you have headings or other text elements that may need wrapping, apply this too */
-.content-item-create h1,
-.content-item-create h2,
-.content-item-create h3,
-.content-item-create h4,
-.content-item-create h5,
-.content-item-create h6 {
-    word-wrap: break-word; /* Apply word wrap for headings */
-    overflow-wrap: break-word; /* Fallback for headings */
-    hyphens: auto !important; /* Hyphenation for headings */
-}
-
-/* Apply hyphenation to the links within content items */
-.content-item-create a {
-    hyphens: auto !important; /* Enable hyphenation for links */
-    word-wrap: break-word !important; /* Allow word breaks */
-    overflow-wrap: break-word !important; /* Prevent overflow */
-    white-space: normal !important; /* Allow line breaks */
-}
-
-.content-item-create .content-wrapper {
-    pointer-events: none; /* Disable all interactions within this wrapper */
-}
-
-
-    .content-item-create.drag-hover {
-        cursor: cell;
-        background-color: rgb(113, 255, 122);
-        opacity: 0.5; /* Makes all child elements inside the div semi-transparent */
+    /* Disable interactions within content-item-create wrapper */
+    .content-item-create .content-wrapper {
+        pointer-events: none; /* Disable all interactions within this wrapper */
     }
 
-    .content-item-create:Hover {
+    /* Hover and interaction states for content-item-create */
+    .content-item-create.drag-hover,
+    .content-item-create:hover {
         cursor: cell;
         background-color: rgb(113, 255, 122);
         opacity: 0.5; /* Makes all child elements inside the div semi-transparent */
@@ -931,103 +672,40 @@ header, .navbar, footer {
             background-color: rgb(113, 255, 122);
             opacity: 0.5; /* Makes all child elements inside the div semi-transparent */
         }
-/*End:Create content layout styling*/
+
+/* End of Create Layout and Styling */
 
 
-/* Preview layout styling*/
+/* Preview Layout and Styling */
+
+/* Unique styles for content-item-preview */
 .content-item-preview {
     cursor: grabbing;
-    display: grid;
-    grid-template-columns: repeat(12, 1fr); /* 12 columns */
-    position: relative;
-    width: 100vw; /* Grid takes full viewport width */
-    max-width: 100vw; /* Limit the grid to viewport width */
-    height: auto; /* Height adjusts based on the content */
-    overflow-x: hidden; /* Prevent horizontal overflow */
-    overflow-y: auto; /* Allow vertical scroll if needed */
-}
-
-@media (max-width: 1024px) {
-    .content-item-preview {
-        grid-template-columns: repeat(12, 1fr); /* Keep 12 columns */
-    }
-
-    .content-item-preview {
-        width: 100%; /* Ensure content fills the entire cell */
-        max-width: 100%; /* Prevent overflow of content */
-    }
-}
-
-@media (max-width: 768px) {
-    .content-item-preview {
-        grid-template-columns: repeat(12, 1fr); /* Keep 12 columns */
-    }
-
-    .content-item-preview {
-        width: 100%; /* Ensure content fills the entire cell */
-        max-width: 100%; /* Prevent overflow of content */
-    }
-}
-
-@media (max-width: 480px) {
-    .content-item-preview {
-        grid-template-columns: repeat(12, 1fr); /* Keep 12 columns */
-    }
-
-    .content-item-preview {
-        width: 100%; /* Ensure content fills the entire cell */
-        max-width: 100%; /* Prevent overflow of content */
-        font-size: 3vw;
-    }
-}
-
-.content-item-preview {
     user-select: none;
-    position: relative;
-    overflow: hidden; /* Prevent overflow */
-    box-sizing: border-box; /* Ensure padding doesn't affect width */
-    height: auto; /* Let the height adjust based on content */
-    padding: 0; /* Remove extra padding if necessary */
-    word-wrap: break-word; /* Allow long words to break and wrap onto the next line */
-    overflow-wrap: break-word; /* Fallback for some browsers */
-    hyphens: auto !important; /* Hyphenation for headings */
-}
-
-    .content-item-preview p {
-        min-height: 30px; /* Minimum height for each cell */
-        width: 100%; /* Ensure content fills the full width */
-        max-width: 100%; /* Ensure content does not overflow */
-        box-sizing: border-box; /* Ensure the width includes padding */
-        word-wrap: break-word; /* Break words to prevent overflow */
-        overflow-wrap: break-word; /* Fallback for some browsers */
-        hyphens: auto !important; /* Hyphenation for headings */
-    }
-
-    /* If you have headings or other text elements that may need wrapping, apply this too */
-    .content-item-preview h1,
-    .content-item-preview h2,
-    .content-item-preview h3,
-    .content-item-preview h4,
-    .content-item-preview h5,
-    .content-item-preview h6 {
-        word-wrap: break-word; /* Apply word wrap for headings */
-        overflow-wrap: break-word; /* Fallback for headings */
-        hyphens: auto !important; /* Hyphenation for headings */
-    }
-
-    /* Apply hyphenation to the links within content items */
-    .content-item-preview a {
-        hyphens: auto !important; /* Enable hyphenation for links */
-        word-wrap: break-word !important; /* Allow word breaks */
-        overflow-wrap: break-word !important; /* Prevent overflow */
-        white-space: normal !important; /* Allow line breaks */
-    }
-
-    /* Ensure content-wrapper is not blocking interactions */
-.content-item-preview .content-wrapper {
     pointer-events: none; /* Disable all interactions within this wrapper */
 }
-/*End: Preview layout styling*/
+
+    /* Disable interactions within preview wrapper */
+    .content-item-preview .content-wrapper {
+        pointer-events: none; /* Disable all interactions within this wrapper */
+    }
+
+    /* Hover and interaction states for content-item-preview */
+    .content-item-preview.drag-hover,
+    .content-item-preview:hover {
+        cursor: grabbing;
+        background-color: rgb(113, 255, 122);
+        opacity: 0.5; /* Makes all child elements inside the div semi-transparent */
+    }
+
+        .content-item-preview:hover * {
+            cursor: grabbing;
+            background-color: rgb(113, 255, 122);
+            opacity: 0.5; /* Makes all child elements inside the div semi-transparent */
+        }
+
+/* End of Preview Layout and Styling */
+
 
 /* Column span size tools */
 
