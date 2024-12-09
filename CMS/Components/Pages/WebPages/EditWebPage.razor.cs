@@ -23,6 +23,8 @@ using Microsoft.Extensions.Logging;
 using NuGet.Protocol;
 using System.Diagnostics;
 using System.Numerics;
+using Bogus.DataSets;
+using System.Xml.Linq;
 namespace CMS.Components.Pages.WebPages
 {
     //ToDO: Chanfe variables name from ec. WebSiteId to webSiteId
@@ -248,7 +250,7 @@ namespace CMS.Components.Pages.WebPages
 
         private void DragCells()
         {
-            SaveScrollPosition();
+            RestoreScrollPosition();
             if (moveCellsActive)
             {
                 ResetMenu();
@@ -267,7 +269,7 @@ namespace CMS.Components.Pages.WebPages
         private async Task AddRowAsync()
         {
             //ToDo: select for add row.
-            //SaveScrollPosition();
+            //RestoreScrollPosition();
 
             if (addRowActive)
             {
@@ -286,7 +288,7 @@ namespace CMS.Components.Pages.WebPages
 
         private void DragRows()
         {
-            SaveScrollPosition();
+            RestoreScrollPosition();
 
             if (moveRowActive)
             {
@@ -306,7 +308,7 @@ namespace CMS.Components.Pages.WebPages
 
         private void DeleteContentSelect()
         {
-            SaveScrollPosition();
+            RestoreScrollPosition();
 
             if (deleteContentActive)
             {
@@ -326,7 +328,7 @@ namespace CMS.Components.Pages.WebPages
 
         private void ResizeCell()
         {
-            SaveScrollPosition();
+            RestoreScrollPosition();
 
             if (resizeCellColumnSpanActive)
             {
@@ -347,7 +349,7 @@ namespace CMS.Components.Pages.WebPages
         private void EditContent(Content content)
         {
             UserInformationMessage("Redigera innehåll.");
-            SaveScrollPosition();
+            RestoreScrollPosition();
 
             if (content == null || content.ContentId == null)
             {
@@ -362,7 +364,7 @@ namespace CMS.Components.Pages.WebPages
         private void AddContent()
         {
             UserInformationMessage("Skapa nytt innehåll.");
-            SaveScrollPosition();
+            RestoreScrollPosition();
             contentForEditing = null;
             pageExecution = ExecuteAction.CreateContent;
         }
@@ -370,7 +372,7 @@ namespace CMS.Components.Pages.WebPages
         private void SelectCell()
         {
             UserInformationMessage("Välj plats för innehåll");
-            SaveScrollPosition();
+            RestoreScrollPosition();
             contentForEditing = null;
             pageExecution = ExecuteAction.SelectCellCreate;
 
@@ -381,31 +383,31 @@ namespace CMS.Components.Pages.WebPages
             if (contentId == null)
             {
                 UserInformationMessage("Inget innehåll hittat att radera.");
-                SaveScrollPosition();
+                RestoreScrollPosition();
                 return;
             }
-            SaveScrollPosition();
+            RestoreScrollPosition();
             contentForEditing = contentId;
             pageExecution = ExecuteAction.Delete;
         }
 
         private void PauseEditContent()
         {
-            SaveScrollPosition();
+            RestoreScrollPosition();
             contentForEditing = null;
             pageExecution = ExecuteAction.Preview;
         }
         private void EditPageinformation()
         {
             UserInformationMessage("Redigera sidans information.");
-            SaveScrollPosition();
+            RestoreScrollPosition();
             pageExecution = ExecuteAction.EditPageinformation;
         }
 
         private void EditPageinformationDone()
         {
             UserInformationMessage("Redigera innehåll.");
-            SaveScrollPosition();
+            RestoreScrollPosition();
             ResetMenu();
             contentForEditing = null;
             pageExecution = ExecuteAction.EditSelect;
@@ -416,7 +418,7 @@ namespace CMS.Components.Pages.WebPages
         private async Task SelectCellForNewContent(LayoutCell cell)
         {
             UserInformationMessage("Välj plats för innehållets placering.");
-            SaveScrollPosition();
+            RestoreScrollPosition();
             // If not Empty cell is choosen for new content, return.
             if (cell.ContentId != null)
             {
@@ -434,7 +436,7 @@ namespace CMS.Components.Pages.WebPages
 
         private async Task InsertNewContentInLayoutAsync(LayoutCell cell, List<Content> webPageContents, int? newContentId)
         {
-            SaveScrollPosition();
+            RestoreScrollPosition();
             var newCell = new LayoutCell
             {
                 Column = cell.Column,
@@ -465,7 +467,7 @@ namespace CMS.Components.Pages.WebPages
 
         private void CreateContentDone()
         {
-            SaveScrollPosition();
+            RestoreScrollPosition();
             contentForEditing = null;
 
             // Get current content.
@@ -486,7 +488,7 @@ namespace CMS.Components.Pages.WebPages
 
         private void Done()
         {
-            SaveScrollPosition();
+            RestoreScrollPosition();
             contentForEditing = null;
             pageExecution = ExecuteAction.EditSelect;
             UserInformationMessage("Redigera innehåll");
@@ -495,7 +497,7 @@ namespace CMS.Components.Pages.WebPages
 
         private async Task DeleteDoneAsync()
         {
-            SaveScrollPosition();
+            RestoreScrollPosition();
             if (contentForEditing != null)
             {
 
@@ -570,7 +572,7 @@ namespace CMS.Components.Pages.WebPages
 
         private void DeleteSelectRow()
         {
-            SaveScrollPosition();
+            RestoreScrollPosition();
             if (deleteRowActive)
             {
                 ResetMenu();
@@ -588,7 +590,7 @@ namespace CMS.Components.Pages.WebPages
         }
         private async Task DeleteRowAsync(int? row)
         {
-            SaveScrollPosition();
+            RestoreScrollPosition();
             if (row == null)
             {
                 UserInformationMessage("Ingen rad vald att radera.");
@@ -611,7 +613,7 @@ namespace CMS.Components.Pages.WebPages
         // Hides tool bar
         private void HideToolsAsync()
         {
-            SaveScrollPosition();
+            RestoreScrollPosition();
             if (hideToolbar)
             {
                 hideToolbar = false;
@@ -730,7 +732,7 @@ namespace CMS.Components.Pages.WebPages
         //Primitive methods for restoring the scrollY after reset to top after rewrite/rerendering of html.
 
         //Todo:Verifications and best practises needs to be handled, see git projects scrumboard.
-        //private void SaveScrollPosition()
+        //private void RestoreScrollPosition()
         //{
         //    // Save the current scroll position using localStorage in JavaScript (store as floating point number)
         //    JSRuntime.InvokeVoidAsync("eval", @"
@@ -795,7 +797,7 @@ namespace CMS.Components.Pages.WebPages
         //removing flickering at redraw/rerender of content(page reset scrollY to top).
         //Results: greate improvement with ocational/glitches/twitch/flickering.
 
-        //    private void SaveScrollPosition()
+        //    private void RestoreScrollPosition()
         //    {
         //        // Save the current scroll position using localStorage in JavaScript
         //        JSRuntime.InvokeVoidAsync("eval", @"
@@ -876,7 +878,7 @@ namespace CMS.Components.Pages.WebPages
     //");
     //    }
 
-        private void SaveScrollPosition(bool coverTransition = true)
+        private void RestoreScrollPosition(bool coverTransition = true)
         {
 
             if(coverTransition)
@@ -979,9 +981,6 @@ namespace CMS.Components.Pages.WebPages
 
 
 
-
-
-
         // Attempt to log the time for reset: inconsisten results with flickering during restoring the scrollY .
 
         //    private void LoadScrollPosition()
@@ -1041,7 +1040,7 @@ namespace CMS.Components.Pages.WebPages
         //    }
 
         //version 2 time logging. Results: cuts down the missed restorations to top position of page, still high amount of results with flickering.
-        //    private void SaveScrollPosition()
+        //    private void RestoreScrollPosition()
         //    {
         //        // Save the current scroll position using localStorage in JavaScript (store as floating point number)
         //        JSRuntime.InvokeVoidAsync("eval", @"
@@ -1107,7 +1106,7 @@ namespace CMS.Components.Pages.WebPages
         //    }
 
         // version 3 logging little better timing,  not much better than original primitive method.
-        //    private void SaveScrollPosition()
+        //    private void RestoreScrollPosition()
         //    {
         //        // Save the current scroll position using localStorage in JavaScript
         //        JSRuntime.InvokeVoidAsync("eval", @"
@@ -1175,7 +1174,7 @@ namespace CMS.Components.Pages.WebPages
         //Not improvments:
         // You can suppress or throttle scroll events during the restoration process to prevent them from interfering.
         // Setting a flag during scroll restoration and temporarily disabling scroll handling until the restoration is complete.
-        //    private void SaveScrollPosition()
+        //    private void RestoreScrollPosition()
         //    {
         //        JSRuntime.InvokeVoidAsync("eval", @"
         //var isRestoringScroll = false;
@@ -1231,107 +1230,220 @@ namespace CMS.Components.Pages.WebPages
         //TESTING PROBE:
         //<button @onclick="InitializeScrollTracking">Start Scroll Tracking</button>
         // C# method to initialize scroll tracking
-    //    private void InitializeScrollTracking()
-    //    {
-    //        JSRuntime.InvokeVoidAsync("eval", @"
-    //    function initializeScrollTracking() {
-    //        console.log('PROBE: Script is running');  // Log script start
-            
-    //        let resetCause = '';
+        //    private void InitializeScrollTracking()
+        //    {
+        //        JSRuntime.InvokeVoidAsync("eval", @"
+        //    function initializeScrollTracking() {
+        //        console.log('PROBE: Script is running');  // Log script start
 
-    //        // Function to log the scroll position and reset cause
-    //        function logScrollPosition(message) {
-    //            console.log('PROBE:', message);
-    //            console.log('PROBE: Current Scroll Position:', window.scrollY);
-    //            console.log('PROBE: Reset Cause:', resetCause);  // Log reset cause
-    //        }
+        //        let resetCause = '';
 
-    //        // Function to probe scroll position regularly
-    //        function probeScrollPosition() {
-    //            const scrollY = window.scrollY;
+        //        // Function to log the scroll position and reset cause
+        //        function logScrollPosition(message) {
+        //            console.log('PROBE:', message);
+        //            console.log('PROBE: Current Scroll Position:', window.scrollY);
+        //            console.log('PROBE: Reset Cause:', resetCause);  // Log reset cause
+        //        }
 
-    //            // Log when the viewport is reset to top (scrollY === 0)
-    //            if (scrollY === 0) {
-    //                logScrollPosition('Viewport reset to top');
-    //            }
+        //        // Function to probe scroll position regularly
+        //        function probeScrollPosition() {
+        //            const scrollY = window.scrollY;
 
-    //            // Continue probing the scroll position every 100ms
-    //            setTimeout(probeScrollPosition, 100);
-    //        }
+        //            // Log when the viewport is reset to top (scrollY === 0)
+        //            if (scrollY === 0) {
+        //                logScrollPosition('Viewport reset to top');
+        //            }
 
-    //        // Start probing scroll position immediately after page load
-    //        window.addEventListener('load', function() {
-    //            resetCause = 'Page Loaded';  // Page load triggers the reset cause
-    //            probeScrollPosition();
-    //            logScrollPosition('Page Loaded and Probing Started');
+        //            // Continue probing the scroll position every 100ms
+        //            setTimeout(probeScrollPosition, 100);
+        //        }
 
-    //            // Restore scroll position if it's saved in localStorage
-    //            const storedScrollPosition = localStorage.getItem('scrollPosition');
-    //            if (storedScrollPosition !== null) {
-    //                resetCause = 'Restoring scroll position';
-    //                console.log('PROBE: Restoring scroll position:', storedScrollPosition);
-    //                window.scrollTo(0, storedScrollPosition);  // Smooth scroll to restored position
-    //                logScrollPosition('Restoring scroll position');
-    //            }
-    //        });
+        //        // Start probing scroll position immediately after page load
+        //        window.addEventListener('load', function() {
+        //            resetCause = 'Page Loaded';  // Page load triggers the reset cause
+        //            probeScrollPosition();
+        //            logScrollPosition('Page Loaded and Probing Started');
 
-    //        // Detect page unload (refresh or navigation)
-    //        window.addEventListener('beforeunload', function() {
-    //            resetCause = 'Before Unload: Saving scroll position';  // Save cause before unload
-    //            logScrollPosition('Before Unload: Saving scroll position');
-    //            localStorage.setItem('scrollPosition', window.scrollY);  // Save scroll position
-    //        });
+        //            // Restore scroll position if it's saved in localStorage
+        //            const storedScrollPosition = localStorage.getItem('scrollPosition');
+        //            if (storedScrollPosition !== null) {
+        //                resetCause = 'Restoring scroll position';
+        //                console.log('PROBE: Restoring scroll position:', storedScrollPosition);
+        //                window.scrollTo(0, storedScrollPosition);  // Smooth scroll to restored position
+        //                logScrollPosition('Restoring scroll position');
+        //            }
+        //        });
 
-    //        // Detect SPA page navigation or re-renders (popstate event)
-    //        window.addEventListener('popstate', function() {
-    //            resetCause = 'SPA Navigation or Re-render Detected';
-    //            logScrollPosition('SPA Navigation or Re-render triggered');
-    //        });
+        //        // Detect page unload (refresh or navigation)
+        //        window.addEventListener('beforeunload', function() {
+        //            resetCause = 'Before Unload: Saving scroll position';  // Save cause before unload
+        //            logScrollPosition('Before Unload: Saving scroll position');
+        //            localStorage.setItem('scrollPosition', window.scrollY);  // Save scroll position
+        //        });
 
-    //        // Detect toggling between Edit and Drag actions
-    //        window.addEventListener('click', function(event) {
-    //            if (event.target && event.target.closest('.btn')) {
-    //                resetCause = 'Button Clicked: Action toggled';
-    //                logScrollPosition('Button clicked, action toggled');
-    //            }
-    //        });
+        //        // Detect SPA page navigation or re-renders (popstate event)
+        //        window.addEventListener('popstate', function() {
+        //            resetCause = 'SPA Navigation or Re-render Detected';
+        //            logScrollPosition('SPA Navigation or Re-render triggered');
+        //        });
 
-    //        // Listen for changes in the layout (drag or edit actions)
-    //        document.getElementById('myButton')?.addEventListener('click', function() {
-    //            resetCause = 'Button Clicked: Resetting scroll position';
-    //            window.scrollTo(0, 0);  // Example: Reset scroll to top
-    //            logScrollPosition('Button clicked, scroll reset');
-    //        });
+        //        // Detect toggling between Edit and Drag actions
+        //        window.addEventListener('click', function(event) {
+        //            if (event.target && event.target.closest('.btn')) {
+        //                resetCause = 'Button Clicked: Action toggled';
+        //                logScrollPosition('Button clicked, action toggled');
+        //            }
+        //        });
 
-    //        // Listen for other actions (content change, modal opening, etc.)
-    //        document.getElementById('contentChanged')?.addEventListener('click', function() {
-    //            resetCause = 'Content Changed: Resetting scroll position';
-    //            window.scrollTo(0, 0);  // Reset scroll to top after content changes
-    //            logScrollPosition('Content changed, scroll reset');
-    //        });
-    //    }
+        //        // Listen for changes in the layout (drag or edit actions)
+        //        document.getElementById('myButton')?.addEventListener('click', function() {
+        //            resetCause = 'Button Clicked: Resetting scroll position';
+        //            window.scrollTo(0, 0);  // Example: Reset scroll to top
+        //            logScrollPosition('Button clicked, scroll reset');
+        //        });
 
-    //    // Initialize the scroll tracking functionality
-    //    initializeScrollTracking();
-    //");
-    //    }
+        //        // Listen for other actions (content change, modal opening, etc.)
+        //        document.getElementById('contentChanged')?.addEventListener('click', function() {
+        //            resetCause = 'Content Changed: Resetting scroll position';
+        //            window.scrollTo(0, 0);  // Reset scroll to top after content changes
+        //            logScrollPosition('Content changed, scroll reset');
+        //        });
+        //    }
+
+        //    // Initialize the scroll tracking functionality
+        //    initializeScrollTracking();
+        //");
+        //    }
 
         //End testing probe
 
-        private void GetCellsRow(LayoutCell cell) 
+        //private void LeaveRow() 
+        //{
+        //    RestoreScrollPosition(false);
+
+        //    hoveredRowDelete = 0;
+        //}
+
+        // Change bacgkroundcolor opacity for the row mouse enters:
+
+        //    private async Task InitializeMouseEnterOverlay()
+        //    {
+        //        await JSRuntime.InvokeVoidAsync("eval", @"
+        //    if (!window.setupMouseEnterOverlay) {
+        //        window.setupMouseEnterOverlay = function(contentId, color) {
+        //            // Select the element using data-content-id attribute
+        //            var element = document.querySelector('[data-content-id=""' + contentId + '""]'); 
+
+        //            // Check if the element exists
+        //            if (!element) {
+        //                console.error('Element with ContentId ' + contentId + ' not found.');
+        //                return; // Exit if the element is not found
+        //            }
+
+        //            // Create the overlay
+        //            var overlay = document.createElement('div');
+        //            overlay.style.position = 'absolute';
+        //            overlay.style.top = element.offsetTop + 'px';  // Position the overlay relative to the element
+        //            overlay.style.left = element.offsetLeft + 'px';
+        //            overlay.style.width = '100%';
+        //            overlay.style.height = element.offsetHeight + 'px';
+        //            overlay.style.backgroundColor = color;  // Set the background color passed as an argument
+        //            overlay.style.opacity = '0.3';  // Semi-transparent overlay
+        //            overlay.style.zIndex = '9998';  // Place overlay above the element
+        //            overlay.style.pointerEvents = 'none';  // Prevent the overlay from interfering with mouse events
+        //            document.body.appendChild(overlay);
+
+        //            //// Change the background color of the original element on mouseenter
+        //            //element.addEventListener('mouseenter', function() {
+        //            //    element.style.backgroundColor = color; // Change the background color
+        //            //});
+
+        //            //// Reset the background color of the original element when mouse leaves
+        //            //element.addEventListener('mouseleave', function() {
+        //            //    element.style.backgroundColor = ''; // Reset to the original background color
+        //            //});
+
+        //            // Cleanup the overlay when the mouse leaves
+        //            element.addEventListener('mouseleave', function() {
+        //                document.body.removeChild(overlay); // Remove the overlay
+        //            });
+        //        };
+        //    }
+        //");
+        //    }
+
+
+        //Change bacgkroundcolor opacity for the row mouse enters v.2:
+        private async Task InitializeMouseEnterOverlay()
         {
-            SaveScrollPosition(false);
-            if (cell != null)
-            {
-                hoveredRowDelete = cell.Row;
-            }
-            else
+            // JS call to setup the overlay functionality (this is your method now)
+            await JSRuntime.InvokeVoidAsync("eval", @"
+                window.setupMouseEnterOverlay = function(contentId, row, column, color) {
+                    var element;
+
+                    // If contentId exists, use it to find the element
+                    if (contentId) {
+                        // Correct syntax for JavaScript: double quotes inside single quotes for attribute selectors
+                        element = document.querySelector('[data-content-id=""' + contentId + '""]');
+                    }
+
+                    // If contentId is not found, try finding the element with row and column attributes
+                    if (!element) {
+                        element = document.querySelector('[data-row=""' + row + '""][data-column=""' + column + '""]');
+                    }
+
+                    // If the element is still not found, log an error and return
+                    if (!element) {
+                        console.error('Element not found using contentId, row, or column.');
+                        return;
+                    }
+
+                    // Create the overlay
+                    var overlay = document.createElement('div');
+                    overlay.style.position = 'absolute';
+                    overlay.style.top = element.offsetTop + 'px'; // Position the overlay relative to the element
+                    overlay.style.left = '0px';
+                    overlay.style.width = '100%';
+                    overlay.style.height = element.offsetHeight + 'px';
+                    overlay.style.backgroundColor = color; // Set the background color passed as an argument
+                    overlay.style.opacity = '0.3'; // Semi-transparent overlay
+                    overlay.style.zIndex = '8500'; // Ensure overlay appears above other elements
+                    overlay.style.pointerEvents = 'none'; // Prevent the overlay from interfering with mouse events
+                    overlay.style.borderTop = '2px dotted #ccc'; // Top dotted border
+                    overlay.style.borderBottom = '2px dotted #ccc'; // Bottom dotted border            
+
+                    document.body.appendChild(overlay);
+
+                    // Cleanup the overlay when the mouse leaves
+                    element.addEventListener('mouseleave', function() {
+                        document.body.removeChild(overlay);
+                    });
+                };
+            ");
+        }
+
+
+
+
+        private async Task GetCellsRow(LayoutCell cell) 
+        {
+            await InitializeMouseEnterOverlay();  // Ensure the JS function is initialized
+            await JSRuntime.InvokeVoidAsync("setupMouseEnterOverlay", cell.ContentId,cell.Row,cell.Column, "red");
+            RestoreScrollPosition(false);
+            if (cell == null)
             {
                 hoveredRowDelete = 0;
                 Console.WriteLine("Hovered cell is null.");
                 return;
-            
             }
+
+            if(cell.Row == hoveredRowDelete)
+            {
+                //Console.WriteLine("Hovered cell is the same as last hovered row.");
+                return;
+            }
+                hoveredRowDelete = cell.Row;
+                Console.WriteLine($"Hovered row is {hoveredRowDelete}");
         }
 
         // Drag cell/content
@@ -1470,7 +1582,7 @@ namespace CMS.Components.Pages.WebPages
         // Method to update ColumnSpan for a cell
         private async Task UpdateColumnSpan(LayoutCell cell, int newColumnSpan)
         {
-            SaveScrollPosition();
+            RestoreScrollPosition();
             var targetCell = layout.LayoutCells.FirstOrDefault(c => c.ContentId == cell.ContentId);
             if (targetCell != null)
             {
@@ -1497,7 +1609,7 @@ namespace CMS.Components.Pages.WebPages
 
         private async Task UpdateColumnSpan(LayoutCell cell, string newColumnSpan)
         {
-            SaveScrollPosition();
+            RestoreScrollPosition();
             // Check if the string can be parsed to an integer without using the output value
             if (int.TryParse(newColumnSpan, out int newColumnspanInt))
             {
@@ -1808,7 +1920,7 @@ namespace CMS.Components.Pages.WebPages
         // Method for start of moving layout row.
         private void OnDragStartRow(int cellRow)
         {
-            SaveScrollPosition();
+            RestoreScrollPosition();
             draggedRow = cellRow;
             Console.WriteLine($"Started: drag row:{cellRow}.");
         }
@@ -1816,7 +1928,7 @@ namespace CMS.Components.Pages.WebPages
         // Method reading hovered row
         private void OnDragOverRow(int cellRow)
         {
-            SaveScrollPosition();
+            RestoreScrollPosition();
             hoveredRow = cellRow;
             Console.WriteLine($"Dragged over row:{cellRow}.");
         }
@@ -1824,7 +1936,7 @@ namespace CMS.Components.Pages.WebPages
         // Method for handling en of moving layout row
         private async Task OnDragEndRowAsync(DragEventArgs e)
         {
-            SaveScrollPosition();
+            RestoreScrollPosition();
             if (draggedRow != null)
             {
                 if (hoveredRow != null)

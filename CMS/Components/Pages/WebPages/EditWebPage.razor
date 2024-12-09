@@ -717,35 +717,14 @@
                             var contentLayout = Contents.FirstOrDefault(l => l.ContentId == cell.ContentId);
                             if (cell != null)
                             {
-                                if(hoveredRowDelete == cell.Row)
-                                {
-                                <div @onclick="() => DeleteRowAsync(cell.Row)" @onmouseenter="() => GetCellsRow(cell)" class="content-item-delete-row"
+                                    <div @onclick="() => DeleteRowAsync(cell.Row)" @onmouseover="() => GetCellsRow(cell)" class="content-item-delete-row"
                                         style="grid-row: @cell.Row; grid-column: @cell.Column;
                                         grid-row-end: span @cell.RowSpan;
                                         grid-column-end: span @cell.ColumnSpan;
                                         position: relative;"
-                                        data-content-id="@cell.ContentId">
-
-                                    @if (cell.ContentId != null)
-                                    {
-                                        <div class="content-wrapper">
-                                            <ContentPreview ContentId="@cell.ContentId.Value" @key="@cell.ContentId" />
-                                        </div>
-                                    }
-                                    else
-                                    {
-                                        <p style="color:white;"></p>
-                                    }
-                                    </div>
-                                }
-                                else
-                                {
-                                    <div @onclick="() => DeleteRowAsync(cell.Row)" @onmouseenter="() => GetCellsRow(cell)" class="content-item-delete"
-                                        style="grid-row: @cell.Row; grid-column: @cell.Column;
-                                        grid-row-end: span @cell.RowSpan;
-                                        grid-column-end: span @cell.ColumnSpan;
-                                        position: relative;"
-                                        data-content-id="@cell.ContentId">
+                                        data-content-id="@cell.ContentId"
+                                        data-row="@cell.Row"
+                                        data-column="@cell.Column">
 
                                         @if (cell.ContentId != null)
                                         {
@@ -758,8 +737,6 @@
                                             <p style="color:white;"></p>
                                         }
                                     </div>
-                                
-                                }
                             }
                         }
                     </div> 
@@ -774,9 +751,7 @@
                     UserInformationMessage("Something went wrong. It is not you, it is us..");
                     break;
                 }
-                
             }
-    @* LoadScrollPosition(); *@
 }
 
 <style>

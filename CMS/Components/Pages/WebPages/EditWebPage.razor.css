@@ -452,6 +452,7 @@ header, .navbar, footer {
 .content-item,
 .content-item-drag-cell,
 .content-item-delete,
+.content-item-delete-row,
 .content-item-create,
 .content-item-preview {
     min-height: 30px; /* Prevent extreme height changes */
@@ -471,6 +472,7 @@ header, .navbar, footer {
 
     /* Content item styles for paragraphs */
     .content-item p,
+    .content-item-delete-row p,
     .content-item-drag-cell p,
     .content-item-delete p,
     .content-item-create p,
@@ -494,6 +496,7 @@ header, .navbar, footer {
     .content-item a,
     .content-item-drag-cell a,
     .content-item-delete a,
+    .content-item-delete-row a,
     .content-item-create a,
     .content-item-preview a {
         word-wrap: break-word;
@@ -504,6 +507,7 @@ header, .navbar, footer {
     .content-item a,
     .content-item-drag-cell a,
     .content-item-delete a,
+    .content-item-delete-row a,
     .content-item-create a,
     .content-item-preview a {
         white-space: normal !important; /* Allow line breaks for links */
@@ -521,6 +525,7 @@ header, .navbar, footer {
     .content-item-create,
     .content-item-drag-cell,
     .content-item-delete,
+    .content-item-delete-row,
     .content-item-preview {
         width: 100%; /* Ensure content fills the entire cell */
         max-width: 100%; /* Prevent overflow of content */
@@ -589,20 +594,6 @@ header, .navbar, footer {
         }
 
 .content-item-delete-row {
-    position: relative;
-    user-select: none;
-    overflow: hidden;
-    box-sizing: border-box;
-    height: auto;
-    padding: 0;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-    hyphens: auto !important;
-    background-color: rgb(243, 85, 85);
-    opacity: 0.3;
-}
-
-.content-item-delete-row {
     cursor:crosshair;
     position: relative;
     user-select: none;
@@ -613,29 +604,7 @@ header, .navbar, footer {
     word-wrap: break-word;
     overflow-wrap: break-word;
     hyphens: auto !important;
-    background-color: rgb(243, 85, 85);
-    opacity: 0.3;
 }
-/*Dotted border top and bottom for delete row*/
-    .content-item-delete-row::before,
-    .content-item-delete-row::after {
-        content: "";
-        position: absolute;
-        width: 100%;
-        height: 2px; /* Adjust the height to control the thickness of the dotted line */
-        background: repeating-linear-gradient( to right, #ccc 0px, #ccc 1px, /* 1px for the dot size */
-        transparent 1px, transparent 2px /* 1px gap between the dots */
-        );
-    }
-
-    .content-item-delete-row::before {
-        top: 0; /* Position at the top */
-    }
-
-    .content-item-delete-row::after {
-        bottom: 0; /* Position at the bottom */
-    }
-/* End: Dotted border top and bottom for delete row*/
 
 /* End of Delete Layout and Styling */
 
