@@ -418,7 +418,6 @@ namespace CMS.Components.Pages.WebPages
         private async Task SelectCellForNewContent(LayoutCell cell)
         {
             UserInformationMessage("Välj plats för innehållets placering.");
-            RestoreScrollPosition();
             // If not Empty cell is choosen for new content, return.
             if (cell.ContentId != null)
             {
@@ -430,13 +429,14 @@ namespace CMS.Components.Pages.WebPages
             AddNewContentToLayout(out newContentId, webPageContents, cell);
             UserInformationMessage("Nytt innehåll skapat.");
 
+            RestoreScrollPosition();
             await InsertNewContentInLayoutAsync(cell, webPageContents, newContentId);
 
         }
 
         private async Task InsertNewContentInLayoutAsync(LayoutCell cell, List<Content> webPageContents, int? newContentId)
         {
-            RestoreScrollPosition();
+         
             var newCell = new LayoutCell
             {
                 Column = cell.Column,
@@ -564,6 +564,7 @@ namespace CMS.Components.Pages.WebPages
 
         private void ResumeEditContent()
         {
+            RestoreScrollPosition();
             contentForEditing = null;
             pageExecution = ExecuteAction.EditSelect;
             Contents = context.Contents.Where(c => c.WebPageId == WebPageId).ToList();
@@ -590,7 +591,7 @@ namespace CMS.Components.Pages.WebPages
         }
         private async Task DeleteRowAsync(int? row)
         {
-            RestoreScrollPosition();
+            //RestoreScrollPosition();
             if (row == null)
             {
                 UserInformationMessage("Ingen rad vald att radera.");
@@ -637,6 +638,7 @@ namespace CMS.Components.Pages.WebPages
             resizeCellColumnSpanActive = false;
 
             deleteRowActive = false;
+
         }
 
         public async ValueTask DisposeAsync() => await context.DisposeAsync();
@@ -669,7 +671,7 @@ namespace CMS.Components.Pages.WebPages
                         dragPreview.style.opacity = '1'; // Make the preview fully visible
                         dragPreview.style.width = '60%';
                         dragPreview.style.height = '60%';
-                        dragPreview.style.border = 'none';
+                        dragPreview.style.outline = 'none';
 
                         // Append the preview to the body
                         document.body.appendChild(dragPreview);
@@ -1407,7 +1409,7 @@ namespace CMS.Components.Pages.WebPages
                     overlay.style.height = element.offsetHeight + 'px';
                     overlay.style.backgroundColor = color; // Set the background color passed as an argument
                     overlay.style.opacity = '0.3'; // Semi-transparent overlay
-                    overlay.style.zIndex = '8500'; // Ensure overlay appears above other elements
+                    //overlay.style.zIndex = '8500'; // Ensure overlay appears above other elements
                     overlay.style.pointerEvents = 'none'; // Prevent the overlay from interfering with mouse events
                     overlay.style.borderTop = '2px dotted #ccc'; // Top dotted border
                     overlay.style.borderBottom = '2px dotted #ccc'; // Bottom dotted border            
@@ -1429,7 +1431,7 @@ namespace CMS.Components.Pages.WebPages
         {
             await InitializeMouseEnterOverlay();  // Ensure the JS function is initialized
             await JSRuntime.InvokeVoidAsync("setupMouseEnterOverlay", cell.ContentId,cell.Row,cell.Column, "red");
-            RestoreScrollPosition(false);
+            //RestoreScrollPosition(false);
             if (cell == null)
             {
                 hoveredRowDelete = 0;
@@ -1582,7 +1584,6 @@ namespace CMS.Components.Pages.WebPages
         // Method to update ColumnSpan for a cell
         private async Task UpdateColumnSpan(LayoutCell cell, int newColumnSpan)
         {
-            RestoreScrollPosition();
             var targetCell = layout.LayoutCells.FirstOrDefault(c => c.ContentId == cell.ContentId);
             if (targetCell != null)
             {
@@ -1920,7 +1921,7 @@ namespace CMS.Components.Pages.WebPages
         // Method for start of moving layout row.
         private void OnDragStartRow(int cellRow)
         {
-            RestoreScrollPosition();
+           // RestoreScrollPosition();
             draggedRow = cellRow;
             Console.WriteLine($"Started: drag row:{cellRow}.");
         }
@@ -1928,7 +1929,7 @@ namespace CMS.Components.Pages.WebPages
         // Method reading hovered row
         private void OnDragOverRow(int cellRow)
         {
-            RestoreScrollPosition();
+            //RestoreScrollPosition();
             hoveredRow = cellRow;
             Console.WriteLine($"Dragged over row:{cellRow}.");
         }
@@ -1936,7 +1937,7 @@ namespace CMS.Components.Pages.WebPages
         // Method for handling en of moving layout row
         private async Task OnDragEndRowAsync(DragEventArgs e)
         {
-            RestoreScrollPosition();
+           // RestoreScrollPosition();
             if (draggedRow != null)
             {
                 if (hoveredRow != null)
