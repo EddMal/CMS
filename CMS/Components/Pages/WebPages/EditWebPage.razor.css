@@ -429,7 +429,7 @@ header, .navbar, footer {
     gap: 0px; /* Add space between the items */
 }
 
-/* Base Layout Styling */
+/* Base Layout Styling for grid and cells*/
 
 /* Common grid container styling for all sections */
 .container-content-layout-grid,
@@ -532,7 +532,12 @@ header, .navbar, footer {
     }
 }
 
-/* End of Base Layout Styling */
+/* Disable all interactions within this wrapper */
+.content-item .content-wrapper {
+    pointer-events: none; /* Disable all interactions within this wrapper */
+}
+
+/* End of base layout styling for grid and cells*/
 
 
 /* Drag Cell Layout and Styling */
@@ -606,6 +611,12 @@ header, .navbar, footer {
     hyphens: auto !important;
 }
 
+
+/* Disable interactions within delete wrapper */
+.content-item-delete-row .content-wrapper {
+    pointer-events: none; /* Disable all interactions within this wrapper */
+}
+
 /* End of Delete Layout and Styling */
 
 
@@ -626,6 +637,7 @@ header, .navbar, footer {
     /* Disable interactions within content-item-create wrapper */
     .content-item-create .content-wrapper {
         pointer-events: none; /* Disable all interactions within this wrapper */
+
     }
 
     /* Hover and interaction states for content-item-create */
@@ -675,6 +687,28 @@ header, .navbar, footer {
 
 /* End of Preview Layout and Styling */
 
+/*Dotted border top and bottom */
+
+.dotted-border-row::before,
+.dotted-border-row::after {
+    content: "";
+    position: absolute;
+    width: 100%;
+    height: 2px; /* Adjust the height to control the thickness of the dotted line */
+    background: repeating-linear-gradient( to right, #ccc 0px, #ccc 1px, /* 1px for the dot size */
+    transparent 1px, transparent 2px /* 1px gap between the dots */
+    );
+}
+/*Dotted border top and bottom */
+
+.dotted-border-row::before {
+    top: 0; /* Position at the top */
+}
+
+.dotted-border-row::after {
+    bottom: 0; /* Position at the bottom */
+}
+/* End: Dotted border top and bottom for delete row*/
 
 /* Column span size tools */
 
@@ -709,7 +743,7 @@ input[type="range"].slider {
 
     input[type="range"].slider::-webkit-slider-runnable-track {
         height: 8px;
-        background: #ddd;
+        background: #ccc;
     }
 
     input[type="range"].slider::-webkit-slider-thumb {

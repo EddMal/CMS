@@ -17,8 +17,6 @@
 @implements IAsyncDisposable
 
 
-
-
 <!-- Overlay that covers the entire for soft transitions-->
 <div id="overlay"></div>
 
@@ -265,7 +263,7 @@
                         <CascadingValue Value="WebPageId">
                             <CMS.Components.Pages.WebPages.Edit @key="WebPageId" />
                         </CascadingValue>
-                        <button type="button" class="btn btn-warning btn-warning-edit" @onclick="()=> EditPageinformationDone()"> Tillbaka </button>
+                        <button type="button" class="btn btn-warning btn-warning-edit" @onclick="()=> EditPageinformationDoneAsync()"> Tillbaka </button>
                     </div>
                 @* PageExecution = ExecuteAction.Preview; *@
                 @*   if (scrollPositionNotRestored)
@@ -681,16 +679,19 @@
 
                             if (cell != null)
                             {
-                                <div class="content-item"
+                            <div class="content-item dotted-border-row"
                                         draggable="true"
-                                        @ondragstart="(e) => OnDragStartRow(cell.Row)"
-                                        @ondragend="(e) => OnDragEndRowAsync(e)"
-                                        @ondragover="(e) => OnDragOverRow(cell.Row)"
+                                        @onmousedown="() => OnDragStartRow(cell.Row)"
+                                        @onmouseup="() => OnDragEndRowAsync()"
+                                        @onmouseenter="() => OnDragOverRow(cell.Row)"
                                         style="grid-row: @cell.Row; grid-column: @cell.Column;
                                         grid-row-end: span @cell.RowSpan;
                                         grid-column-end: span @cell.ColumnSpan;
                                         position: relative;"
-                                        data-content-id="@cell.ContentId">
+                                        data-content-id="@cell.ContentId"
+                                        data-row="@cell.Row"
+                                        data-column="@cell.Column"
+                                        data-column-span="@cell.ColumnSpan">
 
                                     @if (cell.ContentId != null)
                                     {

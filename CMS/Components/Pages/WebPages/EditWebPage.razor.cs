@@ -25,11 +25,14 @@ using System.Diagnostics;
 using System.Numerics;
 using Bogus.DataSets;
 using System.Xml.Linq;
+using BlazorBootstrap;
+using System.Runtime.CompilerServices;
 namespace CMS.Components.Pages.WebPages
 {
     //ToDO: Chanfe variables name from ec. WebSiteId to webSiteId
     public partial class EditWebPage
     {
+        [Inject] private IWebPageService WebPageService { get; set; } = default!;
         [Inject] private ILayoutService LayoutService { get; set; } = default!;
         [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
         [Inject] private NavigationManager NavigationManager { get; set; } = default!;
@@ -111,12 +114,18 @@ namespace CMS.Components.Pages.WebPages
 
         protected override async Task OnInitializedAsync()
         {
+            if (WebPageId == null)
+            {
+
+                NavigationManager.NavigateTo("/error");
+            }
+
             await GetUserID();
             context = DbFactory.CreateDbContext();
+            
+            var webPage = await WebPageService.GetWebPageAsync(WebPageId.Value);
 
-            var webPage = await context.WebPages.FirstOrDefaultAsync(m => m.WebPageId == WebPageId);
-
-            if (webPage is null)
+            if (webPage == null)
             {
                 NavigationManager.NavigateTo("/error");
             }
@@ -404,14 +413,17 @@ namespace CMS.Components.Pages.WebPages
             pageExecution = ExecuteAction.EditPageinformation;
         }
 
-        private void EditPageinformationDone()
+        private async Task EditPageinformationDoneAsync()
         {
             UserInformationMessage("Redigera innehåll.");
             RestoreScrollPosition();
             ResetMenu();
             contentForEditing = null;
             pageExecution = ExecuteAction.EditSelect;
-            Contents = context.Contents.Where(c => c.WebPageId == WebPageId).ToList();
+
+            var webPage = await WebPageService.GetWebPageAsync(WebPageId.Value);
+            //Contents = webPage.Contents.Where(c => c.WebPageId == WebPageId).ToList();
+            webPageBackgroundColor = webPage.BackgroundColor;
             StateHasChanged();
         }
 
@@ -500,8 +512,7 @@ namespace CMS.Components.Pages.WebPages
             RestoreScrollPosition();
             if (contentForEditing != null)
             {
-
-
+                //ToDo: use content Service.
                 webPageContents = context.Contents.Where(c => c.WebPageId == WebPageId).ToList();
                 if (webPageContents.Count() == Contents.Count())
                 {
@@ -567,6 +578,7 @@ namespace CMS.Components.Pages.WebPages
             RestoreScrollPosition();
             contentForEditing = null;
             pageExecution = ExecuteAction.EditSelect;
+            //ToDo: Use content service, aviod to call database if there where no change.
             Contents = context.Contents.Where(c => c.WebPageId == WebPageId).ToList();
             StateHasChanged();
         }
@@ -1382,7 +1394,6 @@ namespace CMS.Components.Pages.WebPages
             await JSRuntime.InvokeVoidAsync("eval", @"
                 window.setupMouseEnterOverlay = function(contentId, row, column, color) {
                     var element;
-
                     // If contentId exists, use it to find the element
                     if (contentId) {
                         // Correct syntax for JavaScript: double quotes inside single quotes for attribute selectors
@@ -1422,6 +1433,523 @@ namespace CMS.Components.Pages.WebPages
                     });
                 };
             ");
+        }
+
+        //Drag row preview version 1, only one content/cells is shown.
+
+        //        private async Task InitializeDragPreviewRow()
+        //        {
+        //            // Call JS function to ensure setup is available
+        //            await JSRuntime.InvokeVoidAsync("eval", @"
+        //        if (!window.setupDragPreviewRow) {
+        //            window.setupDragPreviewRow = function(row) {
+        //                var rowElement = document.querySelector('[data-row=""' + row + '""]');
+
+        //            console.log('Drag row preview runs');    
+
+        //            if (!rowElement) {
+        //                console.error('Row element with Row: ' + row + ' not found.');
+        //                return;
+        //            }
+
+        //            rowElement.style.opacity = '0';
+        //            rowElement.style.pointerEvents = 'none';
+
+        //            var dragPreviewRow = rowElement.cloneNode(true);
+        //            dragPreviewRow.style.position = 'absolute';
+        //            dragPreviewRow.style.zIndex = '9999';
+        //            dragPreviewRow.style.pointerEvents = 'none';
+        //            dragPreviewRow.style.opacity = '1';
+        //            dragPreviewRow.style.width = rowElement.offsetWidth + 'px';
+        //            dragPreviewRow.style.height = rowElement.offsetHeight + 'px';
+        //            dragPreviewRow.style.outline = 'none';
+
+        //            document.body.appendChild(dragPreviewRow);
+
+        //            var movePreview = function(event) {
+        //                var previewWidth = dragPreviewRow.offsetWidth;
+        //                var previewHeight = dragPreviewRow.offsetHeight;
+        //                var scrollTop = window.scrollY;
+
+        //                dragPreviewRow.style.top = (event.clientY + scrollTop - previewHeight / 2) + 'px';
+        //                dragPreviewRow.style.left = (event.clientX - previewWidth / 2) + 'px';
+        //            };
+
+        //            movePreview({ clientX: window.event.clientX, clientY: window.event.clientY });
+        //            document.addEventListener('mousemove', movePreview);
+
+        //            window.dragPreviewElement = dragPreviewRow;
+        //            window.originalElement = rowElement;
+
+        //            // Define cleanup function for removing the preview
+        //            window.removeDragPreview = function() {
+        //                console.log('Cleaning up drag preview');
+
+        //                if (window.dragPreviewElement) {
+        //                    document.body.removeChild(window.dragPreviewElement); // Remove the preview
+        //                    window.dragPreviewElement = null; // Clear the reference
+        //                }
+
+        //                if (window.originalElement) {
+        //                    window.originalElement.style.opacity = '1'; // Reset original element's opacity
+        //                    window.originalElement.style.pointerEvents = ''; // Re-enable interaction with the original element
+        //                    window.originalElement = null; // Clear the reference to the original element
+        //                }
+        //            };
+
+        //            var cleanupOnMouseUp = function() {
+        //                console.log('Drag row: mouse up');
+        //                window.removeDragPreview(); // Call the cleanup function
+
+        //                document.removeEventListener('mousemove', movePreview);
+        //                document.removeEventListener('mouseup', cleanupOnMouseUp);
+        //            };
+
+        //            document.addEventListener('mouseup', cleanupOnMouseUp);
+        //        };
+        //    }
+        //");
+        //        }
+
+        //drag row preview version 2, all content/cells are there but in wrong order/size.
+
+        //        private async Task InitializeDragPreviewRow()
+        //        {
+        //            // Call JS function to ensure setup is available
+        //            await JSRuntime.InvokeVoidAsync("eval", @"
+        //    if (!window.setupDragPreviewRow) {
+        //        window.setupDragPreviewRow = function(row,webPageBackgroundColor) {
+        //            // Find all content items within the same row
+        //            var rowElements = document.querySelectorAll('[data-row=""' + row + '""]');
+
+
+        //                    console.log('Drag row preview runs');
+
+        //            if (rowElements.length === 0)
+        //            {
+        //                console.error('Row element with Row: ' + row + ' not found.');
+        //                return;
+        //            }
+
+        //            // Make the entire row's elements transparent and non-interactive during the drag
+        //            rowElements.forEach(function(element) {
+        //                element.style.opacity = '1';
+        //                element.style.pointerEvents = 'none';
+        //            });
+
+        //            // Create a container to hold the cloned elements for the preview
+        //            var dragPreviewRow = document.createElement('div');
+        //            dragPreviewRow.style.display = 'flex'; // Ensure all cells are displayed in a row
+        //            dragPreviewRow.style.position = 'absolute';
+        //            dragPreviewRow.style.zIndex = '9999';
+        //            dragPreviewRow.style.pointerEvents = 'none';
+        //            dragPreviewRow.style.opacity = '1';
+        //            dragPreviewRow.style.backgroundColor = webPageBackgroundColor;
+        //            dragPreviewRow.style.width = '100%'; // Set width for all cells in the row
+        //            dragPreviewRow.style.height = rowElements[0].offsetHeight + 'px'; // Set height based on a single cell's height
+        //            dragPreviewRow.style.outline = 'none';
+
+        //            // Clone each content item within the row and append to the preview container
+        //            rowElements.forEach(function(element) {
+        //                var clone = element.cloneNode(true); // Deep clone the entire content item
+        //                dragPreviewRow.appendChild(clone); // Append each cloned element to the preview container
+        //            });
+
+        //            // Append the preview row to the body
+        //            document.body.appendChild(dragPreviewRow);
+
+        //            // Function to move the preview with mouse movement
+        //            var movePreview = function(event) {
+        //            var previewWidth = dragPreviewRow.offsetWidth;
+        //            var previewHeight = dragPreviewRow.offsetHeight;
+        //            var scrollTop = window.scrollY;
+
+        //            dragPreviewRow.style.top = (event.clientY + scrollTop - previewHeight / 2) + 'px';
+        //        dragPreviewRow.style.left = (event.clientX - previewWidth / 2) + 'px';
+        //        };
+
+        //            // Position the preview at the mouse cursor's position
+        //            movePreview({ clientX: window.event.clientX, clientY: window.event.clientY });
+        //            document.addEventListener('mousemove', movePreview);
+
+        //            // Store the preview and original elements references
+        //            window.dragPreviewElement = dragPreviewRow;
+        //            window.originalElements = rowElements;
+
+        //            // Define the cleanup function for the drag preview
+        //            window.removeDragPreview = function()
+        //        {
+        //            console.log('Cleaning up drag preview');
+
+        //            if (window.dragPreviewElement)
+        //            {
+        //                document.body.removeChild(window.dragPreviewElement); // Remove the preview
+        //                window.dragPreviewElement = null; // Clear the reference
+        //            }
+
+        //            if (window.originalElements)
+        //            {
+        //                window.originalElements.forEach(function(element) {
+        //                    element.style.opacity = '1'; // Reset original element's opacity
+        //                    element.style.pointerEvents = ''; // Re-enable interaction with the original element
+        //                });
+        //                window.originalElements = null; // Clear the reference to the original elements
+        //            }
+        //        };
+
+        //        // Cleanup on mouse up
+        //        var cleanupOnMouseUp = function() {
+        //                console.log('Drag row: mouse up');
+        //                window.removeDragPreview(); // Call the cleanup function
+
+        //                document.removeEventListener('mousemove', movePreview);
+        //                document.removeEventListener('mouseup', cleanupOnMouseUp);
+        //            };
+
+        //    document.addEventListener('mouseup', cleanupOnMouseUp);
+        //        };
+        //    }
+        //");
+        //}
+
+        //Drag row preview, version 3, all content in right order.
+        //        private async Task InitializeDragPreviewRow()
+        //        {
+        //            // Call JS function to ensure setup is available
+        //            await JSRuntime.InvokeVoidAsync("eval", @"
+        //        if (!window.setupDragPreviewRow) {
+        //            window.setupDragPreviewRow = function(row, webPageBackgroundColor) {
+        //    var rowElements = document.querySelectorAll('[data-row=""' + row + '""]');
+
+        //    console.log('Drag row preview runs');
+
+        //    if (rowElements.length === 0) {
+        //        console.error('Row element with Row: ' + row + ' not found.');
+        //        return;
+        //    }
+
+        //    // Make the entire row's elements transparent and non-interactive during the drag
+        //    rowElements.forEach(function(element) {
+        //        element.style.opacity = '1';
+        //        element.style.pointerEvents = 'none';
+        //    });
+
+        //    // Create a container to hold the cloned elements for the preview
+        //    var dragPreviewRow = document.createElement('div');
+        //    dragPreviewRow.style.display = 'grid'; // Use grid instead of flex for better alignment
+        //    dragPreviewRow.style.position = 'absolute';
+        //    dragPreviewRow.style.zIndex = '9999';
+        //    dragPreviewRow.style.pointerEvents = 'none';
+        //    dragPreviewRow.style.opacity = '1';
+        //    dragPreviewRow.style.backgroundColor = webPageBackgroundColor;
+        //    dragPreviewRow.style.width = rowElements[0].offsetWidth + 'px'; // Set width based on the first cell's width
+        //    dragPreviewRow.style.height = rowElements[0].offsetHeight + 'px'; // Set height based on the first cell's height
+        //    dragPreviewRow.style.outline = 'none';
+
+        //    // Apply the same grid styling to the preview container
+        //    dragPreviewRow.style.gridTemplateColumns = 'repeat(12, 1fr)'; // 12 columns grid
+
+        //    // Clone each content item within the row and append to the preview container
+        //    rowElements.forEach(function(element) {
+        //        var clone = element.cloneNode(true); // Deep clone the entire content item
+
+        //        // Fetch the colspan from the element's style or attributes
+        //        var gridColumnSpan = window.getComputedStyle(element).getPropertyValue('grid-column-end');
+        //        console.log('Grid Column Span:', gridColumnSpan);
+
+        //        // Apply the appropriate grid-column-span style for the clone to match the original element
+        //        clone.style.gridColumnEnd = gridColumnSpan;
+
+        //        dragPreviewRow.appendChild(clone); // Append each cloned element to the preview container
+        //    });
+
+        //    // Append the preview row to the body
+        //    document.body.appendChild(dragPreviewRow);
+
+        //    // Function to move the preview with mouse movement
+        //    var movePreview = function(event) {
+        //        var previewWidth = dragPreviewRow.offsetWidth;
+        //        var previewHeight = dragPreviewRow.offsetHeight;
+        //        var scrollTop = window.scrollY;
+
+        //        dragPreviewRow.style.top = (event.clientY + scrollTop - previewHeight / 2) + 'px';
+        //        dragPreviewRow.style.left = (event.clientX - previewWidth / 2) + 'px';
+        //    };
+
+        //    // Position the preview at the mouse cursor's position
+        //    movePreview({ clientX: window.event.clientX, clientY: window.event.clientY });
+        //    document.addEventListener('mousemove', movePreview);
+
+        //    // Store the preview and original elements references
+        //    window.dragPreviewElement = dragPreviewRow;
+        //    window.originalElements = rowElements;
+
+        //    // Define the cleanup function for the drag preview
+        //    window.removeDragPreview = function() {
+        //        console.log('Cleaning up drag preview');
+
+        //        if (window.dragPreviewElement) {
+        //            document.body.removeChild(window.dragPreviewElement); // Remove the preview
+        //            window.dragPreviewElement = null; // Clear the reference
+        //        }
+
+        //        if (window.originalElements) {
+        //            window.originalElements.forEach(function(element) {
+        //                element.style.opacity = '1'; // Reset original element's opacity
+        //                element.style.pointerEvents = ''; // Re-enable interaction with the original element
+        //            });
+        //            window.originalElements = null; // Clear the reference to the original elements
+        //        }
+        //    };
+
+        //    // Cleanup on mouse up
+        //    var cleanupOnMouseUp = function() {
+        //        console.log('Drag row: mouse up');
+        //        window.removeDragPreview(); // Call the cleanup function
+
+        //        document.removeEventListener('mousemove', movePreview);
+        //        document.removeEventListener('mouseup', cleanupOnMouseUp);
+        //    };
+
+        //    document.addEventListener('mouseup', cleanupOnMouseUp);
+        //};
+        //            }
+        //        ");
+        //        }
+
+        //Drag row preview, version 4. width and proportions are correct, Issue: some extra blank space on top of content is added.
+
+        //    private async Task InitializeDragPreviewRow()
+        //    {
+        //        // Call JS function to ensure setup is available
+        //        await JSRuntime.InvokeVoidAsync("eval", @"
+        //    if (!window.setupDragPreviewRow) {
+        //        window.setupDragPreviewRow = function(row, webPageBackgroundColor) {
+        //            var rowElements = document.querySelectorAll('[data-row=""' + row + '""]');
+
+        //            console.log('Drag row preview runs');
+
+        //            if (rowElements.length === 0) {
+        //                console.error('Row element with Row: ' + row + ' not found.');
+        //                return;
+        //            }
+
+        //            // Make the entire row's elements transparent and non-interactive during the drag
+        //            rowElements.forEach(function(element) {
+        //                element.style.opacity = '1';
+        //                element.style.pointerEvents = 'none';
+        //            });
+
+        //            // Create a container to hold the cloned elements for the preview
+        //            var dragPreviewRow = document.createElement('div');
+        //            dragPreviewRow.style.display = 'grid'; // Use grid for better alignment
+        //            dragPreviewRow.style.position = 'absolute';
+        //            dragPreviewRow.style.zIndex = '9999';
+        //            dragPreviewRow.style.pointerEvents = 'none';
+        //            dragPreviewRow.style.opacity = '1';
+        //            dragPreviewRow.style.backgroundColor = webPageBackgroundColor;
+        //            dragPreviewRow.style.width = '100%'; // Set the width to 100% for full viewport/container width
+        //            dragPreviewRow.style.outline = 'none';
+
+        //            // Apply the same grid styling to the preview container
+        //            dragPreviewRow.style.gridTemplateColumns = 'repeat(12, 1fr)'; // 12 columns grid
+        //            dragPreviewRow.style.gridAutoRows = 'minmax(30px, auto)'; // Ensure rows are auto-sized based on content
+
+        //            // Clone each content item within the row and append to the preview container
+        //            rowElements.forEach(function(element) {
+        //                var clone = element.cloneNode(true); // Deep clone the entire content item
+
+        //                // Fetch the column span from the data-column-span attribute
+        //                var columnSpan = element.getAttribute('data-column-span');
+        //                console.log('Column Span:', columnSpan); // For example: 2 (this means the element spans 2 columns)
+
+        //                // Apply the column span to the clone using grid-column-end
+        //                if (columnSpan) {
+        //                    clone.style.gridColumnEnd = 'span ' + columnSpan;
+        //                }
+
+        //                dragPreviewRow.appendChild(clone); // Append each cloned element to the preview container
+        //            });
+
+        //            // Append the preview row to the body
+        //            document.body.appendChild(dragPreviewRow);
+
+        //            // Function to move the preview with mouse movement
+        //            var movePreview = function(event) {
+        //                var previewWidth = dragPreviewRow.offsetWidth;
+        //                var previewHeight = dragPreviewRow.offsetHeight;
+        //                var scrollTop = window.scrollY;
+
+        //                dragPreviewRow.style.top = (event.clientY + scrollTop - previewHeight / 2) + 'px';
+        //                dragPreviewRow.style.left = (event.clientX - previewWidth / 2) + 'px';
+        //            };
+
+        //            // Position the preview at the mouse cursor's position
+        //            movePreview({ clientX: window.event.clientX, clientY: window.event.clientY });
+        //            document.addEventListener('mousemove', movePreview);
+
+        //            // Store the preview and original elements references
+        //            window.dragPreviewElement = dragPreviewRow;
+        //            window.originalElements = rowElements;
+
+        //            // Define the cleanup function for the drag preview
+        //            window.removeDragPreview = function() {
+        //                console.log('Cleaning up drag preview');
+
+        //                if (window.dragPreviewElement) {
+        //                    document.body.removeChild(window.dragPreviewElement); // Remove the preview
+        //                    window.dragPreviewElement = null; // Clear the reference
+        //                }
+
+        //                if (window.originalElements) {
+        //                    window.originalElements.forEach(function(element) {
+        //                        element.style.opacity = '1'; // Reset original element's opacity
+        //                        element.style.pointerEvents = ''; // Re-enable interaction with the original element
+        //                    });
+        //                    window.originalElements = null; // Clear the reference to the original elements
+        //                }
+        //            };
+
+        //            // Cleanup on mouse up
+        //            var cleanupOnMouseUp = function() {
+        //                console.log('Drag row: mouse up');
+        //                window.removeDragPreview(); // Call the cleanup function
+
+        //                document.removeEventListener('mousemove', movePreview);
+        //                document.removeEventListener('mouseup', cleanupOnMouseUp);
+        //            };
+
+        //            document.addEventListener('mouseup', cleanupOnMouseUp);
+        //        };
+        //    }
+        //");
+        //    }
+
+        //Drag preview version 5. right height but row are not aligned with the top of the preview.
+
+        private async Task InitializeDragPreviewRow()
+        {
+            // Call JS function to ensure setup is available
+            await JSRuntime.InvokeVoidAsync("eval", @"
+if (!window.setupDragPreviewRow) {
+    window.setupDragPreviewRow = function(row, webPageBackgroundColor) {
+        var rowElements = document.querySelectorAll('[data-row=""' + row + '""]');
+
+        console.log('Drag row preview runs');
+
+        if (rowElements.length === 0) {
+            console.error('Row element with Row: ' + row + ' not found.');
+            return;
+        }
+
+        // Make the entire row's elements transparent and non-interactive during the drag
+        rowElements.forEach(function(element) {
+            element.style.opacity = '1';
+            element.style.pointerEvents = 'none';
+        });
+
+        // Create a container to hold the cloned elements for the preview
+        var dragPreviewRow = document.createElement('div');
+        dragPreviewRow.style.position = 'absolute';
+        dragPreviewRow.style.zIndex = '9999';
+        dragPreviewRow.style.pointerEvents = 'none';
+        dragPreviewRow.style.opacity = '1';
+        dragPreviewRow.style.backgroundColor = webPageBackgroundColor;
+        dragPreviewRow.style.width = '100%'; // Set width to 100%
+        dragPreviewRow.style.width = '100%';
+        dragPreviewRow.style.outline = 'none';
+
+        // Use grid layout to ensure proper alignment and sizing
+        dragPreviewRow.style.display = 'grid';
+        dragPreviewRow.style.gridTemplateColumns = 'repeat(12, 1fr)'; // Ensure the grid has 12 columns
+        dragPreviewRow.style.gridAutoRows = 'minmax(30px, auto)'; // Auto-sized rows based on content
+
+        // Calculate the total height of the row dynamically based on the elements
+        var totalHeight = 0;
+        rowElements.forEach(function(element) {
+            totalHeight = rowElements[0].offsetHeight + 'px'; // Set height based on the first cell's height
+        });
+
+        // Set the height of the preview container to match the total height
+        dragPreviewRow.style.height = rowElements[0].offsetHeight + 'px'; // Set height based on the first cell's height
+
+        // Clone each content item within the row and append to the preview container
+        rowElements.forEach(function(element) {
+            var clone = element.cloneNode(true); // Deep clone the entire content item
+
+            // Fetch the column span from the data-column-span attribute
+            var columnSpan = element.getAttribute('data-column-span');
+            console.log('Column Span:', columnSpan);
+
+            // Apply the column span to the clone using grid-column-end
+            if (columnSpan) {
+                clone.style.gridColumnEnd = 'span ' + columnSpan; // Apply column span
+            }
+
+            dragPreviewRow.appendChild(clone); // Append the cloned element to the preview container
+        });
+
+        // Append the preview row to the body
+        document.body.appendChild(dragPreviewRow);
+
+        // Function to move the preview with mouse movement
+        var movePreview = function(event) {
+            var previewWidth = dragPreviewRow.offsetWidth;
+            var previewHeight = dragPreviewRow.offsetHeight;
+            var scrollTop = window.scrollY;
+
+            dragPreviewRow.style.top = (event.clientY + scrollTop - previewHeight / 2) + 'px';
+            dragPreviewRow.style.left = (event.clientX - previewWidth / 2) + 'px';
+        };
+
+        // Position the preview at the mouse cursor's position
+        movePreview({ clientX: window.event.clientX, clientY: window.event.clientY });
+        document.addEventListener('mousemove', movePreview);
+
+        // Store the preview and original elements references
+        window.dragPreviewElement = dragPreviewRow;
+        window.originalElements = rowElements;
+
+        // Define the cleanup function for the drag preview
+        window.removeDragPreview = function() {
+            console.log('Cleaning up drag preview');
+
+            if (window.dragPreviewElement) {
+                document.body.removeChild(window.dragPreviewElement); // Remove the preview
+                window.dragPreviewElement = null; // Clear the reference
+            }
+
+            if (window.originalElements) {
+                window.originalElements.forEach(function(element) {
+                    element.style.opacity = '1'; // Reset original element's opacity
+                    element.style.pointerEvents = ''; // Re-enable interaction with the original element
+                });
+                window.originalElements = null; // Clear the reference to the original elements
+            }
+        };
+
+        // Cleanup on mouse up
+        var cleanupOnMouseUp = function() {
+            console.log('Drag row: mouse up');
+            window.removeDragPreview(); // Call the cleanup function
+
+            document.removeEventListener('mousemove', movePreview);
+            document.removeEventListener('mouseup', cleanupOnMouseUp);
+        };
+
+        document.addEventListener('mouseup', cleanupOnMouseUp);
+    };
+}
+");
+        }
+
+
+
+
+        public async Task StartDragForRow(string rowId)
+        {
+            // Now that the JS function is initialized, we can call it
+            await JSRuntime.InvokeVoidAsync("setupDragPreviewRow", rowId);
         }
 
 
@@ -1514,19 +2042,22 @@ namespace CMS.Components.Pages.WebPages
                     // Check if swap is legit.
                     if (draggedCellIndex.Value != hoveredCellIndex.Value)
                     {
-                            Console.WriteLine("Drag ended, updating layout.");
+                        Console.WriteLine("Drag ended, updating layout.");
                             
-                            // Swap positions in layout
-                            SwapCellsPositions(draggedCellIndex, hoveredCellIndex, draggedCell, hoveredCell);
+                        // Swap positions in layout
+                        SwapCellsPositions(draggedCellIndex, hoveredCellIndex, draggedCell, hoveredCell);
    
-                            // Save the new layout order
-                            await SaveLayoutChangesAsync();
-                            StateHasChanged();  // To refresh the UI
-
-                            // Reset dragged cell after layout update
-                            draggedCell = null;
-                            hoveredCell = null;
                         
+                        RestoreScrollPosition(false);
+                        // Save the new layout order
+                        await SaveLayoutChangesAsync();
+                        StateHasChanged();  // To refresh the UI
+
+                        // Reset dragged cell after layout update
+                        draggedCell = null;
+                        hoveredCell = null;
+                        
+                        UserInformationMessage("Innehåll flyttat.");
                     }
                     else
                     {
@@ -1538,8 +2069,6 @@ namespace CMS.Components.Pages.WebPages
                     Console.WriteLine("Found no cell for drop (null)");
                 }
             }
-
-            UserInformationMessage("Innehåll flyttat.");
         }
 
         private void GetCellsIndexesForDragAndHovered(out int? hoveredCellIndex, out int? draggedCellIndex)
@@ -1610,7 +2139,7 @@ namespace CMS.Components.Pages.WebPages
 
         private async Task UpdateColumnSpan(LayoutCell cell, string newColumnSpan)
         {
-            RestoreScrollPosition();
+            RestoreScrollPosition(false);
             // Check if the string can be parsed to an integer without using the output value
             if (int.TryParse(newColumnSpan, out int newColumnspanInt))
             {
@@ -1919,9 +2448,11 @@ namespace CMS.Components.Pages.WebPages
         }
 
         // Method for start of moving layout row.
-        private void OnDragStartRow(int cellRow)
+        private async Task OnDragStartRow(int cellRow)
         {
-           // RestoreScrollPosition();
+            await InitializeDragPreviewRow();  // Ensure the JS function is initialized
+            await JSRuntime.InvokeVoidAsync("setupDragPreviewRow", cellRow, webPageBackgroundColor);
+            // RestoreScrollPosition();
             draggedRow = cellRow;
             Console.WriteLine($"Started: drag row:{cellRow}.");
         }
@@ -1935,7 +2466,7 @@ namespace CMS.Components.Pages.WebPages
         }
 
         // Method for handling en of moving layout row
-        private async Task OnDragEndRowAsync(DragEventArgs e)
+        private async Task OnDragEndRowAsync()
         {
            // RestoreScrollPosition();
             if (draggedRow != null)
