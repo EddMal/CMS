@@ -1854,24 +1854,21 @@ if (!window.setupDragPreviewRow) {
         dragPreviewRow.style.zIndex = '9999';
         dragPreviewRow.style.pointerEvents = 'none';
         dragPreviewRow.style.opacity = '1';
-        dragPreviewRow.style.backgroundColor = webPageBackgroundColor;
+        //dragPreviewRow.style.backgroundColor = webPageBackgroundColor;
         dragPreviewRow.style.width = '100%'; // Set width to 100%
-        dragPreviewRow.style.width = '100%';
+        dragPreviewRow.style.height = 'auto'
         dragPreviewRow.style.outline = 'none';
 
         // Use grid layout to ensure proper alignment and sizing
         dragPreviewRow.style.display = 'grid';
         dragPreviewRow.style.gridTemplateColumns = 'repeat(12, 1fr)'; // Ensure the grid has 12 columns
         dragPreviewRow.style.gridAutoRows = 'minmax(30px, auto)'; // Auto-sized rows based on content
+        dragPreviewRow.style.alignItems = 'top'; // Align all items to the top
 
-        // Calculate the total height of the row dynamically based on the elements
-        var totalHeight = 0;
-        rowElements.forEach(function(element) {
-            totalHeight = rowElements[0].offsetHeight + 'px'; // Set height based on the first cell's height
-        });
+
 
         // Set the height of the preview container to match the total height
-        dragPreviewRow.style.height = rowElements[0].offsetHeight + 'px'; // Set height based on the first cell's height
+        //dragPreviewRow.style.height = rowElements[0].offsetHeight + 'px'; // Set height based on the first cell's height
 
         // Clone each content item within the row and append to the preview container
         rowElements.forEach(function(element) {

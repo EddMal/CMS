@@ -464,30 +464,30 @@ header, .navbar, footer {
     height: auto; /* Let the height adjust based on content */
     padding: 0; /* Remove extra padding if necessary */
     word-wrap: break-word; /* Allow long words to break and wrap onto the next line */
-    overflow-wrap: break-word; /* Fallback for some browsers */
+    /*overflow-wrap: break-word;*/ /* Fallback for some browsers */
     hyphens: auto !important; /* Hyphenation for headings */
     transition: all 0.3s ease-out; /* Smooth transition */
     scroll-snap-align: start; /* Each item will snap to the top of the viewport */
 }
 
     /* Content item styles for paragraphs */
-    .content-item p,
+    /*.content-item p,
     .content-item-delete-row p,
     .content-item-drag-cell p,
     .content-item-delete p,
     .content-item-create p,
     .content-item-preview p {
-        min-height: 30px; /* Minimum height for each cell */
-        width: 100%; /* Ensure content fills the full width */
-        max-width: 100%; /* Ensure content does not overflow */
-        box-sizing: border-box; /* Ensure the width includes padding */
-        word-wrap: break-word; /* Break words to prevent overflow */
-        overflow-wrap: break-word; /* Fallback for some browsers */
-        hyphens: auto !important; /* Hyphenation for headings */
-    }
+        min-height: 30px;*/ /* Minimum height for each cell */
+        /*width: 100%;*/ /* Ensure content fills the full width */
+        /*max-width: 100%;*/ /* Ensure content does not overflow */
+        /*box-sizing: border-box;*/ /* Ensure the width includes padding */
+        /*word-wrap: break-word;*/ /* Break words to prevent overflow */
+        /*overflow-wrap: break-word;*/ /* Fallback for some browsers */
+        /*hyphens: auto !important;*/ /* Hyphenation for headings */
+    /*}*/
 
     /* Headings and Links styles */
-    .content-item h1,
+    /*.content-item h1,
     .content-item h2,
     .content-item h3,
     .content-item h4,
@@ -501,8 +501,8 @@ header, .navbar, footer {
     .content-item-preview a {
         word-wrap: break-word;
         overflow-wrap: break-word;
-        hyphens: auto !important; /* Hyphenation for headings and links */
-    }
+        hyphens: auto !important;*/ /* Hyphenation for headings and links */
+    /*}*/
 
     .content-item a,
     .content-item-drag-cell a,
@@ -535,6 +535,7 @@ header, .navbar, footer {
 /* Disable all interactions within this wrapper */
 .content-item .content-wrapper {
     pointer-events: none; /* Disable all interactions within this wrapper */
+    height: 100%
 }
 
 /* End of base layout styling for grid and cells*/
@@ -562,6 +563,7 @@ header, .navbar, footer {
     /* Ensure content-wrapper is not blocking interactions */
     .content-item-drag-cell .content-wrapper {
         pointer-events: none; /* Disable all interactions within this wrapper */
+        height: 100%
     }
 
 /* End of Drag Cell Layout and Styling */
@@ -582,6 +584,7 @@ header, .navbar, footer {
     /* Disable interactions within delete wrapper */
     .content-item-delete .content-wrapper {
         pointer-events: none; /* Disable all interactions within this wrapper */
+        height: 100%
     }
 
     /* Hover states for delete */
@@ -613,9 +616,10 @@ header, .navbar, footer {
 
 
 /* Disable interactions within delete wrapper */
-.content-item-delete-row .content-wrapper {
-    pointer-events: none; /* Disable all interactions within this wrapper */
-}
+    .content-item-delete-row .content-wrapper {
+        pointer-events: none; /* Disable all interactions within this wrapper */
+        height: 100%
+    }
 
 /* End of Delete Layout and Styling */
 
@@ -637,7 +641,7 @@ header, .navbar, footer {
     /* Disable interactions within content-item-create wrapper */
     .content-item-create .content-wrapper {
         pointer-events: none; /* Disable all interactions within this wrapper */
-
+        height: 100%
     }
 
     /* Hover and interaction states for content-item-create */
@@ -669,6 +673,7 @@ header, .navbar, footer {
     /* Disable interactions within preview wrapper */
     .content-item-preview .content-wrapper {
         pointer-events: none; /* Disable all interactions within this wrapper */
+        height: 100%
     }
 
     /* Hover and interaction states for content-item-preview */
