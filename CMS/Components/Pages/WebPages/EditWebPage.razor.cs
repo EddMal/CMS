@@ -682,7 +682,7 @@ namespace CMS.Components.Pages.WebPages
                         dragPreview.style.pointerEvents = 'none'; // Prevent interaction with the preview
                         dragPreview.style.opacity = '1'; // Make the preview fully visible
                         dragPreview.style.width = '60%';
-                        dragPreview.style.height = '60%';
+                        //dragPreview.style.height = '60%';
                         dragPreview.style.outline = 'none';
 
                         // Append the preview to the body
@@ -993,400 +993,6 @@ namespace CMS.Components.Pages.WebPages
         }
 
 
-
-
-        // Attempt to log the time for reset: inconsisten results with flickering during restoring the scrollY .
-
-        //    private void LoadScrollPosition()
-        //    {
-        //        InitializeScrollTracking();
-
-        //        // Run JavaScript to attempt restoring the scroll position after the page layout is updated
-        //        JSRuntime.InvokeVoidAsync("eval", @"
-        //    (function attemptToRestoreScrollPosition() {
-        //        // Retrieve retries from localStorage.
-        //        let retries = parseInt(localStorage.getItem('retries'), 10) || 0;
-
-        //        // If retrying is not allowed, stop the function.
-        //        if (retries > 3) {
-        //            console.log('Restoration attempts exceeded. Aborting further retries.');
-        //            return; // Stop further execution.
-        //        }
-
-        //        // Get stored scroll position from localStorage.
-        //        var storedScrollPosition = localStorage.getItem('scrollPosition');
-
-        //        // Ensure stored position exists and convert it to a floating-point number.
-        //        storedScrollPosition = parseFloat(storedScrollPosition);
-
-        //        // Check if stored position exists and handle the restoration attempt.
-        //        if (!isNaN(storedScrollPosition)) {
-        //            // Request the next frame to restore scroll position after layout has stabilized
-        //            function restoreScroll() {
-        //                // Get the current scroll position
-        //                var currentScrollPosition = window.scrollY;
-
-        //                // Only restore scroll position if it's different from the current position
-        //                if (currentScrollPosition !== storedScrollPosition) {
-        //                    window.scrollTo(0, storedScrollPosition);
-        //                    console.log('Scroll position restored to:', storedScrollPosition);
-        //                } else {
-        //                    console.log('Scroll position is already restored to:', storedScrollPosition);
-        //                }
-
-        //                // Increment retry counter
-        //                retries++;
-        //                localStorage.setItem('retries', retries);
-
-        //                // Retry if necessary (with a 50ms delay)
-        //                if (retries < 3) {
-        //                    setTimeout(restoreScroll, 50);
-        //                }
-        //            }
-
-        //            // Use requestAnimationFrame for smoother transition
-        //            requestAnimationFrame(restoreScroll);
-        //        } else {
-        //            console.log('No valid scroll position to restore.');
-        //        }
-        //    })();
-        //");
-        //    }
-
-        //version 2 time logging. Results: cuts down the missed restorations to top position of page, still high amount of results with flickering.
-        //    private void RestoreScrollPosition()
-        //    {
-        //        // Save the current scroll position using localStorage in JavaScript (store as floating point number)
-        //        JSRuntime.InvokeVoidAsync("eval", @"
-        //    localStorage.setItem('scrollPosition', window.scrollY); // Store the exact scrollY value
-        //    localStorage.setItem('retries', 0); // Initialize retries in localStorage
-        //    console.log('scroll position saved:', window.scrollY);
-        //");
-
-        //        // Add a retry mechanism for restoring the scroll position with reasonable intervals
-        //        JSRuntime.InvokeVoidAsync("eval", @"
-        //    (function attemptRestoreScrollPosition() {
-        //        var storedScrollPosition = localStorage.getItem('scrollPosition');
-        //        storedScrollPosition = parseFloat(storedScrollPosition);
-
-        //        if (!isNaN(storedScrollPosition)) {
-        //            var retries = 0;
-        //            var maxRetries = 500;
-        //            var interval = 5; // Increase interval to 5ms
-        //            var startTime = Date.now();
-        //            var matchCount = 0;
-
-        //            function restoreScroll() {
-        //                // First attempt to restore
-        //                window.scrollTo(0, storedScrollPosition);
-        //                console.log('First restore attempt to:', storedScrollPosition);
-
-        //                // Wait 5ms before the second attempt
-        //                setTimeout(function() {
-        //                    window.scrollTo(0, storedScrollPosition);
-        //                    console.log('Second restore attempt to:', storedScrollPosition);
-
-        //                    // Check if scroll position matches after second attempt
-        //                    if (window.scrollY === storedScrollPosition) {
-        //                        matchCount++;
-        //                        console.log('Scroll position matched at:', window.scrollY);
-
-        //                        // Stop retrying if the condition is met twice
-        //                        if (matchCount >= 2) {
-        //                            var endTime = Date.now();
-        //                            console.log('Restoration successful after', retries, 'retries.');
-        //                            console.log('Time taken:', endTime - startTime, 'ms');
-        //                            return; // Stop retrying
-        //                        }
-        //                    }
-
-        //                    retries++;
-        //                    if (retries < maxRetries) {
-        //                        setTimeout(restoreScroll, interval); // Retry every 5ms
-        //                    } else {
-        //                        var endTime = Date.now();
-        //                        console.log('Max retries reached. Time taken:', endTime - startTime, 'ms');
-        //                    }
-        //                }, 10); // Add a small delay between first and second attempt
-        //            }
-
-        //            // Start the restoration process
-        //            restoreScroll();
-        //        } else {
-        //            console.log('No valid scroll position to restore.');
-        //        }
-        //    })();
-        //");
-        //    }
-
-        // version 3 logging little better timing,  not much better than original primitive method.
-        //    private void RestoreScrollPosition()
-        //    {
-        //        // Save the current scroll position using localStorage in JavaScript
-        //        JSRuntime.InvokeVoidAsync("eval", @"
-        //    localStorage.setItem('scrollPosition', window.scrollY);
-        //    localStorage.setItem('retries', 0);
-        //    console.log('scroll position saved:', window.scrollY);
-        //");
-
-        //        // Retry mechanism for restoring scroll position
-        //        JSRuntime.InvokeVoidAsync("eval", @"
-        //    (function attemptRestoreScrollPosition() {
-        //        var storedScrollPosition = localStorage.getItem('scrollPosition');
-        //        storedScrollPosition = parseFloat(storedScrollPosition);
-
-        //        if (!isNaN(storedScrollPosition)) {
-        //            var retries = 0;
-        //            var maxRetries = 1000; // Increase retries to handle edge cases
-        //            var interval = 5; // Retry every 5ms
-        //            var matchCount = 0;
-        //            var startTime = Date.now();
-
-        //            function restoreScroll() {
-        //                // First attempt to restore scroll position
-        //                window.scrollTo(0, storedScrollPosition);
-        //                console.log('First restore attempt to:', storedScrollPosition);
-
-        //                // Wait 20ms before second attempt to ensure page stabilization
-        //                setTimeout(function() {
-        //                    window.scrollTo(0, storedScrollPosition);
-        //                    console.log('Second restore attempt to:', storedScrollPosition);
-
-        //                    // Check if scroll position matches
-        //                    if (window.scrollY === storedScrollPosition) {
-        //                        matchCount++;
-        //                        console.log('Scroll position matched at:', window.scrollY);
-        //                    }
-
-        //                    // Stop retrying if the condition is met twice
-        //                    if (matchCount >= 2) {
-        //                        var endTime = Date.now();
-        //                        console.log('Restoration successful after', retries, 'retries.');
-        //                        console.log('Time taken:', endTime - startTime, 'ms');
-        //                        return; // Stop retrying
-        //                    }
-
-        //                    retries++;
-        //                    if (retries < maxRetries) {
-        //                        setTimeout(restoreScroll, interval); // Retry after 5ms
-        //                    } else {
-        //                        var endTime = Date.now();
-        //                        console.log('Max retries reached. Time taken:', endTime - startTime, 'ms');
-        //                    }
-        //                }, 20); // Delay of 20ms between attempts
-        //            }
-
-        //            // Start the restoration process
-        //            restoreScroll();
-        //        } else {
-        //            console.log('No valid scroll position to restore.');
-        //        }
-        //    })();
-        //");
-        //    }
-
-        //Not improvments:
-        // You can suppress or throttle scroll events during the restoration process to prevent them from interfering.
-        // Setting a flag during scroll restoration and temporarily disabling scroll handling until the restoration is complete.
-        //    private void RestoreScrollPosition()
-        //    {
-        //        JSRuntime.InvokeVoidAsync("eval", @"
-        //var isRestoringScroll = false;
-        //function restoreScrollPosition()
-        //{
-        //    if (isRestoringScroll) return; // Prevent nested restore calls
-        //    isRestoringScroll = true;
-
-        //    var storedScrollPosition = localStorage.getItem('scrollPosition');
-        //    storedScrollPosition = parseFloat(storedScrollPosition);
-
-        //    if (!isNaN(storedScrollPosition))
-        //    {
-        //        var retries = 0;
-        //        var maxRetries = 500;
-        //        var interval = 10;
-
-        //        var restoreInterval = setInterval(function() {
-        //            requestAnimationFrame(function() {
-        //                window.scrollTo(0, storedScrollPosition);
-        //            });
-
-        //            retries++;
-        //            if (retries > maxRetries || window.scrollY === storedScrollPosition)
-        //            {
-        //                clearInterval(restoreInterval);
-        //                isRestoringScroll = false; // Allow further restores
-        //                if (window.scrollY === storedScrollPosition)
-        //                {
-        //                    console.log('Scroll position successfully restored after', retries, 'attempts.');
-        //                }
-        //                else
-        //                {
-        //                    console.log('Max retries reached, scroll position not restored.');
-        //                }
-        //            }
-        //        }, interval);
-        //    }
-        //    else
-        //    {
-        //        console.log('No scroll position saved.');
-        //    }
-        //}
-        //restoreScrollPosition(); //invoke 
-        //");
-        //    }
-
-
-
-        //potential fallback solution use agressive primitive savefunction when  clicked,
-        //clicked or the actions/rewrite rerender after click seems to trigger the flickering.
-
-        //TESTING PROBE:
-        //<button @onclick="InitializeScrollTracking">Start Scroll Tracking</button>
-        // C# method to initialize scroll tracking
-        //    private void InitializeScrollTracking()
-        //    {
-        //        JSRuntime.InvokeVoidAsync("eval", @"
-        //    function initializeScrollTracking() {
-        //        console.log('PROBE: Script is running');  // Log script start
-
-        //        let resetCause = '';
-
-        //        // Function to log the scroll position and reset cause
-        //        function logScrollPosition(message) {
-        //            console.log('PROBE:', message);
-        //            console.log('PROBE: Current Scroll Position:', window.scrollY);
-        //            console.log('PROBE: Reset Cause:', resetCause);  // Log reset cause
-        //        }
-
-        //        // Function to probe scroll position regularly
-        //        function probeScrollPosition() {
-        //            const scrollY = window.scrollY;
-
-        //            // Log when the viewport is reset to top (scrollY === 0)
-        //            if (scrollY === 0) {
-        //                logScrollPosition('Viewport reset to top');
-        //            }
-
-        //            // Continue probing the scroll position every 100ms
-        //            setTimeout(probeScrollPosition, 100);
-        //        }
-
-        //        // Start probing scroll position immediately after page load
-        //        window.addEventListener('load', function() {
-        //            resetCause = 'Page Loaded';  // Page load triggers the reset cause
-        //            probeScrollPosition();
-        //            logScrollPosition('Page Loaded and Probing Started');
-
-        //            // Restore scroll position if it's saved in localStorage
-        //            const storedScrollPosition = localStorage.getItem('scrollPosition');
-        //            if (storedScrollPosition !== null) {
-        //                resetCause = 'Restoring scroll position';
-        //                console.log('PROBE: Restoring scroll position:', storedScrollPosition);
-        //                window.scrollTo(0, storedScrollPosition);  // Smooth scroll to restored position
-        //                logScrollPosition('Restoring scroll position');
-        //            }
-        //        });
-
-        //        // Detect page unload (refresh or navigation)
-        //        window.addEventListener('beforeunload', function() {
-        //            resetCause = 'Before Unload: Saving scroll position';  // Save cause before unload
-        //            logScrollPosition('Before Unload: Saving scroll position');
-        //            localStorage.setItem('scrollPosition', window.scrollY);  // Save scroll position
-        //        });
-
-        //        // Detect SPA page navigation or re-renders (popstate event)
-        //        window.addEventListener('popstate', function() {
-        //            resetCause = 'SPA Navigation or Re-render Detected';
-        //            logScrollPosition('SPA Navigation or Re-render triggered');
-        //        });
-
-        //        // Detect toggling between Edit and Drag actions
-        //        window.addEventListener('click', function(event) {
-        //            if (event.target && event.target.closest('.btn')) {
-        //                resetCause = 'Button Clicked: Action toggled';
-        //                logScrollPosition('Button clicked, action toggled');
-        //            }
-        //        });
-
-        //        // Listen for changes in the layout (drag or edit actions)
-        //        document.getElementById('myButton')?.addEventListener('click', function() {
-        //            resetCause = 'Button Clicked: Resetting scroll position';
-        //            window.scrollTo(0, 0);  // Example: Reset scroll to top
-        //            logScrollPosition('Button clicked, scroll reset');
-        //        });
-
-        //        // Listen for other actions (content change, modal opening, etc.)
-        //        document.getElementById('contentChanged')?.addEventListener('click', function() {
-        //            resetCause = 'Content Changed: Resetting scroll position';
-        //            window.scrollTo(0, 0);  // Reset scroll to top after content changes
-        //            logScrollPosition('Content changed, scroll reset');
-        //        });
-        //    }
-
-        //    // Initialize the scroll tracking functionality
-        //    initializeScrollTracking();
-        //");
-        //    }
-
-        //End testing probe
-
-        //private void LeaveRow() 
-        //{
-        //    RestoreScrollPosition(false);
-
-        //    hoveredRowDelete = 0;
-        //}
-
-        // Change bacgkroundcolor opacity for the row mouse enters:
-
-        //    private async Task InitializeMouseEnterOverlay()
-        //    {
-        //        await JSRuntime.InvokeVoidAsync("eval", @"
-        //    if (!window.setupMouseEnterOverlay) {
-        //        window.setupMouseEnterOverlay = function(contentId, color) {
-        //            // Select the element using data-content-id attribute
-        //            var element = document.querySelector('[data-content-id=""' + contentId + '""]'); 
-
-        //            // Check if the element exists
-        //            if (!element) {
-        //                console.error('Element with ContentId ' + contentId + ' not found.');
-        //                return; // Exit if the element is not found
-        //            }
-
-        //            // Create the overlay
-        //            var overlay = document.createElement('div');
-        //            overlay.style.position = 'absolute';
-        //            overlay.style.top = element.offsetTop + 'px';  // Position the overlay relative to the element
-        //            overlay.style.left = element.offsetLeft + 'px';
-        //            overlay.style.width = '100%';
-        //            overlay.style.height = element.offsetHeight + 'px';
-        //            overlay.style.backgroundColor = color;  // Set the background color passed as an argument
-        //            overlay.style.opacity = '0.3';  // Semi-transparent overlay
-        //            overlay.style.zIndex = '9998';  // Place overlay above the element
-        //            overlay.style.pointerEvents = 'none';  // Prevent the overlay from interfering with mouse events
-        //            document.body.appendChild(overlay);
-
-        //            //// Change the background color of the original element on mouseenter
-        //            //element.addEventListener('mouseenter', function() {
-        //            //    element.style.backgroundColor = color; // Change the background color
-        //            //});
-
-        //            //// Reset the background color of the original element when mouse leaves
-        //            //element.addEventListener('mouseleave', function() {
-        //            //    element.style.backgroundColor = ''; // Reset to the original background color
-        //            //});
-
-        //            // Cleanup the overlay when the mouse leaves
-        //            element.addEventListener('mouseleave', function() {
-        //                document.body.removeChild(overlay); // Remove the overlay
-        //            });
-        //        };
-        //    }
-        //");
-        //    }
-
-
         //Change bacgkroundcolor opacity for the row mouse enters v.2:
         private async Task InitializeMouseEnterOverlay()
         {
@@ -1435,509 +1041,120 @@ namespace CMS.Components.Pages.WebPages
             ");
         }
 
-        //Drag row preview version 1, only one content/cells is shown.
-
-        //        private async Task InitializeDragPreviewRow()
-        //        {
-        //            // Call JS function to ensure setup is available
-        //            await JSRuntime.InvokeVoidAsync("eval", @"
-        //        if (!window.setupDragPreviewRow) {
-        //            window.setupDragPreviewRow = function(row) {
-        //                var rowElement = document.querySelector('[data-row=""' + row + '""]');
-
-        //            console.log('Drag row preview runs');    
-
-        //            if (!rowElement) {
-        //                console.error('Row element with Row: ' + row + ' not found.');
-        //                return;
-        //            }
-
-        //            rowElement.style.opacity = '0';
-        //            rowElement.style.pointerEvents = 'none';
-
-        //            var dragPreviewRow = rowElement.cloneNode(true);
-        //            dragPreviewRow.style.position = 'absolute';
-        //            dragPreviewRow.style.zIndex = '9999';
-        //            dragPreviewRow.style.pointerEvents = 'none';
-        //            dragPreviewRow.style.opacity = '1';
-        //            dragPreviewRow.style.width = rowElement.offsetWidth + 'px';
-        //            dragPreviewRow.style.height = rowElement.offsetHeight + 'px';
-        //            dragPreviewRow.style.outline = 'none';
-
-        //            document.body.appendChild(dragPreviewRow);
-
-        //            var movePreview = function(event) {
-        //                var previewWidth = dragPreviewRow.offsetWidth;
-        //                var previewHeight = dragPreviewRow.offsetHeight;
-        //                var scrollTop = window.scrollY;
-
-        //                dragPreviewRow.style.top = (event.clientY + scrollTop - previewHeight / 2) + 'px';
-        //                dragPreviewRow.style.left = (event.clientX - previewWidth / 2) + 'px';
-        //            };
-
-        //            movePreview({ clientX: window.event.clientX, clientY: window.event.clientY });
-        //            document.addEventListener('mousemove', movePreview);
-
-        //            window.dragPreviewElement = dragPreviewRow;
-        //            window.originalElement = rowElement;
-
-        //            // Define cleanup function for removing the preview
-        //            window.removeDragPreview = function() {
-        //                console.log('Cleaning up drag preview');
-
-        //                if (window.dragPreviewElement) {
-        //                    document.body.removeChild(window.dragPreviewElement); // Remove the preview
-        //                    window.dragPreviewElement = null; // Clear the reference
-        //                }
-
-        //                if (window.originalElement) {
-        //                    window.originalElement.style.opacity = '1'; // Reset original element's opacity
-        //                    window.originalElement.style.pointerEvents = ''; // Re-enable interaction with the original element
-        //                    window.originalElement = null; // Clear the reference to the original element
-        //                }
-        //            };
-
-        //            var cleanupOnMouseUp = function() {
-        //                console.log('Drag row: mouse up');
-        //                window.removeDragPreview(); // Call the cleanup function
-
-        //                document.removeEventListener('mousemove', movePreview);
-        //                document.removeEventListener('mouseup', cleanupOnMouseUp);
-        //            };
-
-        //            document.addEventListener('mouseup', cleanupOnMouseUp);
-        //        };
-        //    }
-        //");
-        //        }
-
-        //drag row preview version 2, all content/cells are there but in wrong order/size.
-
-        //        private async Task InitializeDragPreviewRow()
-        //        {
-        //            // Call JS function to ensure setup is available
-        //            await JSRuntime.InvokeVoidAsync("eval", @"
-        //    if (!window.setupDragPreviewRow) {
-        //        window.setupDragPreviewRow = function(row,webPageBackgroundColor) {
-        //            // Find all content items within the same row
-        //            var rowElements = document.querySelectorAll('[data-row=""' + row + '""]');
-
-
-        //                    console.log('Drag row preview runs');
-
-        //            if (rowElements.length === 0)
-        //            {
-        //                console.error('Row element with Row: ' + row + ' not found.');
-        //                return;
-        //            }
-
-        //            // Make the entire row's elements transparent and non-interactive during the drag
-        //            rowElements.forEach(function(element) {
-        //                element.style.opacity = '1';
-        //                element.style.pointerEvents = 'none';
-        //            });
-
-        //            // Create a container to hold the cloned elements for the preview
-        //            var dragPreviewRow = document.createElement('div');
-        //            dragPreviewRow.style.display = 'flex'; // Ensure all cells are displayed in a row
-        //            dragPreviewRow.style.position = 'absolute';
-        //            dragPreviewRow.style.zIndex = '9999';
-        //            dragPreviewRow.style.pointerEvents = 'none';
-        //            dragPreviewRow.style.opacity = '1';
-        //            dragPreviewRow.style.backgroundColor = webPageBackgroundColor;
-        //            dragPreviewRow.style.width = '100%'; // Set width for all cells in the row
-        //            dragPreviewRow.style.height = rowElements[0].offsetHeight + 'px'; // Set height based on a single cell's height
-        //            dragPreviewRow.style.outline = 'none';
-
-        //            // Clone each content item within the row and append to the preview container
-        //            rowElements.forEach(function(element) {
-        //                var clone = element.cloneNode(true); // Deep clone the entire content item
-        //                dragPreviewRow.appendChild(clone); // Append each cloned element to the preview container
-        //            });
-
-        //            // Append the preview row to the body
-        //            document.body.appendChild(dragPreviewRow);
-
-        //            // Function to move the preview with mouse movement
-        //            var movePreview = function(event) {
-        //            var previewWidth = dragPreviewRow.offsetWidth;
-        //            var previewHeight = dragPreviewRow.offsetHeight;
-        //            var scrollTop = window.scrollY;
-
-        //            dragPreviewRow.style.top = (event.clientY + scrollTop - previewHeight / 2) + 'px';
-        //        dragPreviewRow.style.left = (event.clientX - previewWidth / 2) + 'px';
-        //        };
-
-        //            // Position the preview at the mouse cursor's position
-        //            movePreview({ clientX: window.event.clientX, clientY: window.event.clientY });
-        //            document.addEventListener('mousemove', movePreview);
-
-        //            // Store the preview and original elements references
-        //            window.dragPreviewElement = dragPreviewRow;
-        //            window.originalElements = rowElements;
-
-        //            // Define the cleanup function for the drag preview
-        //            window.removeDragPreview = function()
-        //        {
-        //            console.log('Cleaning up drag preview');
-
-        //            if (window.dragPreviewElement)
-        //            {
-        //                document.body.removeChild(window.dragPreviewElement); // Remove the preview
-        //                window.dragPreviewElement = null; // Clear the reference
-        //            }
-
-        //            if (window.originalElements)
-        //            {
-        //                window.originalElements.forEach(function(element) {
-        //                    element.style.opacity = '1'; // Reset original element's opacity
-        //                    element.style.pointerEvents = ''; // Re-enable interaction with the original element
-        //                });
-        //                window.originalElements = null; // Clear the reference to the original elements
-        //            }
-        //        };
-
-        //        // Cleanup on mouse up
-        //        var cleanupOnMouseUp = function() {
-        //                console.log('Drag row: mouse up');
-        //                window.removeDragPreview(); // Call the cleanup function
-
-        //                document.removeEventListener('mousemove', movePreview);
-        //                document.removeEventListener('mouseup', cleanupOnMouseUp);
-        //            };
-
-        //    document.addEventListener('mouseup', cleanupOnMouseUp);
-        //        };
-        //    }
-        //");
-        //}
-
-        //Drag row preview, version 3, all content in right order.
-        //        private async Task InitializeDragPreviewRow()
-        //        {
-        //            // Call JS function to ensure setup is available
-        //            await JSRuntime.InvokeVoidAsync("eval", @"
-        //        if (!window.setupDragPreviewRow) {
-        //            window.setupDragPreviewRow = function(row, webPageBackgroundColor) {
-        //    var rowElements = document.querySelectorAll('[data-row=""' + row + '""]');
-
-        //    console.log('Drag row preview runs');
-
-        //    if (rowElements.length === 0) {
-        //        console.error('Row element with Row: ' + row + ' not found.');
-        //        return;
-        //    }
-
-        //    // Make the entire row's elements transparent and non-interactive during the drag
-        //    rowElements.forEach(function(element) {
-        //        element.style.opacity = '1';
-        //        element.style.pointerEvents = 'none';
-        //    });
-
-        //    // Create a container to hold the cloned elements for the preview
-        //    var dragPreviewRow = document.createElement('div');
-        //    dragPreviewRow.style.display = 'grid'; // Use grid instead of flex for better alignment
-        //    dragPreviewRow.style.position = 'absolute';
-        //    dragPreviewRow.style.zIndex = '9999';
-        //    dragPreviewRow.style.pointerEvents = 'none';
-        //    dragPreviewRow.style.opacity = '1';
-        //    dragPreviewRow.style.backgroundColor = webPageBackgroundColor;
-        //    dragPreviewRow.style.width = rowElements[0].offsetWidth + 'px'; // Set width based on the first cell's width
-        //    dragPreviewRow.style.height = rowElements[0].offsetHeight + 'px'; // Set height based on the first cell's height
-        //    dragPreviewRow.style.outline = 'none';
-
-        //    // Apply the same grid styling to the preview container
-        //    dragPreviewRow.style.gridTemplateColumns = 'repeat(12, 1fr)'; // 12 columns grid
-
-        //    // Clone each content item within the row and append to the preview container
-        //    rowElements.forEach(function(element) {
-        //        var clone = element.cloneNode(true); // Deep clone the entire content item
-
-        //        // Fetch the colspan from the element's style or attributes
-        //        var gridColumnSpan = window.getComputedStyle(element).getPropertyValue('grid-column-end');
-        //        console.log('Grid Column Span:', gridColumnSpan);
-
-        //        // Apply the appropriate grid-column-span style for the clone to match the original element
-        //        clone.style.gridColumnEnd = gridColumnSpan;
-
-        //        dragPreviewRow.appendChild(clone); // Append each cloned element to the preview container
-        //    });
-
-        //    // Append the preview row to the body
-        //    document.body.appendChild(dragPreviewRow);
-
-        //    // Function to move the preview with mouse movement
-        //    var movePreview = function(event) {
-        //        var previewWidth = dragPreviewRow.offsetWidth;
-        //        var previewHeight = dragPreviewRow.offsetHeight;
-        //        var scrollTop = window.scrollY;
-
-        //        dragPreviewRow.style.top = (event.clientY + scrollTop - previewHeight / 2) + 'px';
-        //        dragPreviewRow.style.left = (event.clientX - previewWidth / 2) + 'px';
-        //    };
-
-        //    // Position the preview at the mouse cursor's position
-        //    movePreview({ clientX: window.event.clientX, clientY: window.event.clientY });
-        //    document.addEventListener('mousemove', movePreview);
-
-        //    // Store the preview and original elements references
-        //    window.dragPreviewElement = dragPreviewRow;
-        //    window.originalElements = rowElements;
-
-        //    // Define the cleanup function for the drag preview
-        //    window.removeDragPreview = function() {
-        //        console.log('Cleaning up drag preview');
-
-        //        if (window.dragPreviewElement) {
-        //            document.body.removeChild(window.dragPreviewElement); // Remove the preview
-        //            window.dragPreviewElement = null; // Clear the reference
-        //        }
-
-        //        if (window.originalElements) {
-        //            window.originalElements.forEach(function(element) {
-        //                element.style.opacity = '1'; // Reset original element's opacity
-        //                element.style.pointerEvents = ''; // Re-enable interaction with the original element
-        //            });
-        //            window.originalElements = null; // Clear the reference to the original elements
-        //        }
-        //    };
-
-        //    // Cleanup on mouse up
-        //    var cleanupOnMouseUp = function() {
-        //        console.log('Drag row: mouse up');
-        //        window.removeDragPreview(); // Call the cleanup function
-
-        //        document.removeEventListener('mousemove', movePreview);
-        //        document.removeEventListener('mouseup', cleanupOnMouseUp);
-        //    };
-
-        //    document.addEventListener('mouseup', cleanupOnMouseUp);
-        //};
-        //            }
-        //        ");
-        //        }
-
-        //Drag row preview, version 4. width and proportions are correct, Issue: some extra blank space on top of content is added.
-
-        //    private async Task InitializeDragPreviewRow()
-        //    {
-        //        // Call JS function to ensure setup is available
-        //        await JSRuntime.InvokeVoidAsync("eval", @"
-        //    if (!window.setupDragPreviewRow) {
-        //        window.setupDragPreviewRow = function(row, webPageBackgroundColor) {
-        //            var rowElements = document.querySelectorAll('[data-row=""' + row + '""]');
-
-        //            console.log('Drag row preview runs');
-
-        //            if (rowElements.length === 0) {
-        //                console.error('Row element with Row: ' + row + ' not found.');
-        //                return;
-        //            }
-
-        //            // Make the entire row's elements transparent and non-interactive during the drag
-        //            rowElements.forEach(function(element) {
-        //                element.style.opacity = '1';
-        //                element.style.pointerEvents = 'none';
-        //            });
-
-        //            // Create a container to hold the cloned elements for the preview
-        //            var dragPreviewRow = document.createElement('div');
-        //            dragPreviewRow.style.display = 'grid'; // Use grid for better alignment
-        //            dragPreviewRow.style.position = 'absolute';
-        //            dragPreviewRow.style.zIndex = '9999';
-        //            dragPreviewRow.style.pointerEvents = 'none';
-        //            dragPreviewRow.style.opacity = '1';
-        //            dragPreviewRow.style.backgroundColor = webPageBackgroundColor;
-        //            dragPreviewRow.style.width = '100%'; // Set the width to 100% for full viewport/container width
-        //            dragPreviewRow.style.outline = 'none';
-
-        //            // Apply the same grid styling to the preview container
-        //            dragPreviewRow.style.gridTemplateColumns = 'repeat(12, 1fr)'; // 12 columns grid
-        //            dragPreviewRow.style.gridAutoRows = 'minmax(30px, auto)'; // Ensure rows are auto-sized based on content
-
-        //            // Clone each content item within the row and append to the preview container
-        //            rowElements.forEach(function(element) {
-        //                var clone = element.cloneNode(true); // Deep clone the entire content item
-
-        //                // Fetch the column span from the data-column-span attribute
-        //                var columnSpan = element.getAttribute('data-column-span');
-        //                console.log('Column Span:', columnSpan); // For example: 2 (this means the element spans 2 columns)
-
-        //                // Apply the column span to the clone using grid-column-end
-        //                if (columnSpan) {
-        //                    clone.style.gridColumnEnd = 'span ' + columnSpan;
-        //                }
-
-        //                dragPreviewRow.appendChild(clone); // Append each cloned element to the preview container
-        //            });
-
-        //            // Append the preview row to the body
-        //            document.body.appendChild(dragPreviewRow);
-
-        //            // Function to move the preview with mouse movement
-        //            var movePreview = function(event) {
-        //                var previewWidth = dragPreviewRow.offsetWidth;
-        //                var previewHeight = dragPreviewRow.offsetHeight;
-        //                var scrollTop = window.scrollY;
-
-        //                dragPreviewRow.style.top = (event.clientY + scrollTop - previewHeight / 2) + 'px';
-        //                dragPreviewRow.style.left = (event.clientX - previewWidth / 2) + 'px';
-        //            };
-
-        //            // Position the preview at the mouse cursor's position
-        //            movePreview({ clientX: window.event.clientX, clientY: window.event.clientY });
-        //            document.addEventListener('mousemove', movePreview);
-
-        //            // Store the preview and original elements references
-        //            window.dragPreviewElement = dragPreviewRow;
-        //            window.originalElements = rowElements;
-
-        //            // Define the cleanup function for the drag preview
-        //            window.removeDragPreview = function() {
-        //                console.log('Cleaning up drag preview');
-
-        //                if (window.dragPreviewElement) {
-        //                    document.body.removeChild(window.dragPreviewElement); // Remove the preview
-        //                    window.dragPreviewElement = null; // Clear the reference
-        //                }
-
-        //                if (window.originalElements) {
-        //                    window.originalElements.forEach(function(element) {
-        //                        element.style.opacity = '1'; // Reset original element's opacity
-        //                        element.style.pointerEvents = ''; // Re-enable interaction with the original element
-        //                    });
-        //                    window.originalElements = null; // Clear the reference to the original elements
-        //                }
-        //            };
-
-        //            // Cleanup on mouse up
-        //            var cleanupOnMouseUp = function() {
-        //                console.log('Drag row: mouse up');
-        //                window.removeDragPreview(); // Call the cleanup function
-
-        //                document.removeEventListener('mousemove', movePreview);
-        //                document.removeEventListener('mouseup', cleanupOnMouseUp);
-        //            };
-
-        //            document.addEventListener('mouseup', cleanupOnMouseUp);
-        //        };
-        //    }
-        //");
-        //    }
-
-        //Drag preview version 5. right height but row are not aligned with the top of the preview.
+      
+        //Drag row preview
 
         private async Task InitializeDragPreviewRow()
         {
             // Call JS function to ensure setup is available
             await JSRuntime.InvokeVoidAsync("eval", @"
-if (!window.setupDragPreviewRow) {
-    window.setupDragPreviewRow = function(row, webPageBackgroundColor) {
-        var rowElements = document.querySelectorAll('[data-row=""' + row + '""]');
+                if (!window.setupDragPreviewRow) {
+                    window.setupDragPreviewRow = function(row, webPageBackgroundColor) {
+                        var rowElements = document.querySelectorAll('[data-row=""' + row + '""]');
 
-        console.log('Drag row preview runs');
+                        console.log('Drag row preview runs');
 
-        if (rowElements.length === 0) {
-            console.error('Row element with Row: ' + row + ' not found.');
-            return;
-        }
+                        if (rowElements.length === 0) {
+                            console.error('Row element with Row: ' + row + ' not found.');
+                            return;
+                        }
 
-        // Make the entire row's elements transparent and non-interactive during the drag
-        rowElements.forEach(function(element) {
-            element.style.opacity = '1';
-            element.style.pointerEvents = 'none';
-        });
+                        // Make the entire row's elements transparent and non-interactive during the drag
+                        rowElements.forEach(function(element) {
+                            element.style.opacity = '1';
+                            element.style.pointerEvents = 'none';
+                        });
 
-        // Create a container to hold the cloned elements for the preview
-        var dragPreviewRow = document.createElement('div');
-        dragPreviewRow.style.position = 'absolute';
-        dragPreviewRow.style.zIndex = '9999';
-        dragPreviewRow.style.pointerEvents = 'none';
-        dragPreviewRow.style.opacity = '1';
-        //dragPreviewRow.style.backgroundColor = webPageBackgroundColor;
-        dragPreviewRow.style.width = '100%'; // Set width to 100%
-        dragPreviewRow.style.height = 'auto'
-        dragPreviewRow.style.outline = 'none';
+                        // Create a container to hold the cloned elements for the preview
+                        var dragPreviewRow = document.createElement('div');
+                        dragPreviewRow.style.position = 'absolute';
+                        dragPreviewRow.style.zIndex = '9999';
+                        dragPreviewRow.style.pointerEvents = 'none';
+                        dragPreviewRow.style.opacity = '1';
+                        //dragPreviewRow.style.backgroundColor = webPageBackgroundColor;
+                        dragPreviewRow.style.width = '100%'; // Set width to 100%
+                        dragPreviewRow.style.height = 'auto'
+                        dragPreviewRow.style.outline = 'none';
 
-        // Use grid layout to ensure proper alignment and sizing
-        dragPreviewRow.style.display = 'grid';
-        dragPreviewRow.style.gridTemplateColumns = 'repeat(12, 1fr)'; // Ensure the grid has 12 columns
-        dragPreviewRow.style.gridAutoRows = 'minmax(30px, auto)'; // Auto-sized rows based on content
-        dragPreviewRow.style.alignItems = 'top'; // Align all items to the top
+                        // Use grid layout to ensure proper alignment and sizing
+                        dragPreviewRow.style.display = 'grid';
+                        dragPreviewRow.style.gridTemplateColumns = 'repeat(12, 1fr)'; // Ensure the grid has 12 columns
+                        dragPreviewRow.style.gridAutoRows = 'minmax(30px, auto)'; // Auto-sized rows based on content
+                        dragPreviewRow.style.alignItems = 'top'; // Align all items to the top
 
 
 
-        // Set the height of the preview container to match the total height
-        //dragPreviewRow.style.height = rowElements[0].offsetHeight + 'px'; // Set height based on the first cell's height
+                        // Set the height of the preview container to match the total height
+                        //dragPreviewRow.style.height = rowElements[0].offsetHeight + 'px'; // Set height based on the first cell's height
 
-        // Clone each content item within the row and append to the preview container
-        rowElements.forEach(function(element) {
-            var clone = element.cloneNode(true); // Deep clone the entire content item
+                        // Clone each content item within the row and append to the preview container
+                        rowElements.forEach(function(element) {
+                            var clone = element.cloneNode(true); // Deep clone the entire content item
 
-            // Fetch the column span from the data-column-span attribute
-            var columnSpan = element.getAttribute('data-column-span');
-            console.log('Column Span:', columnSpan);
+                            // Fetch the column span from the data-column-span attribute
+                            var columnSpan = element.getAttribute('data-column-span');
+                            console.log('Column Span:', columnSpan);
 
-            // Apply the column span to the clone using grid-column-end
-            if (columnSpan) {
-                clone.style.gridColumnEnd = 'span ' + columnSpan; // Apply column span
-            }
+                            // Apply the column span to the clone using grid-column-end
+                            if (columnSpan) {
+                                clone.style.gridColumnEnd = 'span ' + columnSpan; // Apply column span
+                            }
 
-            dragPreviewRow.appendChild(clone); // Append the cloned element to the preview container
-        });
+                            dragPreviewRow.appendChild(clone); // Append the cloned element to the preview container
+                        });
 
-        // Append the preview row to the body
-        document.body.appendChild(dragPreviewRow);
+                        // Append the preview row to the body
+                        document.body.appendChild(dragPreviewRow);
 
-        // Function to move the preview with mouse movement
-        var movePreview = function(event) {
-            var previewWidth = dragPreviewRow.offsetWidth;
-            var previewHeight = dragPreviewRow.offsetHeight;
-            var scrollTop = window.scrollY;
+                        // Function to move the preview with mouse movement
+                        var movePreview = function(event) {
+                            var previewWidth = dragPreviewRow.offsetWidth;
+                            var previewHeight = dragPreviewRow.offsetHeight;
+                            var scrollTop = window.scrollY;
 
-            dragPreviewRow.style.top = (event.clientY + scrollTop - previewHeight / 2) + 'px';
-            dragPreviewRow.style.left = (event.clientX - previewWidth / 2) + 'px';
-        };
+                            dragPreviewRow.style.top = (event.clientY + scrollTop - previewHeight / 2) + 'px';
+                            dragPreviewRow.style.left = (event.clientX - previewWidth / 2) + 'px';
+                        };
 
-        // Position the preview at the mouse cursor's position
-        movePreview({ clientX: window.event.clientX, clientY: window.event.clientY });
-        document.addEventListener('mousemove', movePreview);
+                        // Position the preview at the mouse cursor's position
+                        movePreview({ clientX: window.event.clientX, clientY: window.event.clientY });
+                        document.addEventListener('mousemove', movePreview);
 
-        // Store the preview and original elements references
-        window.dragPreviewElement = dragPreviewRow;
-        window.originalElements = rowElements;
+                        // Store the preview and original elements references
+                        window.dragPreviewElement = dragPreviewRow;
+                        window.originalElements = rowElements;
 
-        // Define the cleanup function for the drag preview
-        window.removeDragPreview = function() {
-            console.log('Cleaning up drag preview');
+                        // Define the cleanup function for the drag preview
+                        window.removeDragPreview = function() {
+                            console.log('Cleaning up drag preview');
 
-            if (window.dragPreviewElement) {
-                document.body.removeChild(window.dragPreviewElement); // Remove the preview
-                window.dragPreviewElement = null; // Clear the reference
-            }
+                            if (window.dragPreviewElement) {
+                                document.body.removeChild(window.dragPreviewElement); // Remove the preview
+                                window.dragPreviewElement = null; // Clear the reference
+                            }
 
-            if (window.originalElements) {
-                window.originalElements.forEach(function(element) {
-                    element.style.opacity = '1'; // Reset original element's opacity
-                    element.style.pointerEvents = ''; // Re-enable interaction with the original element
-                });
-                window.originalElements = null; // Clear the reference to the original elements
-            }
-        };
+                            if (window.originalElements) {
+                                window.originalElements.forEach(function(element) {
+                                    element.style.opacity = '1'; // Reset original element's opacity
+                                    element.style.pointerEvents = ''; // Re-enable interaction with the original element
+                                });
+                                window.originalElements = null; // Clear the reference to the original elements
+                            }
+                        };
 
-        // Cleanup on mouse up
-        var cleanupOnMouseUp = function() {
-            console.log('Drag row: mouse up');
-            window.removeDragPreview(); // Call the cleanup function
+                        // Cleanup on mouse up
+                        var cleanupOnMouseUp = function() {
+                            console.log('Drag row: mouse up');
+                            window.removeDragPreview(); // Call the cleanup function
 
-            document.removeEventListener('mousemove', movePreview);
-            document.removeEventListener('mouseup', cleanupOnMouseUp);
-        };
+                            document.removeEventListener('mousemove', movePreview);
+                            document.removeEventListener('mouseup', cleanupOnMouseUp);
+                        };
 
-        document.addEventListener('mouseup', cleanupOnMouseUp);
-    };
-}
-");
+                        document.addEventListener('mouseup', cleanupOnMouseUp);
+                    };
+                }
+            ");
         }
 
 
