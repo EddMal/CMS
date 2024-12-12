@@ -715,6 +715,60 @@ header, .navbar, footer {
 }
 /* End: Dotted border top and bottom for delete row*/
 
+/* Move row buttons */
+
+
+.container-content-layout-grid {
+    position: relative; 
+    overflow: visible; /* Prevent buttons from being cropped */
+}
+
+/* Move row buttons */
+
+/* Move row buttons container */
+.row-control-buttons {
+    pointer-events: all;
+    position: fixed; /* Fixed positioning relative to the viewport */
+    top: 70%; /* Center vertically */
+    right: 50%; /* Stay at the right edge of the viewport */
+    width: auto; /* Allow width to expand based on content */
+    height: auto; /* Allow height to expand based on content */
+    display: flex;
+    flex-direction: column; /* Stack buttons vertically */
+    z-index: 1000; /* Ensure the buttons overlay all other content */
+    gap: 5px; /* Optional: add spacing between buttons */
+    overflow: visible; /* Ensure buttons don't get clipped */
+}
+
+/* Button styling */
+.arrow-button {
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    border: 2px solid #b2d3ba;
+    border-radius: 3px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Arrow specific styles */
+.up-arrow {
+    color: darkgray;
+    background-color: #e8eeeb;
+    font-size: 25px;
+    box-shadow: inset 0px 0px 5px rgb(102, 103, 102, 0.3); /* Adds a subtle shadow */
+}
+
+.down-arrow {
+    color: darkgray;
+    background-color: #e8eeeb;
+    font-size: 25px;
+    box-shadow: inset 0px 0px 5px rgb(102, 103, 102, 0.3); /* Adds a subtle shadow */
+}
+
+/* End move row buttons*/
+
 /* Column span size tools */
 
 /* Style the container that holds the slider and the input field */

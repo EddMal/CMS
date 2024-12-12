@@ -27,6 +27,7 @@ using Bogus.DataSets;
 using System.Xml.Linq;
 using BlazorBootstrap;
 using System.Runtime.CompilerServices;
+using System.Collections.Generic;
 namespace CMS.Components.Pages.WebPages
 {
     //ToDO: Chanfe variables name from ec. WebSiteId to webSiteId
@@ -122,7 +123,7 @@ namespace CMS.Components.Pages.WebPages
 
             await GetUserID();
             context = DbFactory.CreateDbContext();
-            
+
             var webPage = await WebPageService.GetWebPageAsync(WebPageId.Value);
 
             if (webPage == null)
@@ -448,7 +449,7 @@ namespace CMS.Components.Pages.WebPages
 
         private async Task InsertNewContentInLayoutAsync(LayoutCell cell, List<Content> webPageContents, int? newContentId)
         {
-         
+
             var newCell = new LayoutCell
             {
                 Column = cell.Column,
@@ -877,25 +878,25 @@ namespace CMS.Components.Pages.WebPages
         //    viable fallback approach for
         //removing flickering at redraw/rerender of content(page reset scrollY to top).
         //Results: greate improvement with ocational/glitches/twitch/flickering.
-        
-    //    private void ProbeDragcellContainer()
-    //    {
-    //        JSRuntime.InvokeVoidAsync("eval", $@"
-    //    console.log('Grid drag cell container width:', document.querySelector('.container-content-layout-grid-drag-cell').offsetHeight);
-    //");
-    //    }
 
-    //    private void ProbeContainer()
-    //    {
-    //        JSRuntime.InvokeVoidAsync("eval", $@"
-    //        console.log('Grid container width:', document.querySelector('.container-content-layout-grid').offsetHeight);
-    //");
-    //    }
+        //    private void ProbeDragcellContainer()
+        //    {
+        //        JSRuntime.InvokeVoidAsync("eval", $@"
+        //    console.log('Grid drag cell container width:', document.querySelector('.container-content-layout-grid-drag-cell').offsetHeight);
+        //");
+        //    }
+
+        //    private void ProbeContainer()
+        //    {
+        //        JSRuntime.InvokeVoidAsync("eval", $@"
+        //        console.log('Grid container width:', document.querySelector('.container-content-layout-grid').offsetHeight);
+        //");
+        //    }
 
         private void RestoreScrollPosition(bool coverTransition = true)
         {
 
-            if(coverTransition)
+            if (coverTransition)
             {
                 // Transition overlay
                 TransitionCoverDiv(150, 70, webPageBackgroundColor);
@@ -992,17 +993,15 @@ namespace CMS.Components.Pages.WebPages
     ");
         }
 
-
+        //ToDo: Clean inputparameters.
         //Change bacgkroundcolor opacity for the row mouse enters v.2:
         private async Task InitializeMouseEnterOverlay()
         {
-            // JS call to setup the overlay functionality (this is your method now)
             await JSRuntime.InvokeVoidAsync("eval", @"
                 window.setupMouseEnterOverlay = function(contentId, row, column, color) {
                     var element;
                     // If contentId exists, use it to find the element
                     if (contentId) {
-                        // Correct syntax for JavaScript: double quotes inside single quotes for attribute selectors
                         element = document.querySelector('[data-content-id=""' + contentId + '""]');
                     }
 
@@ -1026,7 +1025,6 @@ namespace CMS.Components.Pages.WebPages
                     overlay.style.height = element.offsetHeight + 'px';
                     overlay.style.backgroundColor = color; // Set the background color passed as an argument
                     overlay.style.opacity = '0.3'; // Semi-transparent overlay
-                    //overlay.style.zIndex = '8500'; // Ensure overlay appears above other elements
                     overlay.style.pointerEvents = 'none'; // Prevent the overlay from interfering with mouse events
                     overlay.style.borderTop = '2px dotted #ccc'; // Top dotted border
                     overlay.style.borderBottom = '2px dotted #ccc'; // Bottom dotted border            
@@ -1037,11 +1035,27 @@ namespace CMS.Components.Pages.WebPages
                     element.addEventListener('mouseleave', function() {
                         document.body.removeChild(overlay);
                     });
+
+                    // Explicit cleanup: remove overlay if the row is removed
+                    var observer = new MutationObserver(function(mutations) {
+                        mutations.forEach(function(mutation) {
+                            if (mutation.removedNodes.length) {
+                                mutation.removedNodes.forEach(function(node) {
+                                    if (node === element) {
+                                        document.body.removeChild(overlay); // Explicitly remove the overlay if the row is removed
+                                    }
+                                });
+                            }
+                        });
+                    });
+
+                    observer.observe(document.body, { childList: true, subtree: true });
                 };
             ");
         }
 
-      
+
+
         //Drag row preview
 
         private async Task InitializeDragPreviewRow()
@@ -1061,7 +1075,7 @@ namespace CMS.Components.Pages.WebPages
 
                         // Make the entire row's elements transparent and non-interactive during the drag
                         rowElements.forEach(function(element) {
-                            element.style.opacity = '1';
+                            element.style.opacity = '0.5';
                             element.style.pointerEvents = 'none';
                         });
 
@@ -1157,21 +1171,55 @@ namespace CMS.Components.Pages.WebPages
             ");
         }
 
-
-
-
-        public async Task StartDragForRow(string rowId)
+        private async Task InitializeHighlightRow(int row, bool clean = false)
         {
-            // Now that the JS function is initialized, we can call it
-            await JSRuntime.InvokeVoidAsync("setupDragPreviewRow", rowId);
-        }
+            // Call JS function to ensure setup is available
+            await JSRuntime.InvokeVoidAsync("eval", @"
+        if (!window.setupHighlightRow) {
+            window.setupHighlightRow = function(row, Clean, webPageBackgroundColor) {
+                var rowElements = document.querySelectorAll('[data-row=""' + row + '""]');
 
+                console.log('Hilight selected row runs');
+
+                if (rowElements.length === 0) {
+                    console.error('Row element with Row: ' + row + ' not found.');
+                    return;
+                }
+
+                // Remove highlight from the previous row if it's not the same as the current row
+                if (window.currentRow !== row && window.currentRow !== undefined) {
+                    var previousRowElements = document.querySelectorAll('[data-row=""' + window.currentRow + '""]');
+                    previousRowElements.forEach(function(element) {
+                        element.style.opacity = '1'; // Reset opacity
+                        element.style.pointerEvents = ''; // Re-enable interaction
+                        element.style.backgroundColor = ''; // Reset background color
+                    });
+                }
+
+                // Only apply new highlight if 'true' is passed
+                if (Clean) {
+                    rowElements.forEach(function(element) {
+                        element.style.opacity = '0.3';
+                        element.style.pointerEvents = 'none';
+                        element.style.backgroundColor = 'white';
+                    });
+
+                    // Store the current highlighted row for future comparison
+                    window.currentRow = row;
+                } else {
+                    window.currentRow = undefined; // Reset currentRow if 'false' is passed
+                }
+            };
+        }
+    ");
+        }
 
 
 
         private async Task GetCellsRow(LayoutCell cell) 
         {
             await InitializeMouseEnterOverlay();  // Ensure the JS function is initialized
+            // Hilight row.
             await JSRuntime.InvokeVoidAsync("setupMouseEnterOverlay", cell.ContentId,cell.Row,cell.Column, "red");
             //RestoreScrollPosition(false);
             if (cell == null)
@@ -1676,7 +1724,7 @@ namespace CMS.Components.Pages.WebPages
         {
             //RestoreScrollPosition();
             hoveredRow = cellRow;
-            Console.WriteLine($"Dragged over row:{cellRow}.");
+            Console.WriteLine($"Hovered over row:{cellRow}.");
         }
 
         // Method for handling en of moving layout row
@@ -1688,7 +1736,8 @@ namespace CMS.Components.Pages.WebPages
                 if (hoveredRow != null)
                 {
                     if (draggedRow != hoveredRow)
-                    {
+                    {                    
+
                         Console.WriteLine("Drag ended.");
                         List<LayoutCell> draggedLayoutCells = layout.LayoutCells.Where(c => c.Row == draggedRow).ToList();
                         InsertRowInLayout(draggedLayoutCells, draggedRow, (int)hoveredRow, true);
@@ -1712,6 +1761,66 @@ namespace CMS.Components.Pages.WebPages
                 Console.WriteLine("No row selected for moving");
             }
             
+        }
+
+        private async Task MoveRowByClickAsync(int? newRowNumber)
+        {
+            //RestoreScrollPosition();
+
+            Console.WriteLine("Button for move row clicked.");
+            Console.WriteLine($"Dragged row:{draggedRow}");
+            if (draggedRow != null)
+            {
+                if (newRowNumber != null)
+                {
+                    newRowNumber = draggedRow + newRowNumber;
+
+                    if (newRowNumber < 1 || newRowNumber > layout.LayoutCells.LastOrDefault().Row)
+                    {
+                        Console.WriteLine("MoveRowByClickAsync: Error new row position for row is oustide layouts range.");
+                        return;
+                    }
+                    //ToDo: evaluate if needed.
+                    if (draggedRow != newRowNumber)
+                    {
+
+                        Console.WriteLine("Drag ended.");
+
+                        List<LayoutCell> draggedLayoutCells = layout.LayoutCells.Where(c => c.Row == draggedRow).ToList();
+                       
+                        // Highligt row.
+                        // Ensure the JS function is initialized
+                        await InitializeHighlightRow((int)draggedRow, false);  
+                       // await JSRuntime.InvokeVoidAsync("setupHighlightRow", draggedRow);
+                        
+                        // Insert row at new position.
+                        InsertRowInLayout(draggedLayoutCells, draggedRow, (int)newRowNumber, true);
+                        // Save the new layout order
+                        await SaveLayoutChangesAsync();
+                        //ToDo: Move to method see if handling could be synchronized with the same condition used in InsertRowInLayout.
+                       
+                        draggedRow = newRowNumber;
+
+                        Console.WriteLine($"Dragged row at end:{draggedRow}");
+                        StateHasChanged();  // To refresh the UI
+                    }
+                    else
+                    {
+                        Console.WriteLine("Dropped same row, no updates are applied");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("No suitable row for moving selected row was found.");
+                }
+
+            }
+            else
+            {
+                Console.WriteLine("No row selected for moving");
+            }
+            
+
         }
 
         // Method for creating a new rowShift for layout.
@@ -1840,9 +1949,15 @@ namespace CMS.Components.Pages.WebPages
             }).ToList();
 
         }
-
+       
         private void  InsertRowInLayout(List<LayoutCell> layoutRow, int? oldRownumber=null, int rowNumber = 1, bool MoveExistingRow = false)
         {
+            //Adjust dragged row new position to be placed after hovered row when dragged rows number
+            // is lower to hoverd. row,
+            if (oldRownumber < rowNumber)
+            {
+                rowNumber++;
+            }
 
             List<LayoutCell> rowsBeforeMovedRow = new();
             List<LayoutCell> rowsAfterMovedRow = new();
@@ -1851,6 +1966,11 @@ namespace CMS.Components.Pages.WebPages
             // When new row is added get all rows except the old position.
             if (MoveExistingRow) 
             {
+                if(oldRownumber == null)
+                {
+                    Console.WriteLine("Error: Old row number is null. InsertRowInLayout: move existing row.");
+                    return;
+                }
                 // Get existing layout excluding the old row.
                  rowsBeforeMovedRow = layout.LayoutCells.Where(c => c.Row < rowNumber && c.Row != oldRownumber).ToList();
                  rowsAfterMovedRow = layout.LayoutCells.Where(c => c.Row >= rowNumber && c.Row != oldRownumber).ToList();
