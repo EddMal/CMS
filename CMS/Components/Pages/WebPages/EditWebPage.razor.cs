@@ -1171,37 +1171,43 @@ namespace CMS.Components.Pages.WebPages
             ");
         }
 
-        private async Task InitializeHighlightRow(int row, bool clean = false)
+        private async Task InitializeHighlightRow()
         {
             // Call JS function to ensure setup is available
             await JSRuntime.InvokeVoidAsync("eval", @"
         if (!window.setupHighlightRow) {
-            window.setupHighlightRow = function(row, Clean, webPageBackgroundColor) {
+            window.setupHighlightRow = function(row, clean) {
                 var rowElements = document.querySelectorAll('[data-row=""' + row + '""]');
 
-                console.log('Hilight selected row runs');
+                console.log('Highlight selected row runs');
 
                 if (rowElements.length === 0) {
                     console.error('Row element with Row: ' + row + ' not found.');
                     return;
                 }
 
-                // Remove highlight from the previous row if it's not the same as the current row
+
+                // Remove highlight from the previous row if it's not the same as the current row.
+                console.log('Remove highlight.');
                 if (window.currentRow !== row && window.currentRow !== undefined) {
                     var previousRowElements = document.querySelectorAll('[data-row=""' + window.currentRow + '""]');
                     previousRowElements.forEach(function(element) {
-                        element.style.opacity = '1'; // Reset opacity
-                        element.style.pointerEvents = ''; // Re-enable interaction
-                        element.style.backgroundColor = ''; // Reset background color
+                        element.style.opacity = '1';
+                        element.style.pointerEvents = '';
+                        //element.style.backgroundColor = '';
+                        element.style.boxShadow= ''; 
+                        element.style.borderRadius = '';
                     });
                 }
 
-                // Only apply new highlight if 'true' is passed
-                if (Clean) {
+                // Add highlight to row.
+               if (!clean) {
+
+                    console.log('Add highlight.');
                     rowElements.forEach(function(element) {
-                        element.style.opacity = '0.3';
+                        element.style.opacity = '0.5';
                         element.style.pointerEvents = 'none';
-                        element.style.backgroundColor = 'white';
+                        //element.style.backgroundColor ='rgb(120, 50, 12, 1)'
                     });
 
                     // Store the current highlighted row for future comparison
@@ -1788,21 +1794,21 @@ namespace CMS.Components.Pages.WebPages
 
                         List<LayoutCell> draggedLayoutCells = layout.LayoutCells.Where(c => c.Row == draggedRow).ToList();
                        
-                        // Highligt row.
-                        // Ensure the JS function is initialized
-                        await InitializeHighlightRow((int)draggedRow, false);  
-                       // await JSRuntime.InvokeVoidAsync("setupHighlightRow", draggedRow);
-                        
                         // Insert row at new position.
                         InsertRowInLayout(draggedLayoutCells, draggedRow, (int)newRowNumber, true);
                         // Save the new layout order
                         await SaveLayoutChangesAsync();
-                        //ToDo: Move to method see if handling could be synchronized with the same condition used in InsertRowInLayout.
-                       
+                        // Update dragged row with new rownumber.                       
                         draggedRow = newRowNumber;
 
                         Console.WriteLine($"Dragged row at end:{draggedRow}");
-                        StateHasChanged();  // To refresh the UI
+                        StateHasChanged();  // Ensure refresh of the UI.
+
+                        // Highligt row.
+                        // Ensure the JS function is initialized
+                        await InitializeHighlightRow(); 
+                        await JSRuntime.InvokeVoidAsync("setupHighlightRow", (int)draggedRow, false);
+                        
                     }
                     else
                     {
