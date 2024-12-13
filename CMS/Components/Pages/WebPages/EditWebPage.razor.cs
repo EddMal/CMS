@@ -1170,55 +1170,137 @@ namespace CMS.Components.Pages.WebPages
                 }
             ");
         }
-
-        private async Task InitializeHighlightRow()
+        //ToDo: evaluate if other hilights functions in js should use this approach to.
+        //Highlights a row of content by changing the background for css class content-wrapper. 
+        private async Task InitializeHandleRowsHighlight()
         {
             // Call JS function to ensure setup is available
             await JSRuntime.InvokeVoidAsync("eval", @"
-        if (!window.setupHighlightRow) {
-            window.setupHighlightRow = function(row, clean) {
-                var rowElements = document.querySelectorAll('[data-row=""' + row + '""]');
-
-                console.log('Highlight selected row runs');
-
-                if (rowElements.length === 0) {
-                    console.error('Row element with Row: ' + row + ' not found.');
-                    return;
-                }
-
-
-                // Remove highlight from the previous row if it's not the same as the current row.
-                console.log('Remove highlight.');
-                if (window.currentRow !== row && window.currentRow !== undefined) {
+    if (!window.setupHighlightRow) {
+        window.setupHighlightRow = function(row = null, backgroundColor = null, clean = false) {
+            // When `clean` is true, clear the previous highlighted row
+            if (clean) {
+                // Clear the previous row highlight
+                if (window.currentRow !== undefined) {
                     var previousRowElements = document.querySelectorAll('[data-row=""' + window.currentRow + '""]');
                     previousRowElements.forEach(function(element) {
-                        element.style.opacity = '1';
-                        element.style.pointerEvents = '';
-                        //element.style.backgroundColor = '';
-                        element.style.boxShadow= ''; 
-                        element.style.borderRadius = '';
+                        element.style.opacity = '1'; // Reset opacity to full
+                        element.style.pointerEvents = ''; // Enable pointer events
+                        element.style.backgroundColor = ''; // Remove the background color
+                        element.style.boxShadow = ''; // Remove any box shadow
+                        element.style.borderRadius = ''; // Remove any border radius
+
+                        // Reset the background color of the content-wrapper when cleaning
+                        var contentWrapper = element.querySelector('.content-wrapper');
+                        if (contentWrapper) {
+                            contentWrapper.style.backgroundColor = '';
+                        }
+
+                        // Reset the background of any <p> elements
+                        var paragraphs = element.querySelectorAll('p');
+                        paragraphs.forEach(function(p) {
+                            p.style.backgroundColor = ''; // Reset background of <p> elements
+                        });
+
+                        // Reset any child element background colors
+                        var nestedElements = element.querySelectorAll('*'); // Select all child elements
+                        nestedElements.forEach(function(nestedElement) {
+                            nestedElement.style.backgroundColor = ''; // Reset background of nested elements
+                        });
                     });
+
+                    window.currentRow = undefined; // Reset currentRow after cleaning
+                }
+                return; // Exit early if cleaning
+            }
+
+            // Add highlight to row if clean is false or undefined
+            if (row === null || backgroundColor === null) {
+                console.error('Row or backgroundColor is missing.');
+                return;
+            }
+
+            var rowElements = document.querySelectorAll('[data-row=""' + row + '""]');
+            console.log('Highlight selected row runs');
+
+            if (rowElements.length === 0) {
+                console.error('Row element with Row: ' + row + ' not found.');
+                return;
+            }
+
+            console.log('Remove highlight.');
+            // Remove highlight from the previous row if it's not the same as the current row
+            if (window.currentRow !== row && window.currentRow !== undefined) {
+                var previousRowElements = document.querySelectorAll('[data-row=""' + window.currentRow + '""]');
+                previousRowElements.forEach(function(element) {
+                    element.style.opacity = '1'; // Reset opacity to full
+                    element.style.pointerEvents = ''; // Enable pointer events
+                    element.style.backgroundColor = ''; // Remove the background color
+                    element.style.boxShadow = ''; // Remove any box shadow
+                    element.style.borderRadius = ''; // Remove any border radius
+                    
+                    // Reset the background color of the content-wrapper when cleaning
+                    var contentWrapper = element.querySelector('.content-wrapper');
+                    if (contentWrapper) {
+                        contentWrapper.style.backgroundColor = '';
+                    }
+
+                    // Reset the background of any <p> elements
+                    var paragraphs = element.querySelectorAll('p');
+                    paragraphs.forEach(function(p) {
+                        p.style.backgroundColor = ''; // Reset background of <p> elements
+                    });
+
+                    // Reset any child element background colors
+                    var nestedElements = element.querySelectorAll('*'); // Select all child elements
+                    nestedElements.forEach(function(nestedElement) {
+                        nestedElement.style.backgroundColor = ''; // Reset background of nested elements
+                    });
+                });
+            }
+
+            console.log('Add highlight.');
+            rowElements.forEach(function(element) {
+                element.style.opacity = '0.5'; // Make the row semi-transparent
+                element.style.pointerEvents = 'none'; // Disable interaction with the highlighted row
+
+                // Apply background color to the whole row (the parent div)
+                element.style.backgroundColor = backgroundColor;
+
+                // Find the content-wrapper inside the row and change its background color
+                var contentWrapper = element.querySelector('.content-wrapper');
+                if (contentWrapper) {
+                    contentWrapper.style.backgroundColor = backgroundColor; // Set the desired background color for content-wrapper
                 }
 
-                // Add highlight to row.
-               if (!clean) {
+                // Apply background color to any <p> elements in the row (for cells with null ContentId)
+                var paragraphs = element.querySelectorAll('p');
+                paragraphs.forEach(function(p) {
+                    p.style.backgroundColor = backgroundColor; // Set background color for <p> elements
+                });
 
-                    console.log('Add highlight.');
-                    rowElements.forEach(function(element) {
-                        element.style.opacity = '0.5';
-                        element.style.pointerEvents = 'none';
-                        //element.style.backgroundColor ='rgb(120, 50, 12, 1)'
-                    });
+                // Apply background color to any nested elements inside the cell
+                var nestedElements = element.querySelectorAll('*'); // Select all child elements
+                nestedElements.forEach(function(nestedElement) {
+                    nestedElement.style.backgroundColor = backgroundColor; // Apply background to all nested elements
+                });
 
-                    // Store the current highlighted row for future comparison
-                    window.currentRow = row;
-                } else {
-                    window.currentRow = undefined; // Reset currentRow if 'false' is passed
-                }
-            };
+                // Apply opacity to media content (images, videos, etc.)
+                var mediaElements = element.querySelectorAll('img, video, iframe'); // Find media content
+                mediaElements.forEach(function(mediaElement) {
+                    mediaElement.style.opacity = '0.5'; // Apply opacity to media content
+                });
+            });
+
+            // Store the current highlighted row for future comparison
+            window.currentRow = row;
+        };
+    }
+");
         }
-    ");
-        }
+
+
+
 
 
 
@@ -1723,6 +1805,11 @@ namespace CMS.Components.Pages.WebPages
             // RestoreScrollPosition();
             draggedRow = cellRow;
             Console.WriteLine($"Started: drag row:{cellRow}.");
+            // Remove highligt from last hilighted row.
+            // Ensure the JS function is initialized
+            await InitializeHandleRowsHighlight();
+            //ToDo: Create new methood for cleaning.
+            await JSRuntime.InvokeVoidAsync("setupHighlightRow",null, null, true);
         }
 
         // Method reading hovered row
@@ -1806,8 +1893,8 @@ namespace CMS.Components.Pages.WebPages
 
                         // Highligt row.
                         // Ensure the JS function is initialized
-                        await InitializeHighlightRow(); 
-                        await JSRuntime.InvokeVoidAsync("setupHighlightRow", (int)draggedRow, false);
+                        await InitializeHandleRowsHighlight(); 
+                        await JSRuntime.InvokeVoidAsync("setupHighlightRow", (int)draggedRow,"rgba(250, 250, 250, 0.5)");
                         
                     }
                     else
