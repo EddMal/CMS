@@ -1073,12 +1073,6 @@ namespace CMS.Components.Pages.WebPages
                             return;
                         }
 
-                        // Make the entire row's elements transparent and non-interactive during the drag
-                        rowElements.forEach(function(element) {
-                            element.style.opacity = '0.5';
-                            element.style.pointerEvents = 'none';
-                        });
-
                         // Create a container to hold the cloned elements for the preview
                         var dragPreviewRow = document.createElement('div');
                         dragPreviewRow.style.position = 'absolute';
@@ -1116,6 +1110,13 @@ namespace CMS.Components.Pages.WebPages
 
                             dragPreviewRow.appendChild(clone); // Append the cloned element to the preview container
                         });
+
+                            // Make the entire row's elements transparent and non-interactive during the drag
+                            rowElements.forEach(function(element) {
+                            element.style.opacity = '0';
+                            element.style.pointerEvents = 'none';
+                        });
+
 
                         // Append the preview row to the body
                         document.body.appendChild(dragPreviewRow);
@@ -1170,134 +1171,93 @@ namespace CMS.Components.Pages.WebPages
                 }
             ");
         }
-        //ToDo: evaluate if other hilights functions in js should use this approach to.
-        //Highlights a row of content by changing the background for css class content-wrapper. 
-        private async Task InitializeHandleRowsHighlight()
+
+
+
+        private async Task InitializeHandleRowOpacity()
         {
             // Call JS function to ensure setup is available
             await JSRuntime.InvokeVoidAsync("eval", @"
-    if (!window.setupHighlightRow) {
-        window.setupHighlightRow = function(row = null, backgroundColor = null, clean = false) {
-            // When `clean` is true, clear the previous highlighted row
-            if (clean) {
-                // Clear the previous row highlight
-                if (window.currentRow !== undefined) {
-                    var previousRowElements = document.querySelectorAll('[data-row=""' + window.currentRow + '""]');
-                    previousRowElements.forEach(function(element) {
-                        element.style.opacity = '1'; // Reset opacity to full
-                        element.style.pointerEvents = ''; // Enable pointer events
-                        element.style.backgroundColor = ''; // Remove the background color
-                        element.style.boxShadow = ''; // Remove any box shadow
-                        element.style.borderRadius = ''; // Remove any border radius
+                if (!window.setupHighlightRow) {
+                    window.setupHighlightRow = function(row = null, clean = false) {
+                        // When `clean` is true, clear the previous highlighted row
+                        if (clean) {
+                            // Restore the previous row highlight (only opacity)
+                            if (window.currentRow !== undefined) {
+                                var previousRowElements = document.querySelectorAll('[data-row=""' + window.currentRow + '""]');
+                                previousRowElements.forEach(function(element) {
+                                    // Reset opacity for row and nested elements
+                                    element.style.opacity = '1'; // Reset opacity to full
+                                    element.style.pointerEvents = ''; // Enable pointer events
 
-                        // Reset the background color of the content-wrapper when cleaning
-                        var contentWrapper = element.querySelector('.content-wrapper');
-                        if (contentWrapper) {
-                            contentWrapper.style.backgroundColor = '';
+                                    // Reset opacity for nested elements
+                                    var nestedElements = element.querySelectorAll('*'); // Select all child elements
+                                    nestedElements.forEach(function(nestedElement) {
+                                        nestedElement.style.opacity = '1'; // Reset nested element opacity
+                                    });
+                                });
+
+                                window.currentRow = undefined; // Reset currentRow after cleaning
+                            }
+                            return; // Exit early if cleaning
                         }
 
-                        // Reset the background of any <p> elements
-                        var paragraphs = element.querySelectorAll('p');
-                        paragraphs.forEach(function(p) {
-                            p.style.backgroundColor = ''; // Reset background of <p> elements
+                        // Add highlight to row if clean is false or undefined
+                        if (row === null){
+                            
+                            return;
+                        }
+
+                        var rowElements = document.querySelectorAll('[data-row=""' + row + '""]');
+                        
+
+                        if (rowElements.length === 0) {
+                        
+                            return;
+                        }
+
+                        
+                        // Save and restore highlight for previous row (if any)
+                        if (window.currentRow !== row && window.currentRow !== undefined) {
+                            var previousRowElements = document.querySelectorAll('[data-row=""' + window.currentRow + '""]');
+                            previousRowElements.forEach(function(element) {
+                                // Reset opacity for row and nested elements
+                                element.style.opacity = '1'; // Reset opacity to full
+                                element.style.pointerEvents = ''; // Enable pointer events
+
+                                // Reset opacity for nested elements
+                                var nestedElements = element.querySelectorAll('*'); // Select all child elements
+                                nestedElements.forEach(function(nestedElement) {
+                                    nestedElement.style.opacity = '1'; // Reset nested element opacity
+                                });
+                            });
+                        }
+
+                       
+                        rowElements.forEach(function(element) {
+                            // Apply the opacity to the row
+                            element.style.opacity = '0.4'; // Make the row semi-transparent
+                            element.style.pointerEvents = 'none'; // Disable interaction with the highlighted row
+
+                            // Apply opacity to nested elements inside the row
+                            var nestedElements = element.querySelectorAll('*'); // Select all child elements
+                            nestedElements.forEach(function(nestedElement) {
+                                nestedElement.style.opacity = '1'; // 
+                            });
                         });
 
-                        // Reset any child element background colors
-                        var nestedElements = element.querySelectorAll('*'); // Select all child elements
-                        nestedElements.forEach(function(nestedElement) {
-                            nestedElement.style.backgroundColor = ''; // Reset background of nested elements
-                        });
-                    });
-
-                    window.currentRow = undefined; // Reset currentRow after cleaning
+                        // Store the current highlighted row for future comparison
+                        window.currentRow = row;
+                    };
                 }
-                return; // Exit early if cleaning
-            }
-
-            // Add highlight to row if clean is false or undefined
-            if (row === null || backgroundColor === null) {
-                console.error('Row or backgroundColor is missing.');
-                return;
-            }
-
-            var rowElements = document.querySelectorAll('[data-row=""' + row + '""]');
-            console.log('Highlight selected row runs');
-
-            if (rowElements.length === 0) {
-                console.error('Row element with Row: ' + row + ' not found.');
-                return;
-            }
-
-            console.log('Remove highlight.');
-            // Remove highlight from the previous row if it's not the same as the current row
-            if (window.currentRow !== row && window.currentRow !== undefined) {
-                var previousRowElements = document.querySelectorAll('[data-row=""' + window.currentRow + '""]');
-                previousRowElements.forEach(function(element) {
-                    element.style.opacity = '1'; // Reset opacity to full
-                    element.style.pointerEvents = ''; // Enable pointer events
-                    element.style.backgroundColor = ''; // Remove the background color
-                    element.style.boxShadow = ''; // Remove any box shadow
-                    element.style.borderRadius = ''; // Remove any border radius
-                    
-                    // Reset the background color of the content-wrapper when cleaning
-                    var contentWrapper = element.querySelector('.content-wrapper');
-                    if (contentWrapper) {
-                        contentWrapper.style.backgroundColor = '';
-                    }
-
-                    // Reset the background of any <p> elements
-                    var paragraphs = element.querySelectorAll('p');
-                    paragraphs.forEach(function(p) {
-                        p.style.backgroundColor = ''; // Reset background of <p> elements
-                    });
-
-                    // Reset any child element background colors
-                    var nestedElements = element.querySelectorAll('*'); // Select all child elements
-                    nestedElements.forEach(function(nestedElement) {
-                        nestedElement.style.backgroundColor = ''; // Reset background of nested elements
-                    });
-                });
-            }
-
-            console.log('Add highlight.');
-            rowElements.forEach(function(element) {
-                element.style.opacity = '0.5'; // Make the row semi-transparent
-                element.style.pointerEvents = 'none'; // Disable interaction with the highlighted row
-
-                // Apply background color to the whole row (the parent div)
-                element.style.backgroundColor = backgroundColor;
-
-                // Find the content-wrapper inside the row and change its background color
-                var contentWrapper = element.querySelector('.content-wrapper');
-                if (contentWrapper) {
-                    contentWrapper.style.backgroundColor = backgroundColor; // Set the desired background color for content-wrapper
-                }
-
-                // Apply background color to any <p> elements in the row (for cells with null ContentId)
-                var paragraphs = element.querySelectorAll('p');
-                paragraphs.forEach(function(p) {
-                    p.style.backgroundColor = backgroundColor; // Set background color for <p> elements
-                });
-
-                // Apply background color to any nested elements inside the cell
-                var nestedElements = element.querySelectorAll('*'); // Select all child elements
-                nestedElements.forEach(function(nestedElement) {
-                    nestedElement.style.backgroundColor = backgroundColor; // Apply background to all nested elements
-                });
-
-                // Apply opacity to media content (images, videos, etc.)
-                var mediaElements = element.querySelectorAll('img, video, iframe'); // Find media content
-                mediaElements.forEach(function(mediaElement) {
-                    mediaElement.style.opacity = '0.5'; // Apply opacity to media content
-                });
-            });
-
-            // Store the current highlighted row for future comparison
-            window.currentRow = row;
-        };
-    }
-");
+            ");
         }
+
+
+
+
+
+
 
 
 
@@ -1807,9 +1767,9 @@ namespace CMS.Components.Pages.WebPages
             Console.WriteLine($"Started: drag row:{cellRow}.");
             // Remove highligt from last hilighted row.
             // Ensure the JS function is initialized
-            await InitializeHandleRowsHighlight();
+            await InitializeHandleRowOpacity();
             //ToDo: Create new methood for cleaning.
-            await JSRuntime.InvokeVoidAsync("setupHighlightRow",null, null, true);
+            await JSRuntime.InvokeVoidAsync("setupHighlightRow",null, true);
         }
 
         // Method reading hovered row
@@ -1829,8 +1789,8 @@ namespace CMS.Components.Pages.WebPages
                 if (hoveredRow != null)
                 {
                     if (draggedRow != hoveredRow)
-                    {                    
-
+                    {
+                        TransitionCoverDiv(70, 70, webPageBackgroundColor);
                         Console.WriteLine("Drag ended.");
                         List<LayoutCell> draggedLayoutCells = layout.LayoutCells.Where(c => c.Row == draggedRow).ToList();
                         InsertRowInLayout(draggedLayoutCells, draggedRow, (int)hoveredRow, true);
@@ -1893,8 +1853,8 @@ namespace CMS.Components.Pages.WebPages
 
                         // Highligt row.
                         // Ensure the JS function is initialized
-                        await InitializeHandleRowsHighlight(); 
-                        await JSRuntime.InvokeVoidAsync("setupHighlightRow", (int)draggedRow,"rgba(250, 250, 250, 0.5)");
+                        await InitializeHandleRowOpacity(); 
+                        await JSRuntime.InvokeVoidAsync("setupHighlightRow", (int)draggedRow);
                         
                     }
                     else

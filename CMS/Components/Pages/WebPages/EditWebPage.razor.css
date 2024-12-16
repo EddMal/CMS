@@ -700,18 +700,18 @@ header, .navbar, footer {
     position: absolute;
     width: 100%;
     height: 2px; /* Adjust the height to control the thickness of the dotted line */
-    background: repeating-linear-gradient( to right, #ccc 0px, #ccc 1px, /* 1px for the dot size */
-    transparent 1px, transparent 2px /* 1px gap between the dots */
+    background: repeating-linear-gradient( to right, #ccc 0px, #ccc 2px, /* 1px for the dot size */
+    transparent 4px, transparent 4px /* 1px gap between the dots */
     );
 }
 /*Dotted border top and bottom */
 
 .dotted-border-row::before {
-    top: 0; /* Position at the top */
+    top: 2px; /* Position at the top */
 }
 
 .dotted-border-row::after {
-    bottom: 0; /* Position at the bottom */
+    bottom: 2px; /* Position at the bottom */
 }
 /* End: Dotted border top and bottom for delete row*/
 
