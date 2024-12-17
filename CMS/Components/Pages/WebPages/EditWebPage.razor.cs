@@ -671,6 +671,9 @@ namespace CMS.Components.Pages.WebPages
                             console.error('Element with ContentId ' + contentId + ' not found.');
                             return; // Exit if the element is not found
                         }
+ //const grid = document.querySelector('.content-item-drag-cell');  // The grid container                  
+ // Set the cursor to 'grabbing' for the grid container
+                                //grid.style.cursor = 'grabbing';
 
                         // Make the original element fully transparent and disable interaction
                         element.style.opacity = '0'; // Make the original element fully transparent
@@ -681,7 +684,7 @@ namespace CMS.Components.Pages.WebPages
                         dragPreview.style.position = 'absolute'; // Absolute positioning for the drag preview
                         dragPreview.style.zIndex = '9999'; // Make sure the preview is above other elements
                         dragPreview.style.pointerEvents = 'none'; // Prevent interaction with the preview
-                        dragPreview.style.opacity = '1'; // Make the preview fully visible
+                        dragPreview.style.opacity = '0.85'; // Make the preview fully visible
                         dragPreview.style.width = '60%';
                         //dragPreview.style.height = '60%';
                         dragPreview.style.outline = 'none';
@@ -699,12 +702,13 @@ namespace CMS.Components.Pages.WebPages
                             var scrollTop = window.scrollY;
 
                             // Adjust the preview's position based on the mouse position and scroll position
-                            dragPreview.style.top = (event.clientY + scrollTop) + 'px'//(event.clientY + scrollTop - previewHeight / 2) + 'px';  // Center vertically
+                            dragPreview.style.top = (event.clientY + scrollTop - previewHeight / 2) + 'px';  // Center vertically
                             dragPreview.style.left = (event.clientX - previewWidth / 2) + 'px';  // Center horizontally
                         };
 
                         // Immediately position the preview at the mouse cursor's position (centered)
                         movePreview({ clientX: window.event.clientX, clientY: window.event.clientY });
+
 
                         // Listen for the mousemove event to update the preview position
                         document.addEventListener('mousemove', movePreview);
@@ -716,6 +720,7 @@ namespace CMS.Components.Pages.WebPages
                         // Clean up the preview and reset the original element when drag ends (on mouseup)
                         var cleanupOnMouseUp = function() {
                             window.removeDragPreview(); // Call the cleanup function
+
 
                             // Remove the mousemove event listener when drag ends
                             document.removeEventListener('mousemove', movePreview);
@@ -737,6 +742,10 @@ namespace CMS.Components.Pages.WebPages
                             window.originalElement.style.opacity = '1'; // Reset the original element's opacity
                             window.originalElement.style.pointerEvents = ''; // Re-enable interaction with the original element
                             window.originalElement = null; // Clear the reference to the original element
+
+//const grid = document.querySelector('.content-item-drag-cell');  // The grid container
+    // Set the cursor to 'grab' for the grid container
+//    grid.style.cursor = 'grab';
                         }
                     };
                 }
@@ -1299,11 +1308,11 @@ namespace CMS.Components.Pages.WebPages
             {
                 draggedCell = layoutCell;
 
-                // First, ensure that the JavaScript is initialized and ready
-                await InitializeDrag();
 
                 // Get the element to be dragged (you can use `document.querySelector` or pass the element directly)
                 var elementId = layoutCell.ContentId; // Or use any identifier for the draggable element
+                // First, ensure that the JavaScript is initialized and ready
+                await InitializeDrag();
                 await JSRuntime.InvokeVoidAsync("setupDragPreview", layoutCell.ContentId);
 
                 // Optionally, store any other information or state
