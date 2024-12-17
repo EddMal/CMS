@@ -554,13 +554,13 @@ header, .navbar, footer {
 /* Unique styles for content-item-drag-cell */
 .content-item-drag-cell {
     outline: 1px dotted #ccc; /* Border for grid items */
-    cursor: grab;
+    /*cursor: grab;*/
 }
 
     /* Hover and interaction states for drag-cell */
     .content-item-drag-cell:hover {
         user-select: none;
-        cursor: grab; 
+        /*cursor: grab; */
         background-color: grey;
         opacity: 0.5; /* Makes all child elements inside the div semi-transparent */
     }
@@ -579,7 +579,7 @@ header, .navbar, footer {
         user-select: none; /* Prevent text selection during drag */
         background-color: grey; /* Change background to show drag state */
         opacity: 0.5; /* Make content inside the div semi-transparent */
-        cursor: grabbing; /* Change cursor to grabbing */
+        /*cursor: grabbing;*/ /* Change cursor to grabbing */
     }
 
 
@@ -598,7 +598,16 @@ header, .navbar, footer {
         user-select: none; /* Prevent text selection during drag */
         background-color: grey; /* Change background to show drag state */
         opacity: 0.5; /* Make content inside the wrapper semi-transparent */
-        cursor: grabbing; /* Grabbing cursor */
+        /*cursor: grabbing;*/ /* Grabbing cursor */
+        pointer-events: none; /* Disable interactions within content-wrapper */
+        height: 100%; /* Ensure it takes full height */
+    }
+
+    .content-item-drag-cell.drag:hover {
+        user-select: none; /* Prevent text selection during drag */
+        background-color: grey; /* Change background to show drag state */
+        opacity: 0.5; /* Make content inside the wrapper semi-transparent */
+        /*cursor: grabbing;*/ /* Grabbing cursor */
         pointer-events: none; /* Disable interactions within content-wrapper */
         height: 100%; /* Ensure it takes full height */
     }

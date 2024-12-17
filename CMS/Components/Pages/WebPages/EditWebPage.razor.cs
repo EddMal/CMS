@@ -664,16 +664,17 @@ namespace CMS.Components.Pages.WebPages
                 if (!window.setupDragPreview) {
                     window.setupDragPreview = function(contentId) {
                         // Select the element using data-content-id attribute
-                        var element = document.querySelector('[data-content-id=""' + contentId + '""]'); 
+                        var element = document.querySelector('[data-content-id=""' + contentId + '""]');
+                        
 
                         // Check if the element exists
                         if (!element) {
                             console.error('Element with ContentId ' + contentId + ' not found.');
                             return; // Exit if the element is not found
                         }
- //const grid = document.querySelector('.content-item-drag-cell');  // The grid container                  
- // Set the cursor to 'grabbing' for the grid container
-                                //grid.style.cursor = 'grabbing';
+                        const grid = document.querySelector('.container-content-layout-grid-drag-cell');  // The grid container                  
+                        // Set the cursor to 'grabbing' for the grid container
+                        grid.style.cursor = 'grabbing';
 
                         // Make the original element fully transparent and disable interaction
                         element.style.opacity = '0'; // Make the original element fully transparent
@@ -743,9 +744,9 @@ namespace CMS.Components.Pages.WebPages
                             window.originalElement.style.pointerEvents = ''; // Re-enable interaction with the original element
                             window.originalElement = null; // Clear the reference to the original element
 
-//const grid = document.querySelector('.content-item-drag-cell');  // The grid container
-    // Set the cursor to 'grab' for the grid container
-//    grid.style.cursor = 'grab';
+                            const grid = document.querySelector('.container-content-layout-grid-drag-cell');  // The grid container
+                            // Set the cursor to 'grab' for the grid container
+                            grid.style.cursor = 'grab';
                         }
                     };
                 }
