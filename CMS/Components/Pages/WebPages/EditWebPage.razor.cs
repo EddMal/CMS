@@ -998,7 +998,7 @@ namespace CMS.Components.Pages.WebPages
         private async Task InitializeMouseEnterOverlay()
         {
             await JSRuntime.InvokeVoidAsync("eval", @"
-                window.setupMouseEnterOverlay = function(contentId, row, column, color) {
+                window.setupMouseEnterOverlay = function(contentId, row, column, color, opacity) {
                     var element;
                     // If contentId exists, use it to find the element
                     if (contentId) {
@@ -1024,7 +1024,7 @@ namespace CMS.Components.Pages.WebPages
                     overlay.style.width = '100%';
                     overlay.style.height = element.offsetHeight + 'px';
                     overlay.style.backgroundColor = color; // Set the background color passed as an argument
-                    overlay.style.opacity = '0.3'; // Semi-transparent overlay
+                    overlay.style.opacity = opacity; // Semi-transparent overlay
                     overlay.style.pointerEvents = 'none'; // Prevent the overlay from interfering with mouse events
                     overlay.style.borderTop = '2px dotted #ccc'; // Top dotted border
                     overlay.style.borderBottom = '2px dotted #ccc'; // Bottom dotted border            
@@ -1083,6 +1083,7 @@ namespace CMS.Components.Pages.WebPages
                         dragPreviewRow.style.width = '100%'; // Set width to 100%
                         dragPreviewRow.style.height = 'auto'
                         dragPreviewRow.style.outline = 'none';
+                        dragPreviewRow.style.opacity = '0.9';
 
                         // Use grid layout to ensure proper alignment and sizing
                         dragPreviewRow.style.display = 'grid';
@@ -1268,7 +1269,7 @@ namespace CMS.Components.Pages.WebPages
         {
             await InitializeMouseEnterOverlay();  // Ensure the JS function is initialized
             // Hilight row.
-            await JSRuntime.InvokeVoidAsync("setupMouseEnterOverlay", cell.ContentId,cell.Row,cell.Column, "red");
+            await JSRuntime.InvokeVoidAsync("setupMouseEnterOverlay", cell.ContentId,cell.Row,cell.Column, "red", 0.3);
             //RestoreScrollPosition(false);
             if (cell == null)
             {
@@ -1773,11 +1774,14 @@ namespace CMS.Components.Pages.WebPages
         }
 
         // Method reading hovered row
-        private void OnDragOverRow(int cellRow)
+        private async Task OnDragOverRow(LayoutCell cell)
         {
+            await InitializeMouseEnterOverlay();  // Ensure the JS function is initialized
+            // Hilight row.
+            await JSRuntime.InvokeVoidAsync("setupMouseEnterOverlay", cell.ContentId, cell.Row, cell.Column, "#ccc", 0.3);
             //RestoreScrollPosition();
-            hoveredRow = cellRow;
-            Console.WriteLine($"Hovered over row:{cellRow}.");
+            hoveredRow = cell.Row;
+            Console.WriteLine($"Hovered over row:{cell.Row}.");
         }
 
         // Method for handling en of moving layout row

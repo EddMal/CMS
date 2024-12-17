@@ -671,21 +671,18 @@
             }
         case ExecuteAction.DragRow:
             {
-                var currentRow = 0;
-                var column = 0;
-                <div class="container-content-layout-grid">
+                <div class="container-content-layout-grid-drag-row">
                         @foreach (var cell in layout.LayoutCells)
                         {
-                            column = column + cell.ColumnSpan;
                             // Find content for the cell
                             var content = Contents.FirstOrDefault(l => l.ContentId == cell.ContentId);
                             if (cell != null)
                             {
-                                <div class="content-item dotted-border-row"
+                            <div class="content-item-drag-row dotted-border-row"
                                     draggable="true"
                                     @onmousedown="() => OnDragStartRow(cell.Row)"
                                     @onmouseup="() => OnDragEndRowAsync()"
-                                    @onmouseenter="() => OnDragOverRow(cell.Row)"
+                                    @onmouseenter="() => OnDragOverRow(cell)"
                                     style="grid-row: @cell.Row; grid-column: @cell.Column;
                                     grid-row-end: span @cell.RowSpan;
                                     grid-column-end: span @cell.ColumnSpan;
@@ -708,9 +705,27 @@
                                         </div>
                                     }
                                 </div>
+                            <div class="row-control-buttons">
+                                <!-- Move row up and down arrows -->
+                                @if (draggedRow > 1)
+                                {
+
+                                    <!-- Up arrow button -->
+                                    <button @onclick="() => MoveRowByClickAsync(-1)" class="arrow-button up-arrow">
+                                        ▲
+                                    </button>
+                                }
+                                <!-- Down arrow button -->
+                                @if (draggedRow < layout.LayoutCells.LastOrDefault().Row)
+                                {
+                                    <button @onclick="() => MoveRowByClickAsync(1)" class="arrow-button down-arrow">
+                                        ▼
+                                    </button>
+                                }
+                            </div>
                             }
                         }
-                        <div class="row-control-buttons">
+                       @*  <div class="row-control-buttons">
                             <!-- Move row up and down arrows -->
                             @if (draggedRow > 1)
                             {
@@ -727,7 +742,7 @@
                                 ▼
                                 </button>
                             }
-                        </div>
+                        </div> *@
                     </div>
                     break;
                 }

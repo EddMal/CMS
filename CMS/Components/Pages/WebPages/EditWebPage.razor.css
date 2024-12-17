@@ -434,6 +434,7 @@ header, .navbar, footer {
 /* Common grid container styling for all sections */
 .container-content-layout-grid,
 .container-content-layout-grid-drag-cell,
+.container-content-layout-grid-drag-row,
 .container-content-layout-grid-delete,
 .container-content-layout-grid-create,
 .content-item-preview {
@@ -451,6 +452,7 @@ header, .navbar, footer {
 /* Shared content item styles for content-create, delete, drag-cell, and preview */
 .content-item,
 .content-item-drag-cell,
+.content-item-drag-row,
 .content-item-delete,
 .content-item-delete-row,
 .content-item-create,
@@ -506,6 +508,7 @@ header, .navbar, footer {
 
     .content-item a,
     .content-item-drag-cell a,
+    .content-item-drag-cell a,
     .content-item-delete a,
     .content-item-delete-row a,
     .content-item-create a,
@@ -517,6 +520,7 @@ header, .navbar, footer {
 @media (max-width: 1024px), @media (max-width: 768px), @media (max-width: 480px) {
     .container-content-layout-grid-create,
     .container-content-layout-grid-drag-cell,
+    .container-content-layout-grid-drag-row,
     .container-content-layout-grid-delete,
     .content-item-preview {
         grid-template-columns: repeat(12, 1fr); /* Keep 12 columns */
@@ -524,6 +528,7 @@ header, .navbar, footer {
 
     .content-item-create,
     .content-item-drag-cell,
+    .content-item-drag-row,
     .content-item-delete,
     .content-item-delete-row,
     .content-item-preview {
@@ -692,6 +697,31 @@ header, .navbar, footer {
 
 /* End of Preview Layout and Styling */
 
+/* Drag row layout and styling */
+
+/* Drag row grid styling */
+.container-content-layout-grid-drag-row {
+    cursor: move;
+}
+
+
+/* Unique styles for content-item-drag-row */
+.content-item-drag-row {
+    cursor: move; /* Grabbing cursor for drag */
+}
+
+
+    /* Ensure content-wrapper is not blocking interactions */
+    .content-item-drag-row .content-wrapper {
+        pointer-events: none; /* Disable all interactions within this wrapper */
+        height: 100%;
+        cursor: move;
+    }
+
+
+
+/* End of drag row layout and styling */
+
 /*Dotted border top and bottom */
 
 .dotted-border-row::before,
@@ -734,7 +764,7 @@ header, .navbar, footer {
     width: auto; /* Allow width to expand based on content */
     height: auto; /* Allow height to expand based on content */
     display: flex;
-    flex-direction: column; /* Stack buttons vertically */
+    flex-direction: row; /* Stack buttons vertically */
     z-index: 1000; /* Ensure the buttons overlay all other content */
     gap: 5px; /* Optional: add spacing between buttons */
     overflow: visible; /* Ensure buttons don't get clipped */
