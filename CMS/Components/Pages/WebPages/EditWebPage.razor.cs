@@ -1423,8 +1423,13 @@ namespace CMS.Components.Pages.WebPages
 
                     document.body.appendChild(overlay);
 
+//ToDo: Clean up event listeners:
                     // Cleanup the overlay when the mouse leaves
                     element.addEventListener('mouseleave', function() {
+                        document.body.removeChild(overlay);
+                    });
+
+                     element.addEventListener('touchend', function() {
                         document.body.removeChild(overlay);
                     });
 
@@ -1570,6 +1575,134 @@ namespace CMS.Components.Pages.WebPages
         }
     ");
         }
+
+
+        private async Task InitializeTouchDragPreviewRow()
+        {
+            // Call JS function to ensure setup is available
+            await JSRuntime.InvokeVoidAsync("eval", @"
+        if (!window.setupDragTouchPreviewRow) {
+            window.setupDragPreviewRow = function(row, webPageBackgroundColor) {
+                var rowElements = document.querySelectorAll('[data-row=""' + row + '""]');
+
+                console.log('Drag row preview runs');
+
+                if (rowElements.length === 0) {
+                    console.error('Row element with Row: ' + row + ' not found.');
+                    return;
+                }
+
+                // Create a container to hold the cloned elements for the preview
+                var dragPreviewRow = document.createElement('div');
+                dragPreviewRow.style.position = 'absolute';
+                dragPreviewRow.style.zIndex = '9999';
+                dragPreviewRow.style.pointerEvents = 'none';
+                dragPreviewRow.style.opacity = '1';
+                dragPreviewRow.style.width = '100%'; // Set width to 100%
+                dragPreviewRow.style.height = 'auto'
+                dragPreviewRow.style.outline = 'none';
+                dragPreviewRow.style.opacity = '0.9';
+
+                // Use grid layout to ensure proper alignment and sizing
+                dragPreviewRow.style.display = 'grid';
+                dragPreviewRow.style.gridTemplateColumns = 'repeat(12, 1fr)'; // Ensure the grid has 12 columns
+                dragPreviewRow.style.gridAutoRows = 'minmax(30px, auto)'; // Auto-sized rows based on content
+                dragPreviewRow.style.alignItems = 'top'; // Align all items to the top
+
+                // Clone each content item within the row and append to the preview container
+                rowElements.forEach(function(element) {
+                    var clone = element.cloneNode(true); // Deep clone the entire content item
+
+                    // Fetch the column span from the data-column-span attribute
+                    var columnSpan = element.getAttribute('data-column-span');
+                    console.log('Column Span:', columnSpan);
+
+                    // Apply the column span to the clone using grid-column-end
+                    if (columnSpan) {
+                        clone.style.gridColumnEnd = 'span ' + columnSpan; // Apply column span
+                    }
+
+                    dragPreviewRow.appendChild(clone); // Append the cloned element to the preview container
+                });
+
+                // Make the entire row's elements transparent and non-interactive during the drag
+                rowElements.forEach(function(element) {
+                    element.style.opacity = '0';
+                    element.style.pointerEvents = 'none';
+                });
+
+                // Append the preview row to the body
+                document.body.appendChild(dragPreviewRow);
+
+                // Function to move the preview with touch movement
+                var movePreview = function(event) {
+                    // Get the first touch point (in case there are multiple touches)
+                    var touch = event.touches[0];
+                    var previewWidth = dragPreviewRow.offsetWidth;
+                    var previewHeight = dragPreviewRow.offsetHeight;
+                    var scrollTop = window.scrollY;
+
+                    // Position the preview based on touch coordinates
+                    dragPreviewRow.style.top = (touch.clientY + scrollTop - previewHeight / 2) + 'px';
+                    dragPreviewRow.style.left = (touch.clientX - previewWidth / 2) + 'px';
+
+                    // Get the screen height and touch Y position
+                    var screenHeight = window.innerHeight;
+                    var touchY = touch.clientY;
+
+                    // Adjust the scroll position if the touch is near the top or bottom 20% of the screen
+                    if (touchY < screenHeight * 0.2) {
+                        // Touch is near the top 20% of the screen, scroll up
+                        window.scrollBy(0, -5); // Scroll up by 5px
+                    } else if (touchY > screenHeight * 0.8) {
+                        // Touch is near the bottom 20% of the screen, scroll down
+                        window.scrollBy(0, 5); // Scroll down by 5px
+                    }
+                };
+
+                // Position the preview at the initial touch position
+                movePreview({ touches: [{ clientX: window.event.clientX, clientY: window.event.clientY }] });
+                
+                // Add touchmove listener to move the preview as touch moves
+                document.addEventListener('touchmove', movePreview);
+
+                // Store the preview and original elements references
+                window.dragPreviewElement = dragPreviewRow;
+                window.originalElements = rowElements;
+
+                // Define the cleanup function for the drag preview
+                window.removeDragPreview = function() {
+                    console.log('Cleaning up drag preview');
+
+                    if (window.dragPreviewElement) {
+                        document.body.removeChild(window.dragPreviewElement); // Remove the preview
+                        window.dragPreviewElement = null; // Clear the reference
+                    }
+
+                    if (window.originalElements) {
+                        window.originalElements.forEach(function(element) {
+                            element.style.opacity = '1'; // Reset original element's opacity
+                            element.style.pointerEvents = ''; // Re-enable interaction with the original element
+                        });
+                        window.originalElements = null; // Clear the reference to the original elements
+                    }
+                };
+
+                // Cleanup on touch end (when the user finishes the drag)
+                var cleanupOnTouchEnd = function() {
+                    console.log('Drag row: touch end');
+                    window.removeDragPreview(); // Call the cleanup function
+
+                    document.removeEventListener('touchmove', movePreview);
+                    document.removeEventListener('touchend', cleanupOnTouchEnd);
+                };
+
+                document.addEventListener('touchend', cleanupOnTouchEnd);
+            };
+        }
+    ");
+        }
+
 
 
 
@@ -2323,7 +2456,7 @@ namespace CMS.Components.Pages.WebPages
                 .ToList(); // Rebuild the list to ensure the setter is triggered.
         }
 
-        // Method for start of moving layout row.
+        // Methods for start of moving layout row.
         private async Task OnDragStartRow(int cellRow)
         {
             await InitializeDragPreviewRow();  // Ensure the JS function is initialized
@@ -2335,8 +2468,23 @@ namespace CMS.Components.Pages.WebPages
             // Ensure the JS function is initialized
             await InitializeHandleRowOpacity();
             //ToDo: Create new methood for cleaning.
-            await JSRuntime.InvokeVoidAsync("setupHighlightRow",null, true);
+            await JSRuntime.InvokeVoidAsync("setupHighlightRow", true);
         }
+
+        private async Task OnTouchStartRow(int cellRow)
+        {
+            await InitializeTouchDragPreviewRow();
+            await JSRuntime.InvokeVoidAsync("setupDragPreviewRow", cellRow, webPageBackgroundColor);
+            // RestoreScrollPosition();
+            draggedRow = cellRow;
+            Console.WriteLine($"Touch started. Drag row:{cellRow}.");
+            // Remove highligt from last hilighted row.
+            // Ensure the JS function is initialized
+            await InitializeHandleRowOpacity();
+            //ToDo: Create new methood for cleaning.
+            await JSRuntime.InvokeVoidAsync("setupHighlightRow", true);
+        }
+
 
         // Method reading hovered row
         private async Task OnDragOverRow(LayoutCell cell)

@@ -725,6 +725,7 @@ header, .navbar, footer {
 
 /* Unique styles for content-item-drag-row */
 .content-item-drag-row {
+    touch-action: none;
     cursor: move; /* Grabbing cursor for drag */
 }
 

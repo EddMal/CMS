@@ -683,6 +683,7 @@
                                     draggable="true"
                                     @onmousedown="() => OnDragStartRow(cell.Row)"
                                     @onmouseup="() => OnDragEndRowAsync()"
+                                    @ontouchstart="() => OnTouchStartRow(cell.Row)"
                                     @onmouseenter="() => OnDragOverRow(cell)"
                                     style="grid-row: @cell.Row; grid-column: @cell.Column;
                                     grid-row-end: span @cell.RowSpan;
