@@ -72,10 +72,11 @@ namespace CMS.Components.Pages.WebPages
 
         private string userInfoMessage = "";
         private bool isScrollSaved = false;
+        private static bool hoveredCellIsSet;
 
         private LayoutCell? draggedCell { get; set; } = null;
 
-        private LayoutCell? hoveredCell { get; set; } = null;
+        private static LayoutCell? hoveredCell { get; set; } = null;
 
         private int? draggedRow { get; set; } = null;
 
@@ -658,252 +659,633 @@ namespace CMS.Components.Pages.WebPages
 
         //Start drag and drop content order:
         //Todo:Verifications and best practises needs to be handled.
-        private async Task InitializeDrag()
+        private async Task InitializeMouseDrag()
         {
             await JSRuntime.InvokeVoidAsync("eval", @"
-                if (!window.setupDragPreview) {
-                    window.setupDragPreview = function(contentId) {
-                        // Select the element using data-content-id attribute
-                        var element = document.querySelector('[data-content-id=""' + contentId + '""]');
-                        
-
-                        // Check if the element exists
-                        if (!element) {
-                            console.error('Element with ContentId ' + contentId + ' not found.');
-                            return; // Exit if the element is not found
-                        }
-                        const grid = document.querySelector('.container-content-layout-grid-drag-cell');  // The grid container                  
-                        // Set the cursor to 'grabbing' for the grid container
-                        grid.style.cursor = 'grabbing';
-
-                        // Make the original element fully transparent and disable interaction
-                        element.style.opacity = '0'; // Make the original element fully transparent
-                        element.style.pointerEvents = 'none'; // Prevent interaction with the original element during drag
-
-                        // Clone the element to create a custom preview
-                        var dragPreview = element.cloneNode(true); // Create a clone with the same content and styles
-                        dragPreview.style.position = 'absolute'; // Absolute positioning for the drag preview
-                        dragPreview.style.zIndex = '9999'; // Make sure the preview is above other elements
-                        dragPreview.style.pointerEvents = 'none'; // Prevent interaction with the preview
-                        dragPreview.style.opacity = '0.85'; // Make the preview fully visible
-                        dragPreview.style.width = '60%';
-                        //dragPreview.style.height = '60%';
-                        dragPreview.style.outline = 'none';
-
-                        // Append the preview to the body
-                        document.body.appendChild(dragPreview);
-
-                        // Function to move the preview with the mouse
-                        var movePreview = function(event) {
-                            // Get the size of the preview element
-                            var previewWidth = dragPreview.offsetWidth;
-                            var previewHeight = dragPreview.offsetHeight;
-
-                            // Get the current scroll position to adjust the preview position
-                            var scrollTop = window.scrollY;
-
-                            // Adjust the preview's position based on the mouse position and scroll position
-                            dragPreview.style.top = (event.clientY + scrollTop - previewHeight / 2) + 'px';  // Center vertically
-                            dragPreview.style.left = (event.clientX - previewWidth / 2) + 'px';  // Center horizontally
-                        };
-
-                        // Immediately position the preview at the mouse cursor's position (centered)
-                        movePreview({ clientX: window.event.clientX, clientY: window.event.clientY });
-
-
-                        // Listen for the mousemove event to update the preview position
-                        document.addEventListener('mousemove', movePreview);
-
-                        // Store the dragPreview and the original element in global variables for later use
-                        window.dragPreviewElement = dragPreview;
-                        window.originalElement = element;
-
-                        // Clean up the preview and reset the original element when drag ends (on mouseup)
-                        var cleanupOnMouseUp = function() {
-                            window.removeDragPreview(); // Call the cleanup function
-
-
-                            // Remove the mousemove event listener when drag ends
-                            document.removeEventListener('mousemove', movePreview);
-                            document.removeEventListener('mouseup', cleanupOnMouseUp); // Remove the mouseup listener
-                        };
-
-                        // Add a mouseup event to clean up the preview
-                        document.addEventListener('mouseup', cleanupOnMouseUp);
-                    };
-
-                    // Cleanup function to remove the drag preview and reset the original element
-                    window.removeDragPreview = function() {
-                        if (window.dragPreviewElement) {
-                            document.body.removeChild(window.dragPreviewElement); // Remove the preview
-                            window.dragPreviewElement = null; // Clear the preview reference
-                        }
-
-                        if (window.originalElement) {
-                            window.originalElement.style.opacity = '1'; // Reset the original element's opacity
-                            window.originalElement.style.pointerEvents = ''; // Re-enable interaction with the original element
-                            window.originalElement = null; // Clear the reference to the original element
-
-                            const grid = document.querySelector('.container-content-layout-grid-drag-cell');  // The grid container
-                            // Set the cursor to 'grab' for the grid container
-                            grid.style.cursor = 'grab';
-                        }
+    if (!window.setupMouseDragPreview) {
+        // Define the getTargetCell function within this scope
+        window.getTargetCell = function(clientX, clientY) {
+            var targetCell = null;
+            // Find all grid cells
+            var cells = document.querySelectorAll('.container-content-layout-grid-drag-cell .content-item-drag-cell');
+            cells.forEach(cell => {
+                var rect = cell.getBoundingClientRect();
+                // Check if the mouse is over this cell
+                if (clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom) {
+                    // Extract and parse the data attributes you need from the cell
+                    targetCell = {
+                        contentId: parseInt(cell.getAttribute('data-content-id')),  // Parse contentId as integer
+                        row: parseInt(cell.style.gridRow),  // Parse gridRow as integer
+                        column: parseInt(cell.style.gridColumn),  // Parse gridColumn as integer
+                        rowSpan: parseInt(cell.style.gridRowEnd.replace('span ', '')),  // Parse gridRowEnd (span value) as integer
+                        columnSpan: parseInt(cell.style.gridColumnEnd.replace('span ', ''))  // Parse gridColumnEnd (span value) as integer
                     };
                 }
+            });
+            return targetCell;
+        };
 
-            ");
+        window.setupMouseDragPreview = function(contentId) {
+            // Select the element using data-content-id attribute
+            var element = document.querySelector('[data-content-id=""' + contentId + '""]');
+    
+            // Check if the element exists
+            if (!element) {
+                console.error('Element with ContentId ' + contentId + ' not found.');
+                return; // Exit if the element is not found
+            }
+    
+            const grid = document.querySelector('.container-content-layout-grid-drag-cell');  // The grid container
+            // Set the cursor to 'grabbing' for the grid container
+            grid.style.cursor = 'grabbing';
+
+            // Make the original element fully transparent and disable interaction
+            element.style.opacity = '0'; // Make the original element fully transparent
+            element.style.pointerEvents = 'none'; // Prevent interaction with the original element during drag
+
+            // Clone the element to create a custom preview
+            var dragPreview = element.cloneNode(true); // Create a clone with the same content and styles
+            dragPreview.style.position = 'absolute'; // Absolute positioning for the drag preview
+            dragPreview.style.zIndex = '9999'; // Make sure the preview is above other elements
+            dragPreview.style.pointerEvents = 'none'; // Prevent interaction with the preview
+            dragPreview.style.opacity = '0.85'; // Make the preview fully visible
+            dragPreview.style.width = '60%';
+            dragPreview.style.outline = 'none';
+
+            // Append the preview to the body
+            document.body.appendChild(dragPreview);
+
+            // Function to move the preview based on mouse
+            var movePreview = function(event) {
+                var clientX = event.clientX;
+                var clientY = event.clientY;
+
+                // Get the size of the preview element
+                var previewWidth = dragPreview.offsetWidth;
+                var previewHeight = dragPreview.offsetHeight;
+
+                // Get the current scroll position to adjust the preview position
+                var scrollTop = window.scrollY;
+
+                // Adjust the preview's position based on the mouse position and scroll position
+                dragPreview.style.top = (clientY + scrollTop - previewHeight / 2) + 'px';  // Center vertically
+                dragPreview.style.left = (clientX - previewWidth / 2) + 'px';  // Center horizontally
+
+                // Get the screen height and mouse Y position
+                var screenHeight = window.innerHeight;
+                var mouseY = clientY;
+
+                // Adjust the scroll position if the mouse is near the top or bottom 20% of the screen
+                if (mouseY < screenHeight * 0.2) {
+                    // Mouse is near the top 20% of the screen, scroll up
+                    window.scrollBy(0, -5); // Scroll up by 5px
+                } else if (mouseY > screenHeight * 0.8) {
+                    // Mouse is near the bottom 20% of the screen, scroll down
+                    window.scrollBy(0, 5); // Scroll down by 5px
+                }
+            };
+
+            // Listen for the mousemove event
+            var moveEventListener = function(e) {
+                movePreview(e);
+            };
+
+            document.addEventListener('mousemove', moveEventListener);
+
+            // Store the dragPreview and the original element in global variables for later use
+            window.dragPreviewElement = dragPreview;
+            window.originalElement = element;
+
+            // Clean up the preview and reset the original element when drag ends (on mouseup)
+            var cleanupOnEnd = function(event) {
+                window.removeDragPreview(); // Call the cleanup function
+
+                // Remove the move event listeners when drag ends
+                document.removeEventListener('mousemove', moveEventListener);
+
+                // Get the mouse end position
+                var mouseEndX = event.clientX;
+                var mouseEndY = event.clientY;
+
+                // Check which cell the mouse ends over
+                var targetCell = window.getTargetCell(mouseEndX, mouseEndY); // Using the globally defined getTargetCell
+                if (targetCell) {
+                    console.log('Target Cell:', targetCell);
+
+                    // Trigger a Blazor method and pass the target cell's information (cell)
+                    DotNet.invokeMethodAsync('CMS', 'SetDraggedCell', targetCell)
+                        .then(data => console.log(data))
+                        .catch(error => console.error(error));
+                }
+
+                // Remove the mouseup event listeners
+                document.removeEventListener('mouseup', cleanupOnEnd);
+            };
+
+            // Add mouseup event listeners to clean up the preview
+            document.addEventListener('mouseup', cleanupOnEnd);
+        };
+
+        // Cleanup function to remove the drag preview and reset the original element
+        window.removeDragPreview = function() {
+            if (window.dragPreviewElement) {
+                document.body.removeChild(window.dragPreviewElement); // Remove the preview
+                window.dragPreviewElement = null; // Clear the preview reference
+            }
+
+            if (window.originalElement) {
+                window.originalElement.style.opacity = ''; // Reset the original element's opacity
+                window.originalElement.style.pointerEvents = ''; // Re-enable interaction with the original element
+                window.originalElement = null; // Clear the reference to the original element
+
+                const grid = document.querySelector('.container-content-layout-grid-drag-cell');  // The grid container
+                // Set the cursor to 'grab' for the grid container
+                grid.style.cursor = 'grab';
+            }
+        };
+    }
+    ");
         }
 
-        //Primitive methods for restoring the scrollY after reset to top after rewrite/rerendering of html.
 
-        //Todo:Verifications and best practises needs to be handled, see git projects scrumboard.
-        //private void RestoreScrollPosition()
-        //{
-        //    // Save the current scroll position using localStorage in JavaScript (store as floating point number)
-        //    JSRuntime.InvokeVoidAsync("eval", @"
-        //        localStorage.setItem('scrollPosition', window.scrollY); // Store the exact scrollY value
-        //        console.log('scroll position saved:', window.scrollY);
-        //        localStorage.setItem('retries', 0); // Initialize retries in localStorage
-        //        console.log('retries initialized:', 0);
+        private async Task InitializeTouchDrag()
+        {
+            await JSRuntime.InvokeVoidAsync("eval", @"
+        if (!window.setupTouchDragPreview) {
+            // Define the getTargetCell function within this scope
+            window.getTargetCell = function(clientX, clientY) {
+                var targetCell = null;
+                // Find all grid cells
+                var cells = document.querySelectorAll('.container-content-layout-grid-drag-cell .content-item-drag-cell');
+                cells.forEach(cell => {
+                    var rect = cell.getBoundingClientRect();
+                    // Check if the touch is over this cell
+                    if (clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom) {
+                        // Extract and parse the data attributes you need from the cell
+                        targetCell = {
+                            contentId: parseInt(cell.getAttribute('data-content-id')),  // Parse contentId as integer
+                            row: parseInt(cell.style.gridRow),  // Parse gridRow as integer
+                            column: parseInt(cell.style.gridColumn),  // Parse gridColumn as integer
+                            rowSpan: parseInt(cell.style.gridRowEnd.replace('span ', '')),  // Parse gridRowEnd (span value) as integer
+                            columnSpan: parseInt(cell.style.gridColumnEnd.replace('span ', ''))  // Parse gridColumnEnd (span value) as integer
+                        };
+                    }
+                });
+                return targetCell;
+            };
 
-        //    ");
-        //}
+            window.setupTouchDragPreview = function(contentId) {
+                // Select the element using data-content-id attribute
+                var element = document.querySelector('[data-content-id=""' + contentId + '""]');
+        
+                // Check if the element exists
+                if (!element) {
+                    console.error('Element with ContentId ' + contentId + ' not found.');
+                    return; // Exit if the element is not found
+                }
+        
+                const grid = document.querySelector('.container-content-layout-grid-drag-cell');  // The grid container
+                // Set the cursor to 'grabbing' for the grid container
+                grid.style.cursor = 'grabbing';
 
-        ////Todo:Verifications and best practises needs to be handled, see git projects scrumboard.
-        //private void LoadScrollPosition()
-        //{
-        //    //InitializeScrollTracking();
-        //    //Run JavaScript to attempt restoring the scroll position
-        //    JSRuntime.InvokeVoidAsync("eval", @"
-        //        (function attemptToRestoreScrollPosition() {
-        //             Retrieve retries from localStorage.
-        //            let retries = parseInt(localStorage.getItem('retries'), 10) || 0;
+                // Make the original element fully transparent and disable interaction
+                element.style.opacity = '0'; // Make the original element fully transparent
+                element.style.pointerEvents = 'none'; // Prevent interaction with the original element during drag
 
-        //             If retrying is not allowed, stop the function.
-        //            if (retries > 3) {
-        //                console.log('Restoration already attempted. Aborting further retries.');
-        //                return; // Stop further execution.
-        //            }
-        //            console.log('retries:', retries);
+                // Clone the element to create a custom preview
+                var dragPreview = element.cloneNode(true); // Create a clone with the same content and styles
+                dragPreview.style.position = 'absolute'; // Absolute positioning for the drag preview
+                dragPreview.style.zIndex = '9999'; // Make sure the preview is above other elements
+                dragPreview.style.pointerEvents = 'none'; // Prevent interaction with the preview
+                dragPreview.style.opacity = '0.85'; // Make the preview fully visible
+                dragPreview.style.width = '60%';
+                dragPreview.style.outline = 'none';
 
-        //             Get stored scroll position from localStorage.
-        //            var storedScrollPosition = localStorage.getItem('scrollPosition');
+                // Append the preview to the body
+                document.body.appendChild(dragPreview);
 
-        //             Ensure stored position exists and convert it to a floating-point number.
-        //            storedScrollPosition = parseFloat(storedScrollPosition);
+                // Function to move the preview based on touch
+                var movePreview = function(event) {
+                    var clientX = event.touches[0].clientX;
+                    var clientY = event.touches[0].clientY;
 
-        //             Retrieve the current scroll position (window.scrollY) as a floating-point number.
-        //            var currentScrollPosition = window.scrollY;
-        //            console.log('current scroll position:', currentScrollPosition);
+                    // Get the size of the preview element
+                    var previewWidth = dragPreview.offsetWidth;
+                    var previewHeight = dragPreview.offsetHeight;
 
-        //             Check if stored position exists and retries.
-        //            if (!isNaN(storedScrollPosition) && retries < 2) {
-        //                window.scrollTo(0, storedScrollPosition); // Scroll to the saved position.
-        //                console.log('Scroll position restored:', storedScrollPosition);
-        //                console.log('Current window.scrollY:', window.scrollY);
+                    // Get the current scroll position to adjust the preview position
+                    var scrollTop = window.scrollY;
 
-        //                retries++;  // Increment the retry counter.
-        //                localStorage.setItem('retries', retries); // Update retries count in localStorage.
+                    // Adjust the preview's position based on the touch position and scroll position
+                    dragPreview.style.top = (clientY + scrollTop - previewHeight / 2) + 'px';  // Center vertically
+                    dragPreview.style.left = (clientX - previewWidth / 2) + 'px';  // Center horizontally
 
-        //                 Retry after 50ms, delay for timing issues
-        //                setTimeout(attemptToRestoreScrollPosition, 50); // Retry with a 50ms delay.
-        //            } else {
-        //                 If position is restored or matches, stop further retries
-        //                localStorage.setItem('retries', retries); // Store the retries count in localStorage.
-        //                console.log('Scroll position is already at or restored to:', storedScrollPosition);
-        //                localStorage.setItem('retries', 0); //Reset
-        //            }
-        //        })();
-        //    ");
-        //}
+                    // Get the screen height and touch Y position
+                    var screenHeight = window.innerHeight;
+                    var touchY = clientY;
 
-        //Primitive time intense/agressive short intervals, restoring repeat  during a timespan restoring for determining if it is a
-        //    viable fallback approach for
-        //removing flickering at redraw/rerender of content(page reset scrollY to top).
-        //Results: greate improvement with ocational/glitches/twitch/flickering.
+                    // Adjust the scroll position if the touch is near the top or bottom 20% of the screen
+                    if (touchY < screenHeight * 0.2) {
+                        // Touch is near the top 20% of the screen, scroll up
+                        window.scrollBy(0, -5); // Scroll up by 5px
+                    } else if (touchY > screenHeight * 0.8) {
+                        // Touch is near the bottom 20% of the screen, scroll down
+                        window.scrollBy(0, 5); // Scroll down by 5px
+                    }
+                };
 
-        //    private void RestoreScrollPosition()
+                // Listen for the touchmove event
+                var moveEventListener = function(e) {
+                    movePreview(e);
+                };
+
+                document.addEventListener('touchmove', moveEventListener);
+
+                // Store the dragPreview and the original element in global variables for later use
+                window.dragPreviewElement = dragPreview;
+                window.originalElement = element;
+
+                // Clean up the preview and reset the original element when drag ends (on touchend)
+                var cleanupOnEnd = function(event) {
+                    window.removeDragPreview(); // Call the cleanup function
+
+                    // Remove the move event listeners when drag ends
+                    document.removeEventListener('touchmove', moveEventListener);
+
+                    // Get the touch end position
+                    var touchEndX = event.changedTouches[0].clientX;
+                    var touchEndY = event.changedTouches[0].clientY;
+
+                    // Check which cell the touch ends over
+                    var targetCell = window.getTargetCell(touchEndX, touchEndY); // Using the globally defined getTargetCell
+                    if (targetCell) {
+                        console.log('Target Cell:', targetCell);
+
+                        // Trigger a Blazor method and pass the target cell's information (cell)
+                        DotNet.invokeMethodAsync('CMS', 'SetDraggedCell', targetCell)
+                            .then(data => console.log(data))
+                            .catch(error => console.error(error));
+                    }
+
+                    // Remove the touchend event listeners
+                    document.removeEventListener('touchend', cleanupOnEnd);
+                };
+
+                // Add touchend event listeners to clean up the preview
+                document.addEventListener('touchend', cleanupOnEnd);
+            };
+
+            // Cleanup function to remove the drag preview and reset the original element
+            window.removeDragPreview = function() {
+                if (window.dragPreviewElement) {
+                    document.body.removeChild(window.dragPreviewElement); // Remove the preview
+                    window.dragPreviewElement = null; // Clear the preview reference
+                }
+
+                if (window.originalElement) {
+                    window.originalElement.style.opacity = ''; // Reset the original element's opacity
+                    window.originalElement.style.pointerEvents = ''; // Re-enable interaction with the original element
+                    window.originalElement = null; // Clear the reference to the original element
+
+                    const grid = document.querySelector('.container-content-layout-grid-drag-cell');  // The grid container
+                    // Set the cursor to 'grab' for the grid container
+                    grid.style.cursor = 'grab';
+                }
+            };
+        }
+    ");
+        }
+
+
+        //**MOUSE AND TOUCH COMBINED**//
+        //    private async Task InitializeDrag()
         //    {
-        //        // Save the current scroll position using localStorage in JavaScript
-        //        JSRuntime.InvokeVoidAsync("eval", @"
-        //    localStorage.setItem('scrollPosition', window.scrollY); // Store the exact scrollY value
-        //    localStorage.setItem('retries', 0); // Initialize retries in localStorage
-        //    console.log('scroll position saved:', window.scrollY);
-        //");
-
-        //        // Show the transitional div when starting the scroll restoration
-        //        JSRuntime.InvokeVoidAsync("eval", @"
-        //    addFullScreenDiv(); // Show full-screen overlay
-        //");
-
-        //        // Add a retry mechanism for restoring the scroll position
-        //        JSRuntime.InvokeVoidAsync("eval", @"
-        //    (function attemptRestoreScrollPosition() {
-        //        // Get the stored scroll position
-        //        var storedScrollPosition = localStorage.getItem('scrollPosition');
-        //        storedScrollPosition = parseFloat(storedScrollPosition);
-
-        //        if (!isNaN(storedScrollPosition)) {
-        //            var retries = 0;
-        //            var maxRetries = 500; // Maximum retries
-        //            var interval = 1; // Retry every 1ms
-
-        //            // Retry restoring the scroll position every 1ms
-        //            function restoreScroll() {
-        //                // Check if the scroll position needs to be restored
-        //                var currentScrollPosition = window.scrollY;
-        //                if (currentScrollPosition !== storedScrollPosition) {
-        //                    window.scrollTo(0, storedScrollPosition);
-        //                    console.log('Scroll position restored to:', storedScrollPosition);
-        //                } else {
-        //                    console.log('Scroll position already at:', storedScrollPosition);
-        //                }
-
-        //                retries++;
-        //                if (retries < maxRetries) {
-        //                    // Retry after 1ms
-        //                    setTimeout(restoreScroll, interval);
-        //                } else {
-        //                    // After retries stop, remove the full-screen overlay
-        //                    removeFullScreenDiv(); // Hide full-screen overlay
-        //                }
-        //            }
-
-        //            // Start the restoration process
-        //            restoreScroll();
-        //        } else {
-        //            console.log('No valid scroll position to restore.');
-        //            // Remove the full-screen overlay in case no scroll position is found
-        //            removeFullScreenDiv();
+        //        await JSRuntime.InvokeVoidAsync("eval", @"
+        //   if (!window.setupDragPreview) {
+        //// Define the getTargetCell function within this scope
+        //window.getTargetCell = function(clientX, clientY) {
+        //    var targetCell = null;
+        //    // Find all grid cells
+        //    var cells = document.querySelectorAll('.container-content-layout-grid-drag-cell .content-item-drag-cell');
+        //    cells.forEach(cell => {
+        //        var rect = cell.getBoundingClientRect();
+        //        // Check if the mouse or touch is over this cell
+        //        if (clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom) {
+        //            // Extract and parse the data attributes you need from the cell
+        //            targetCell = {
+        //                contentId: parseInt(cell.getAttribute('data-content-id')),  // Parse contentId as integer
+        //                row: parseInt(cell.style.gridRow),  // Parse gridRow as integer
+        //                column: parseInt(cell.style.gridColumn),  // Parse gridColumn as integer
+        //                rowSpan: parseInt(cell.style.gridRowEnd.replace('span ', '')),  // Parse gridRowEnd (span value) as integer
+        //                columnSpan: parseInt(cell.style.gridColumnEnd.replace('span ', ''))  // Parse gridColumnEnd (span value) as integer
+        //            };
         //        }
-        //    })();
+        //    });
+        //    return targetCell;
+        //};
+
+
+
+        //        window.setupDragPreview = function(contentId) {
+        //            // Select the element using data-content-id attribute
+        //            var element = document.querySelector('[data-content-id=""' + contentId + '""]');
+
+        //            // Check if the element exists
+        //            if (!element) {
+        //                console.error('Element with ContentId ' + contentId + ' not found.');
+        //                return; // Exit if the element is not found
+        //            }
+
+        //            const grid = document.querySelector('.container-content-layout-grid-drag-cell');  // The grid container
+        //            // Set the cursor to 'grabbing' for the grid container
+        //            grid.style.cursor = 'grabbing';
+
+        //            // Make the original element fully transparent and disable interaction
+        //            element.style.opacity = '0'; // Make the original element fully transparent
+        //            element.style.pointerEvents = 'none'; // Prevent interaction with the original element during drag
+
+        //            // Clone the element to create a custom preview
+        //            var dragPreview = element.cloneNode(true); // Create a clone with the same content and styles
+        //            dragPreview.style.position = 'absolute'; // Absolute positioning for the drag preview
+        //            dragPreview.style.zIndex = '9999'; // Make sure the preview is above other elements
+        //            dragPreview.style.pointerEvents = 'none'; // Prevent interaction with the preview
+        //            dragPreview.style.opacity = '0.85'; // Make the preview fully visible
+        //            dragPreview.style.width = '60%';
+        //            dragPreview.style.outline = 'none';
+
+        //            // Append the preview to the body
+        //            document.body.appendChild(dragPreview);
+
+        //            // Function to move the preview based on either mouse or touch
+        //            var movePreview = function(event) {
+        //                var clientX, clientY;
+        //                // Check if it's a touch event (touchstart, touchmove, etc.)
+        //                if (event.touches && event.touches.length > 0) {
+        //                    clientX = event.touches[0].clientX;
+        //                    clientY = event.touches[0].clientY;
+        //                } else {
+        //                    clientX = event.clientX;
+        //                    clientY = event.clientY;
+        //                }
+
+        //                // Get the size of the preview element
+        //                var previewWidth = dragPreview.offsetWidth;
+        //                var previewHeight = dragPreview.offsetHeight;
+
+        //                // Get the current scroll position to adjust the preview position
+        //                var scrollTop = window.scrollY;
+
+        //                // Adjust the preview's position based on the mouse/touch position and scroll position
+        //                dragPreview.style.top = (clientY + scrollTop - previewHeight / 2) + 'px';  // Center vertically
+        //                dragPreview.style.left = (clientX - previewWidth / 2) + 'px';  // Center horizontally
+        //            };
+
+        //            // Listen for the move event (both touchmove and mousemove)
+        //            var moveEventListener = function(e) {
+        //                movePreview(e);
+        //            };
+
+        //            document.addEventListener('mousemove', moveEventListener);
+        //            document.addEventListener('touchmove', moveEventListener);
+
+        //            // Store the dragPreview and the original element in global variables for later use
+        //            window.dragPreviewElement = dragPreview;
+        //            window.originalElement = element;
+
+        //            // Clean up the preview and reset the original element when drag ends (on mouseup or touchend)
+        //            var cleanupOnEnd = function(event) {
+        //                window.removeDragPreview(); // Call the cleanup function
+
+        //                // Remove the move event listeners when drag ends
+        //                document.removeEventListener('mousemove', moveEventListener);
+        //                document.removeEventListener('touchmove', moveEventListener);
+
+        //                // Get the touch or mouse end position
+        //                var touchEndX, touchEndY;
+        //                if (event.changedTouches && event.changedTouches.length > 0) {
+        //                    touchEndX = event.changedTouches[0].clientX;
+        //                    touchEndY = event.changedTouches[0].clientY;
+        //                } else {
+        //                    touchEndX = event.clientX;
+        //                    touchEndY = event.clientY;
+        //                }
+
+        //                // Check which cell the touch ends over
+        //                var targetCell = window.getTargetCell(touchEndX, touchEndY); // Using the globally defined getTargetCell
+        //                if (targetCell) {
+        //                    console.log('Target Cell:', targetCell);
+
+        //                    // Trigger a Blazor method and pass the target cell's information (cell)
+        //                    DotNet.invokeMethodAsync('CMS', 'SetDraggedCell', targetCell)
+        //                        .then(data => console.log(data))
+        //                        .catch(error => console.error(error));
+        //                }
+
+        //                // Remove the mouseup and touchend event listeners
+        //                document.removeEventListener('mouseup', cleanupOnEnd);
+        //                document.removeEventListener('touchend', cleanupOnEnd);
+        //            };
+
+        //            // Add mouseup and touchend event listeners to clean up the preview
+        //            document.addEventListener('mouseup', cleanupOnEnd);
+        //            document.addEventListener('touchend', cleanupOnEnd);
+        //        };
+
+        //        // Cleanup function to remove the drag preview and reset the original element
+        //        window.removeDragPreview = function() {
+        //            if (window.dragPreviewElement) {
+        //                document.body.removeChild(window.dragPreviewElement); // Remove the preview
+        //                window.dragPreviewElement = null; // Clear the preview reference
+        //            }
+
+        //            if (window.originalElement) {
+        //                window.originalElement.style.opacity = ''; // Reset the original element's opacity
+        //                window.originalElement.style.pointerEvents = ''; // Re-enable interaction with the original element
+        //                window.originalElement = null; // Clear the reference to the original element
+
+        //                const grid = document.querySelector('.container-content-layout-grid-drag-cell');  // The grid container
+        //                // Set the cursor to 'grab' for the grid container
+        //                grid.style.cursor = 'grab';
+        //            }
+        //        };
+
+        //    }
         //");
         //    }
 
 
 
-        //Primitive time intense/agressive short intervals v2
-        // Added transit div to soften the rendering
-        //, restoring repeat during a timespan restoring for determining if it is a
-        //    viable fallback approach for
-        //removing flickering at redraw/rerender of content(page reset scrollY to top).
-        //Results: greate improvement with ocational/glitches/twitch/flickering.
 
-        //    private void ProbeDragcellContainer()
-        //    {
-        //        JSRuntime.InvokeVoidAsync("eval", $@"
-        //    console.log('Grid drag cell container width:', document.querySelector('.container-content-layout-grid-drag-cell').offsetHeight);
-        //");
-        //    }
 
-        //    private void ProbeContainer()
-        //    {
-        //        JSRuntime.InvokeVoidAsync("eval", $@"
-        //        console.log('Grid container width:', document.querySelector('.container-content-layout-grid').offsetHeight);
-        //");
-        //    }
+        [JSInvokable]
+        public static async Task SetDraggedCell(LayoutCell cell)
+        {
+            if (cell == null)
+            { 
+                Console.WriteLine($"Cell value is null, from touch end, drag cell aborted."); 
+                return;
+            }
+            // Update the dragged cell data (row, column)
+            hoveredCell = cell;
 
-        private void RestoreScrollPosition(bool coverTransition = true)
+            Console.WriteLine($"Dragged Cell set to: Row = {hoveredCell.Row}, Column = {hoveredCell.Column}");
+            hoveredCellIsSet = true;
+
+            // You can trigger further logic, like updating the UI or performing any drag-related actions
+            await Task.CompletedTask;
+        }
+    
+
+    //Primitive methods for restoring the scrollY after reset to top after rewrite/rerendering of html.
+
+    //Todo:Verifications and best practises needs to be handled, see git projects scrumboard.
+    //private void RestoreScrollPosition()
+    //{
+    //    // Save the current scroll position using localStorage in JavaScript (store as floating point number)
+    //    JSRuntime.InvokeVoidAsync("eval", @"
+    //        localStorage.setItem('scrollPosition', window.scrollY); // Store the exact scrollY value
+    //        console.log('scroll position saved:', window.scrollY);
+    //        localStorage.setItem('retries', 0); // Initialize retries in localStorage
+    //        console.log('retries initialized:', 0);
+
+    //    ");
+    //}
+
+    ////Todo:Verifications and best practises needs to be handled, see git projects scrumboard.
+    //private void LoadScrollPosition()
+    //{
+    //    //InitializeScrollTracking();
+    //    //Run JavaScript to attempt restoring the scroll position
+    //    JSRuntime.InvokeVoidAsync("eval", @"
+    //        (function attemptToRestoreScrollPosition() {
+    //             Retrieve retries from localStorage.
+    //            let retries = parseInt(localStorage.getItem('retries'), 10) || 0;
+
+    //             If retrying is not allowed, stop the function.
+    //            if (retries > 3) {
+    //                console.log('Restoration already attempted. Aborting further retries.');
+    //                return; // Stop further execution.
+    //            }
+    //            console.log('retries:', retries);
+
+    //             Get stored scroll position from localStorage.
+    //            var storedScrollPosition = localStorage.getItem('scrollPosition');
+
+    //             Ensure stored position exists and convert it to a floating-point number.
+    //            storedScrollPosition = parseFloat(storedScrollPosition);
+
+    //             Retrieve the current scroll position (window.scrollY) as a floating-point number.
+    //            var currentScrollPosition = window.scrollY;
+    //            console.log('current scroll position:', currentScrollPosition);
+
+    //             Check if stored position exists and retries.
+    //            if (!isNaN(storedScrollPosition) && retries < 2) {
+    //                window.scrollTo(0, storedScrollPosition); // Scroll to the saved position.
+    //                console.log('Scroll position restored:', storedScrollPosition);
+    //                console.log('Current window.scrollY:', window.scrollY);
+
+    //                retries++;  // Increment the retry counter.
+    //                localStorage.setItem('retries', retries); // Update retries count in localStorage.
+
+    //                 Retry after 50ms, delay for timing issues
+    //                setTimeout(attemptToRestoreScrollPosition, 50); // Retry with a 50ms delay.
+    //            } else {
+    //                 If position is restored or matches, stop further retries
+    //                localStorage.setItem('retries', retries); // Store the retries count in localStorage.
+    //                console.log('Scroll position is already at or restored to:', storedScrollPosition);
+    //                localStorage.setItem('retries', 0); //Reset
+    //            }
+    //        })();
+    //    ");
+    //}
+
+    //Primitive time intense/agressive short intervals, restoring repeat  during a timespan restoring for determining if it is a
+    //    viable fallback approach for
+    //removing flickering at redraw/rerender of content(page reset scrollY to top).
+    //Results: greate improvement with ocational/glitches/twitch/flickering.
+
+    //    private void RestoreScrollPosition()
+    //    {
+    //        // Save the current scroll position using localStorage in JavaScript
+    //        JSRuntime.InvokeVoidAsync("eval", @"
+    //    localStorage.setItem('scrollPosition', window.scrollY); // Store the exact scrollY value
+    //    localStorage.setItem('retries', 0); // Initialize retries in localStorage
+    //    console.log('scroll position saved:', window.scrollY);
+    //");
+
+    //        // Show the transitional div when starting the scroll restoration
+    //        JSRuntime.InvokeVoidAsync("eval", @"
+    //    addFullScreenDiv(); // Show full-screen overlay
+    //");
+
+    //        // Add a retry mechanism for restoring the scroll position
+    //        JSRuntime.InvokeVoidAsync("eval", @"
+    //    (function attemptRestoreScrollPosition() {
+    //        // Get the stored scroll position
+    //        var storedScrollPosition = localStorage.getItem('scrollPosition');
+    //        storedScrollPosition = parseFloat(storedScrollPosition);
+
+    //        if (!isNaN(storedScrollPosition)) {
+    //            var retries = 0;
+    //            var maxRetries = 500; // Maximum retries
+    //            var interval = 1; // Retry every 1ms
+
+    //            // Retry restoring the scroll position every 1ms
+    //            function restoreScroll() {
+    //                // Check if the scroll position needs to be restored
+    //                var currentScrollPosition = window.scrollY;
+    //                if (currentScrollPosition !== storedScrollPosition) {
+    //                    window.scrollTo(0, storedScrollPosition);
+    //                    console.log('Scroll position restored to:', storedScrollPosition);
+    //                } else {
+    //                    console.log('Scroll position already at:', storedScrollPosition);
+    //                }
+
+    //                retries++;
+    //                if (retries < maxRetries) {
+    //                    // Retry after 1ms
+    //                    setTimeout(restoreScroll, interval);
+    //                } else {
+    //                    // After retries stop, remove the full-screen overlay
+    //                    removeFullScreenDiv(); // Hide full-screen overlay
+    //                }
+    //            }
+
+    //            // Start the restoration process
+    //            restoreScroll();
+    //        } else {
+    //            console.log('No valid scroll position to restore.');
+    //            // Remove the full-screen overlay in case no scroll position is found
+    //            removeFullScreenDiv();
+    //        }
+    //    })();
+    //");
+    //    }
+
+
+
+    //Primitive time intense/agressive short intervals v2
+    // Added transit div to soften the rendering
+    //, restoring repeat during a timespan restoring for determining if it is a
+    //    viable fallback approach for
+    //removing flickering at redraw/rerender of content(page reset scrollY to top).
+    //Results: greate improvement with ocational/glitches/twitch/flickering.
+
+    //    private void ProbeDragcellContainer()
+    //    {
+    //        JSRuntime.InvokeVoidAsync("eval", $@"
+    //    console.log('Grid drag cell container width:', document.querySelector('.container-content-layout-grid-drag-cell').offsetHeight);
+    //");
+    //    }
+
+    //    private void ProbeContainer()
+    //    {
+    //        JSRuntime.InvokeVoidAsync("eval", $@"
+    //        console.log('Grid container width:', document.querySelector('.container-content-layout-grid').offsetHeight);
+    //");
+    //    }
+
+    private void RestoreScrollPosition(bool coverTransition = true)
         {
 
             if (coverTransition)
@@ -1072,116 +1454,123 @@ namespace CMS.Components.Pages.WebPages
         {
             // Call JS function to ensure setup is available
             await JSRuntime.InvokeVoidAsync("eval", @"
-                if (!window.setupDragPreviewRow) {
-                    window.setupDragPreviewRow = function(row, webPageBackgroundColor) {
-                        var rowElements = document.querySelectorAll('[data-row=""' + row + '""]');
+        if (!window.setupDragPreviewRow) {
+            window.setupDragPreviewRow = function(row, webPageBackgroundColor) {
+                var rowElements = document.querySelectorAll('[data-row=""' + row + '""]');
 
-                        console.log('Drag row preview runs');
+                console.log('Drag row preview runs');
 
-                        if (rowElements.length === 0) {
-                            console.error('Row element with Row: ' + row + ' not found.');
-                            return;
-                        }
-
-                        // Create a container to hold the cloned elements for the preview
-                        var dragPreviewRow = document.createElement('div');
-                        dragPreviewRow.style.position = 'absolute';
-                        dragPreviewRow.style.zIndex = '9999';
-                        dragPreviewRow.style.pointerEvents = 'none';
-                        dragPreviewRow.style.opacity = '1';
-                        //dragPreviewRow.style.backgroundColor = webPageBackgroundColor;
-                        dragPreviewRow.style.width = '100%'; // Set width to 100%
-                        dragPreviewRow.style.height = 'auto'
-                        dragPreviewRow.style.outline = 'none';
-                        dragPreviewRow.style.opacity = '0.9';
-
-                        // Use grid layout to ensure proper alignment and sizing
-                        dragPreviewRow.style.display = 'grid';
-                        dragPreviewRow.style.gridTemplateColumns = 'repeat(12, 1fr)'; // Ensure the grid has 12 columns
-                        dragPreviewRow.style.gridAutoRows = 'minmax(30px, auto)'; // Auto-sized rows based on content
-                        dragPreviewRow.style.alignItems = 'top'; // Align all items to the top
-
-
-
-                        // Set the height of the preview container to match the total height
-                        //dragPreviewRow.style.height = rowElements[0].offsetHeight + 'px'; // Set height based on the first cell's height
-
-                        // Clone each content item within the row and append to the preview container
-                        rowElements.forEach(function(element) {
-                            var clone = element.cloneNode(true); // Deep clone the entire content item
-
-                            // Fetch the column span from the data-column-span attribute
-                            var columnSpan = element.getAttribute('data-column-span');
-                            console.log('Column Span:', columnSpan);
-
-                            // Apply the column span to the clone using grid-column-end
-                            if (columnSpan) {
-                                clone.style.gridColumnEnd = 'span ' + columnSpan; // Apply column span
-                            }
-
-                            dragPreviewRow.appendChild(clone); // Append the cloned element to the preview container
-                        });
-
-                            // Make the entire row's elements transparent and non-interactive during the drag
-                            rowElements.forEach(function(element) {
-                            element.style.opacity = '0';
-                            element.style.pointerEvents = 'none';
-                        });
-
-
-                        // Append the preview row to the body
-                        document.body.appendChild(dragPreviewRow);
-
-                        // Function to move the preview with mouse movement
-                        var movePreview = function(event) {
-                            var previewWidth = dragPreviewRow.offsetWidth;
-                            var previewHeight = dragPreviewRow.offsetHeight;
-                            var scrollTop = window.scrollY;
-
-                            dragPreviewRow.style.top = (event.clientY + scrollTop - previewHeight / 2) + 'px';
-                            dragPreviewRow.style.left = (event.clientX - previewWidth / 2) + 'px';
-                        };
-
-                        // Position the preview at the mouse cursor's position
-                        movePreview({ clientX: window.event.clientX, clientY: window.event.clientY });
-                        document.addEventListener('mousemove', movePreview);
-
-                        // Store the preview and original elements references
-                        window.dragPreviewElement = dragPreviewRow;
-                        window.originalElements = rowElements;
-
-                        // Define the cleanup function for the drag preview
-                        window.removeDragPreview = function() {
-                            console.log('Cleaning up drag preview');
-
-                            if (window.dragPreviewElement) {
-                                document.body.removeChild(window.dragPreviewElement); // Remove the preview
-                                window.dragPreviewElement = null; // Clear the reference
-                            }
-
-                            if (window.originalElements) {
-                                window.originalElements.forEach(function(element) {
-                                    element.style.opacity = '1'; // Reset original element's opacity
-                                    element.style.pointerEvents = ''; // Re-enable interaction with the original element
-                                });
-                                window.originalElements = null; // Clear the reference to the original elements
-                            }
-                        };
-
-                        // Cleanup on mouse up
-                        var cleanupOnMouseUp = function() {
-                            console.log('Drag row: mouse up');
-                            window.removeDragPreview(); // Call the cleanup function
-
-                            document.removeEventListener('mousemove', movePreview);
-                            document.removeEventListener('mouseup', cleanupOnMouseUp);
-                        };
-
-                        document.addEventListener('mouseup', cleanupOnMouseUp);
-                    };
+                if (rowElements.length === 0) {
+                    console.error('Row element with Row: ' + row + ' not found.');
+                    return;
                 }
-            ");
+
+                // Create a container to hold the cloned elements for the preview
+                var dragPreviewRow = document.createElement('div');
+                dragPreviewRow.style.position = 'absolute';
+                dragPreviewRow.style.zIndex = '9999';
+                dragPreviewRow.style.pointerEvents = 'none';
+                dragPreviewRow.style.opacity = '1';
+                dragPreviewRow.style.width = '100%'; // Set width to 100%
+                dragPreviewRow.style.height = 'auto'
+                dragPreviewRow.style.outline = 'none';
+                dragPreviewRow.style.opacity = '0.9';
+
+                // Use grid layout to ensure proper alignment and sizing
+                dragPreviewRow.style.display = 'grid';
+                dragPreviewRow.style.gridTemplateColumns = 'repeat(12, 1fr)'; // Ensure the grid has 12 columns
+                dragPreviewRow.style.gridAutoRows = 'minmax(30px, auto)'; // Auto-sized rows based on content
+                dragPreviewRow.style.alignItems = 'top'; // Align all items to the top
+
+                // Clone each content item within the row and append to the preview container
+                rowElements.forEach(function(element) {
+                    var clone = element.cloneNode(true); // Deep clone the entire content item
+
+                    // Fetch the column span from the data-column-span attribute
+                    var columnSpan = element.getAttribute('data-column-span');
+                    console.log('Column Span:', columnSpan);
+
+                    // Apply the column span to the clone using grid-column-end
+                    if (columnSpan) {
+                        clone.style.gridColumnEnd = 'span ' + columnSpan; // Apply column span
+                    }
+
+                    dragPreviewRow.appendChild(clone); // Append the cloned element to the preview container
+                });
+
+                // Make the entire row's elements transparent and non-interactive during the drag
+                rowElements.forEach(function(element) {
+                    element.style.opacity = '0';
+                    element.style.pointerEvents = 'none';
+                });
+
+                // Append the preview row to the body
+                document.body.appendChild(dragPreviewRow);
+
+                // Function to move the preview with mouse movement
+                var movePreview = function(event) {
+                    var previewWidth = dragPreviewRow.offsetWidth;
+                    var previewHeight = dragPreviewRow.offsetHeight;
+                    var scrollTop = window.scrollY;
+
+                    dragPreviewRow.style.top = (event.clientY + scrollTop - previewHeight / 2) + 'px';
+                    dragPreviewRow.style.left = (event.clientX - previewWidth / 2) + 'px';
+
+                    // Get the screen height and mouse Y position
+                    var screenHeight = window.innerHeight;
+                    var mouseY = event.clientY;
+
+                    // Adjust the scroll position if the mouse is near the top or bottom 20% of the screen
+                    if (mouseY < screenHeight * 0.2) {
+                        // Mouse is near the top 20% of the screen, scroll up
+                        window.scrollBy(0, -5); // Scroll up by 5px
+                    } else if (mouseY > screenHeight * 0.8) {
+                        // Mouse is near the bottom 20% of the screen, scroll down
+                        window.scrollBy(0, 5); // Scroll down by 5px
+                    }
+                };
+
+                // Position the preview at the mouse cursor's position
+                movePreview({ clientX: window.event.clientX, clientY: window.event.clientY });
+                document.addEventListener('mousemove', movePreview);
+
+                // Store the preview and original elements references
+                window.dragPreviewElement = dragPreviewRow;
+                window.originalElements = rowElements;
+
+                // Define the cleanup function for the drag preview
+                window.removeDragPreview = function() {
+                    console.log('Cleaning up drag preview');
+
+                    if (window.dragPreviewElement) {
+                        document.body.removeChild(window.dragPreviewElement); // Remove the preview
+                        window.dragPreviewElement = null; // Clear the reference
+                    }
+
+                    if (window.originalElements) {
+                        window.originalElements.forEach(function(element) {
+                            element.style.opacity = '1'; // Reset original element's opacity
+                            element.style.pointerEvents = ''; // Re-enable interaction with the original element
+                        });
+                        window.originalElements = null; // Clear the reference to the original elements
+                    }
+                };
+
+                // Cleanup on mouse up
+                var cleanupOnMouseUp = function() {
+                    console.log('Drag row: mouse up');
+                    window.removeDragPreview(); // Call the cleanup function
+
+                    document.removeEventListener('mousemove', movePreview);
+                    document.removeEventListener('mouseup', cleanupOnMouseUp);
+                };
+
+                document.addEventListener('mouseup', cleanupOnMouseUp);
+            };
         }
+    ");
+        }
+
 
 
 
@@ -1297,6 +1686,35 @@ namespace CMS.Components.Pages.WebPages
                 Console.WriteLine($"Hovered row is {hoveredRowDelete}");
         }
 
+        private async Task OnTouchStart(LayoutCell layoutCell)
+        {
+            if (layoutCell == null)
+            {
+                Console.WriteLine("Cell null, operation aborted.");
+                return;
+            }
+            if (layoutCell.ContentId != null)
+            {
+                draggedCell = layoutCell;
+
+
+                // Get the element to be dragged (you can use `document.querySelector` or pass the element directly)
+                var elementId = layoutCell.ContentId; // Or use any identifier for the draggable element
+                // First, ensure that the JavaScript is initialized and ready
+                await InitializeTouchDrag();
+                await JSRuntime.InvokeVoidAsync("setupTouchDragPreview", layoutCell.ContentId);
+
+                // Optionally, store any other information or state
+                Console.WriteLine($"Started dragging: {layoutCell.ContentId}");
+
+            }
+            else
+            {
+                Console.WriteLine("Empty cell, operation aborted.");
+            }
+
+        }
+
         // Drag cell/content
         private async Task OnDragStart( LayoutCell layoutCell)
         {
@@ -1313,8 +1731,8 @@ namespace CMS.Components.Pages.WebPages
                 // Get the element to be dragged (you can use `document.querySelector` or pass the element directly)
                 var elementId = layoutCell.ContentId; // Or use any identifier for the draggable element
                 // First, ensure that the JavaScript is initialized and ready
-                await InitializeDrag();
-                await JSRuntime.InvokeVoidAsync("setupDragPreview", layoutCell.ContentId);
+                await InitializeMouseDrag();
+                await JSRuntime.InvokeVoidAsync("setupMouseDragPreview", layoutCell.ContentId);
 
                 // Optionally, store any other information or state
                 Console.WriteLine($"Started dragging: {layoutCell.ContentId}");
@@ -1327,17 +1745,17 @@ namespace CMS.Components.Pages.WebPages
 
         }
 
-        //private async Task OnDragStart(DragEventArgs e, LayoutCell layoutCell)
+        //private async Task OnDragStart(DragEventArgs e, LayoutCell cell)
         //{
-            
-        //    if (layoutCell.ContentId != null)
+
+        //    if (cell.ContentId != null)
         //    {
         //        await InitializeDrag();
         //        // Store the dragged cell
-        //        draggedCell = layoutCell;
+        //        draggedCell = cell;
         //        // Optional: you can use DataTransfer here, but Blazor doesn't expose it directly.
         //        // If needed, we can store some information in a custom attribute or pass via JS.
-        //        Console.WriteLine($"Started dragging: {layoutCell.ContentId}");
+        //        Console.WriteLine($"Started dragging: {cell.ContentId}");
         //    }
         //    else 
         //    {
@@ -1345,30 +1763,167 @@ namespace CMS.Components.Pages.WebPages
         //    }
         //}
 
-        private async Task OnDragEndAsync()
+        //private async Task OnDragEndAsync()
+        //{
+        //    //ToDo: Add column span:
+        //    // If the dragged cell is set, update layout
+        //    if (draggedCell != null )
+        //    {
+        //        if (hoveredCell != null )
+        //        {
+        //            // cellForAdjustments indexes for reverting.
+        //            int? draggedCellIndex;
+        //            int? hoveredCellIndex;
+
+        //            //Get cells indexes.
+        //            GetCellsIndexesForDragAndHovered(out hoveredCellIndex , out draggedCellIndex);
+
+        //            // Check if swap is legit.
+        //            if (draggedCellIndex.Value != hoveredCellIndex.Value)
+        //            {
+        //                Console.WriteLine("Drag ended, updating layout.");
+
+        //                // Swap positions in layout
+        //                SwapCellsPositions(draggedCellIndex, hoveredCellIndex, draggedCell, hoveredCell);
+
+
+        //                RestoreScrollPosition(false);
+        //                // Save the new layout order
+        //                await SaveLayoutChangesAsync();
+        //                StateHasChanged();  // To refresh the UI
+
+        //                // Reset dragged cell after layout update
+        //                draggedCell = null;
+        //                hoveredCell = null;
+
+        //                UserInformationMessage("Innehåll flyttat.");
+        //            }
+        //            else
+        //            {
+        //                Console.WriteLine("Dragged cell is already in the target position. No swap needed.");
+        //            }
+        //        }
+        //        else
+        //        {
+        //            Console.WriteLine("Found no cell for drop (null)");
+        //        }
+        //    }
+        //}
+
+
+        // This method will poll for the condition to be met 3 times with 15ms delay.
+        private async Task PollConditionAsync()
         {
+            int retries = 3;  // The number of times we will poll
+            int delayMs = 15;  // The delay between each poll in milliseconds
+
+            for (int i = 0; i < retries; i++)
+            {
+                // Check the condition
+                if (hoveredCellIsSet)
+                {
+                    Console.WriteLine("Condition met!");
+                    return;  // Exit early if the condition is met
+                }
+
+                // If not met, wait for the specified delay before retrying
+                await Task.Delay(delayMs);
+            }
+
+            // If the loop finishes, it means the condition wasn't met within the retry limit
+            Console.WriteLine("Condition not met after polling.");
+        }
+
+        private async Task OnTouchEndAsync()
+        {
+            await PollConditionAsync();
+
+            if (hoveredCellIsSet)
+            {
+                if (hoveredCell == null)
+                {
+                    Console.WriteLine("On drag end : value for cell is null");
+                    return;
+                }
+                Console.WriteLine($"End drag over: Row {hoveredCell.Row}, Column {hoveredCell.Column}, ContentId: {hoveredCell.ContentId}");
+                //ToDo: Add column span:
+                // If the dragged cell is set, update layout
+                if (draggedCell != null)
+                {
+                    if (hoveredCell != null)
+                    {
+                        // cellForAdjustments indexes for reverting.
+                        int? draggedCellIndex;
+                        int? hoveredCellIndex;
+
+                        //Get cells indexes.
+                        GetCellsIndexesForDragAndHovered(out hoveredCellIndex, out draggedCellIndex);
+
+                        // Check if swap is legit.
+                        if (draggedCellIndex.Value != hoveredCellIndex.Value)
+                        {
+                            Console.WriteLine("Drag ended, updating layout.");
+
+                            // Swap positions in layout
+                            SwapCellsPositions(draggedCellIndex, hoveredCellIndex, draggedCell, hoveredCell);
+
+
+                            RestoreScrollPosition(false);
+                            // Save the new layout order
+                            await SaveLayoutChangesAsync();
+                            StateHasChanged();  // To refresh the UI
+
+                            // Reset dragged cell after layout update
+                            draggedCell = null;
+                            hoveredCell = null;
+
+                            UserInformationMessage("Innehåll flyttat.");
+                        }
+                        else
+                        {
+                            Console.WriteLine("Dragged cell is already in the target position. No swap needed.");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("Found no cell for drop (null)");
+                    }
+                }
+                hoveredCellIsSet = false;
+            }
+        }
+
+        private async Task OnDragEndAsync(LayoutCell cell)
+        {
+            if (cell==null)
+            {
+                Console.WriteLine("On drag end : value for cell is null");
+                return;
+            }
+            Console.WriteLine($"End drag over: Row {cell.Row}, Column {cell.Column}, ContentId: {cell.ContentId}");
+            hoveredCell = cell;
             //ToDo: Add column span:
             // If the dragged cell is set, update layout
-            if (draggedCell != null )
+            if (draggedCell != null)
             {
-                if (hoveredCell != null )
+                if (hoveredCell != null)
                 {
                     // cellForAdjustments indexes for reverting.
                     int? draggedCellIndex;
                     int? hoveredCellIndex;
 
                     //Get cells indexes.
-                    GetCellsIndexesForDragAndHovered(out hoveredCellIndex , out draggedCellIndex);
+                    GetCellsIndexesForDragAndHovered(out hoveredCellIndex, out draggedCellIndex);
 
                     // Check if swap is legit.
                     if (draggedCellIndex.Value != hoveredCellIndex.Value)
                     {
                         Console.WriteLine("Drag ended, updating layout.");
-                            
+
                         // Swap positions in layout
                         SwapCellsPositions(draggedCellIndex, hoveredCellIndex, draggedCell, hoveredCell);
-   
-                        
+
+
                         RestoreScrollPosition(false);
                         // Save the new layout order
                         await SaveLayoutChangesAsync();
@@ -1377,7 +1932,7 @@ namespace CMS.Components.Pages.WebPages
                         // Reset dragged cell after layout update
                         draggedCell = null;
                         hoveredCell = null;
-                        
+
                         UserInformationMessage("Innehåll flyttat.");
                     }
                     else
@@ -1415,19 +1970,19 @@ namespace CMS.Components.Pages.WebPages
         }
 
         // Method to handle drag over events
-        private void OnDragOver( int row, int column, int? contentId)
-        {
-            //ToDo: Add column span:
-            // Update the hovered cell using the rowShift, column, and ContentId passed
-            hoveredCell = layout.LayoutCells.FirstOrDefault(cell =>
-                cell.Row == row && cell.Column == column && cell.ContentId == contentId);
+        //private void OnDragOver( int row, int column, int? contentId)
+        //{
+        //    //ToDo: Add column span:
+        //    // Update the hovered cell using the rowShift, column, and ContentId passed
+        //    hoveredCell = layout.LayoutCells.FirstOrDefault(cell =>
+        //        cell.Row == row && cell.Column == column && cell.ContentId == contentId);
 
-            // Optionally, log or handle the hovered cell
-            if (hoveredCell != null)
-            {
-                Console.WriteLine($"Hovered over: Row {row}, Column {column}, ContentId: {contentId}");
-            }
-        }
+        //    // Optionally, log or handle the hovered cell
+        //    if (hoveredCell != null)
+        //    {
+        //        Console.WriteLine($"Hovered over: Row {row}, Column {column}, ContentId: {contentId}");
+        //    }
+        //}
 
 
 

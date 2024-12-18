@@ -644,9 +644,10 @@
                             if (cell != null)
                             {   
                                 <div class="content-item-drag-cell"
-                                        @onmousedown="() => OnDragStart( cell)"
-                                        @onmouseup="() => OnDragEndAsync()"
-                                        @onmouseenter="() => OnDragOver( cell.Row, cell.Column, cell.ContentId)"
+                                        @onmousedown="() => OnDragStart(cell)"
+                                        @onmouseup="() => OnDragEndAsync(cell)"
+                                 @ontouchstart="() => OnTouchStart(cell)"
+                                        @ontouchend="() => OnTouchEndAsync()"
                                         style="grid-row: @cell.Row; grid-column: @cell.Column;
                                         grid-row-end: span @cell.RowSpan;
                                         grid-column-end: span @cell.ColumnSpan;
