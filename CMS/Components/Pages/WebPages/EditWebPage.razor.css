@@ -443,8 +443,8 @@ header, .navbar, footer {
     position: relative;
     width: 100%; /* Ensures proper width */
     height: auto; /* Height adjusts based on content */
-    overflow-x: hidden; /* Prevent horizontal overflow */
-    overflow-y: auto; /* Allow vertical scroll if needed */
+    /*overflow-x: hidden;*/ /* Prevent horizontal overflow */
+    /*overflow-y: auto;*/ /* Allow vertical scroll if needed */
     grid-auto-rows: minmax(30px, auto);
     cursor: default; /* Default cursor for both */
 }
@@ -461,7 +461,7 @@ header, .navbar, footer {
     margin: 0px;
     user-select: none;
     position: relative;
-    overflow: hidden; /* Prevent overflow */
+    /*overflow: hidden;  Prevent overflow */
     box-sizing: border-box; /* Ensure padding doesn't affect width */
     height: auto; /* Let the height adjust based on content */
     padding: 0; /* Remove extra padding if necessary */
