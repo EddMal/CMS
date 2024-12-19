@@ -646,7 +646,7 @@
                                 <div class="content-item-drag-cell"
                                         @onmousedown="() => OnDragStart(cell)"
                                         @onmouseup="() => OnDragEndAsync(cell)"
-                                 @ontouchstart="() => OnTouchStart(cell)"
+                                        @ontouchstart="() => OnTouchStart(cell)"
                                         @ontouchend="() => OnTouchEndAsync()"
                                         style="grid-row: @cell.Row; grid-column: @cell.Column;
                                         grid-row-end: span @cell.RowSpan;
@@ -683,8 +683,9 @@
                                     draggable="true"
                                     @onmousedown="() => OnDragStartRow(cell.Row)"
                                     @onmouseup="() => OnDragEndRowAsync()"
-                                    @ontouchstart="() => OnTouchStartRow(cell.Row)"
                                     @onmouseenter="() => OnDragOverRow(cell)"
+                                    @ontouchstart="() => OnTouchStartRow(cell.Row)"
+                                    @ontouchend="() => OnTouchEndRowAsync()"
                                     style="grid-row: @cell.Row; grid-column: @cell.Column;
                                     grid-row-end: span @cell.RowSpan;
                                     grid-column-end: span @cell.ColumnSpan;
@@ -707,7 +708,7 @@
                                         </div>
                                     }
                                 </div>
-                            <div class="row-control-buttons">
+                           @*  <div class="row-control-buttons">
                                 <!-- Move row up and down arrows -->
                                 @if (draggedRow > 1)
                                 {
@@ -724,7 +725,7 @@
                                         ▼
                                     </button>
                                 }
-                            </div>
+                            </div> *@
                             }
                         }
                        @*  <div class="row-control-buttons">

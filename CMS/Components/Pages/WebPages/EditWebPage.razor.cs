@@ -70,9 +70,13 @@ namespace CMS.Components.Pages.WebPages
 
         private bool deleteRowActive = false;
 
-        private string userInfoMessage = "";
         private bool isScrollSaved = false;
+  
         private static bool hoveredCellIsSet;
+        
+        private static bool hoveredRowIsSet;
+
+        private string userInfoMessage = "";
 
         private LayoutCell? draggedCell { get; set; } = null;
 
@@ -80,7 +84,7 @@ namespace CMS.Components.Pages.WebPages
 
         private int? draggedRow { get; set; } = null;
 
-        private int? hoveredRow { get; set; } = null;
+        private static int? hoveredRow { get; set; } = null;
         private int hoveredRowDelete { get; set; } = 0;
         public WebPageLayout? layout { get; set; } = new WebPageLayout();
 
@@ -922,7 +926,7 @@ namespace CMS.Components.Pages.WebPages
                         console.log('Target Cell:', targetCell);
 
                         // Trigger a Blazor method and pass the target cell's information (cell)
-                        DotNet.invokeMethodAsync('CMS', 'SetDraggedCell', targetCell)
+                        DotNet.invokeMethodAsync('CMS', 'SetHoveredCell', targetCell)
                             .then(data => console.log(data))
                             .catch(error => console.error(error));
                     }
@@ -957,7 +961,7 @@ namespace CMS.Components.Pages.WebPages
         }
 
 
-        //**MOUSE AND TOUCH COMBINED**//
+        //**Drag cell preview: MOUSE AND TOUCH COMBINED**//
         //    private async Task InitializeDrag()
         //    {
         //        await JSRuntime.InvokeVoidAsync("eval", @"
@@ -1118,7 +1122,7 @@ namespace CMS.Components.Pages.WebPages
 
 
         [JSInvokable]
-        public static async Task SetDraggedCell(LayoutCell cell)
+        public static async Task SetHoveredCell(LayoutCell cell)
         {
             if (cell == null)
             { 
@@ -1128,7 +1132,7 @@ namespace CMS.Components.Pages.WebPages
             // Update the dragged cell data (row, column)
             hoveredCell = cell;
 
-            Console.WriteLine($"Dragged Cell set to: Row = {hoveredCell.Row}, Column = {hoveredCell.Column}");
+            Console.WriteLine($"Hovered Cell set to: Row = {hoveredCell.Row}, Column = {hoveredCell.Column}");
             hoveredCellIsSet = true;
 
             // You can trigger further logic, like updating the UI or performing any drag-related actions
@@ -1475,7 +1479,6 @@ namespace CMS.Components.Pages.WebPages
                 dragPreviewRow.style.position = 'absolute';
                 dragPreviewRow.style.zIndex = '9999';
                 dragPreviewRow.style.pointerEvents = 'none';
-                dragPreviewRow.style.opacity = '1';
                 dragPreviewRow.style.width = '100%'; // Set width to 100%
                 dragPreviewRow.style.height = 'auto'
                 dragPreviewRow.style.outline = 'none';
@@ -1582,6 +1585,9 @@ namespace CMS.Components.Pages.WebPages
             // Call JS function to ensure setup is available
             await JSRuntime.InvokeVoidAsync("eval", @"
         if (!window.setupDragTouchPreviewRow) {
+
+            
+
             window.setupDragPreviewRow = function(row, webPageBackgroundColor) {
                 var rowElements = document.querySelectorAll('[data-row=""' + row + '""]');
 
@@ -1591,6 +1597,27 @@ namespace CMS.Components.Pages.WebPages
                     console.error('Row element with Row: ' + row + ' not found.');
                     return;
                 }
+
+                window.getTargetRow = function(clientX, clientY)
+                {
+                    var targetCell = null;
+                    // Find all grid cells
+                    var cells = document.querySelectorAll('.container-content-layout-grid-drag-row .content-item-drag-row');
+                    cells.forEach(cell => {
+                        var rect = cell.getBoundingClientRect();
+
+                        // Check if the touch is over this cell
+                        if (clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom) {
+                            // Extract and parse the data attributes from the cell
+                            targetCell = {
+                                row: parseInt(cell.style.gridRow),  // Parse gridRow as integer
+
+                            };
+                        }
+                    });
+    console.log('Target Cells row:', targetCell.row);   
+                    return targetCell.row;
+                };
 
                 // Create a container to hold the cloned elements for the preview
                 var dragPreviewRow = document.createElement('div');
@@ -1615,7 +1642,6 @@ namespace CMS.Components.Pages.WebPages
 
                     // Fetch the column span from the data-column-span attribute
                     var columnSpan = element.getAttribute('data-column-span');
-                    console.log('Column Span:', columnSpan);
 
                     // Apply the column span to the clone using grid-column-end
                     if (columnSpan) {
@@ -1693,15 +1719,178 @@ namespace CMS.Components.Pages.WebPages
                     console.log('Drag row: touch end');
                     window.removeDragPreview(); // Call the cleanup function
 
+                    // Get the touch end position
+                    var touchEndX = event.changedTouches[0].clientX;
+                    var touchEndY = event.changedTouches[0].clientY;
+
+                    // Check which cell the touch ends over
+                    var row = window.getTargetRow(touchEndX, touchEndY); // Using the globally defined getTargetCell
+                    if (row) {
+                        console.log('Target Cells row:', row);
+
+                        // Trigger a Blazor method and pass the target row
+                        DotNet.invokeMethodAsync('CMS', 'SetEndRow', row)
+                            .then(data => console.log(data))
+                            .catch(error => console.error(error));
+                    }
+
                     document.removeEventListener('touchmove', movePreview);
                     document.removeEventListener('touchend', cleanupOnTouchEnd);
+
                 };
+
+                
 
                 document.addEventListener('touchend', cleanupOnTouchEnd);
             };
         }
     ");
         }
+
+        [JSInvokable]
+        public static async Task SetEndRow(int? row)
+        {
+            if (row == null)
+            {
+                hoveredRowIsSet = false;
+                Console.WriteLine($"Rows value is null, from touch end, drag row aborted.");
+                return;
+            }
+            // Update the dragged cell data (row, column)
+            hoveredRow = row;
+
+            Console.WriteLine($"hovered row is set: Row = {row}");
+            hoveredRowIsSet = true;
+
+            // You can trigger further logic, like updating the UI or performing any drag-related actions
+            await Task.CompletedTask;
+        }
+
+        //    private async Task InitializeTouchDragPreviewRow()
+        //    {
+        //        // Call JS function to ensure setup is available
+        //        await JSRuntime.InvokeVoidAsync("eval", @"
+        //    if (!window.setupDragTouchPreviewRow) {
+        //        window.setupDragPreviewRow = function(row, webPageBackgroundColor) {
+        //            var rowElements = document.querySelectorAll('[data-row=""' + row + '""]');
+
+        //            console.log('Drag row preview runs');
+
+        //            if (rowElements.length === 0) {
+        //                console.error('Row element with Row: ' + row + ' not found.');
+        //                return;
+        //            }
+
+        //            // Create a container to hold the cloned elements for the preview
+        //            var dragPreviewRow = document.createElement('div');
+        //            dragPreviewRow.style.position = 'absolute';
+        //            dragPreviewRow.style.zIndex = '9999';
+        //            dragPreviewRow.style.pointerEvents = 'none';
+        //            dragPreviewRow.style.opacity = '1';
+        //            dragPreviewRow.style.width = '100%'; // Set width to 100%
+        //            dragPreviewRow.style.height = 'auto'
+        //            dragPreviewRow.style.outline = 'none';
+        //            dragPreviewRow.style.opacity = '0.9';
+
+        //            // Use grid layout to ensure proper alignment and sizing
+        //            dragPreviewRow.style.display = 'grid';
+        //            dragPreviewRow.style.gridTemplateColumns = 'repeat(12, 1fr)'; // Ensure the grid has 12 columns
+        //            dragPreviewRow.style.gridAutoRows = 'minmax(30px, auto)'; // Auto-sized rows based on content
+        //            dragPreviewRow.style.alignItems = 'top'; // Align all items to the top
+
+        //            // Clone each content item within the row and append to the preview container
+        //            rowElements.forEach(function(element) {
+        //                var clone = element.cloneNode(true); // Deep clone the entire content item
+
+        //                // Fetch the column span from the data-column-span attribute
+        //                var columnSpan = element.getAttribute('data-column-span');
+        //                console.log('Column Span:', columnSpan);
+
+        //                // Apply the column span to the clone using grid-column-end
+        //                if (columnSpan) {
+        //                    clone.style.gridColumnEnd = 'span ' + columnSpan; // Apply column span
+        //                }
+
+        //                dragPreviewRow.appendChild(clone); // Append the cloned element to the preview container
+        //            });
+
+        //            // Make the entire row's elements transparent and non-interactive during the drag
+        //            rowElements.forEach(function(element) {
+        //                element.style.opacity = '0';
+        //                element.style.pointerEvents = 'none';
+        //            });
+
+        //            // Append the preview row to the body
+        //            document.body.appendChild(dragPreviewRow);
+
+        //            // Function to move the preview with touch movement
+        //            var movePreview = function(event) {
+        //                // Get the first touch point (in case there are multiple touches)
+        //                var touch = event.touches[0];
+        //                var previewWidth = dragPreviewRow.offsetWidth;
+        //                var previewHeight = dragPreviewRow.offsetHeight;
+        //                var scrollTop = window.scrollY;
+
+        //                // Position the preview based on touch coordinates
+        //                dragPreviewRow.style.top = (touch.clientY + scrollTop - previewHeight / 2) + 'px';
+        //                dragPreviewRow.style.left = (touch.clientX - previewWidth / 2) + 'px';
+
+        //                // Get the screen height and touch Y position
+        //                var screenHeight = window.innerHeight;
+        //                var touchY = touch.clientY;
+
+        //                // Adjust the scroll position if the touch is near the top or bottom 20% of the screen
+        //                if (touchY < screenHeight * 0.2) {
+        //                    // Touch is near the top 20% of the screen, scroll up
+        //                    window.scrollBy(0, -5); // Scroll up by 5px
+        //                } else if (touchY > screenHeight * 0.8) {
+        //                    // Touch is near the bottom 20% of the screen, scroll down
+        //                    window.scrollBy(0, 5); // Scroll down by 5px
+        //                }
+        //            };
+
+        //            // Position the preview at the initial touch position
+        //            movePreview({ touches: [{ clientX: window.event.clientX, clientY: window.event.clientY }] });
+
+        //            // Add touchmove listener to move the preview as touch moves
+        //            document.addEventListener('touchmove', movePreview);
+
+        //            // Store the preview and original elements references
+        //            window.dragPreviewElement = dragPreviewRow;
+        //            window.originalElements = rowElements;
+
+        //            // Define the cleanup function for the drag preview
+        //            window.removeDragPreview = function() {
+        //                console.log('Cleaning up drag preview');
+
+        //                if (window.dragPreviewElement) {
+        //                    document.body.removeChild(window.dragPreviewElement); // Remove the preview
+        //                    window.dragPreviewElement = null; // Clear the reference
+        //                }
+
+        //                if (window.originalElements) {
+        //                    window.originalElements.forEach(function(element) {
+        //                        element.style.opacity = '1'; // Reset original element's opacity
+        //                        element.style.pointerEvents = ''; // Re-enable interaction with the original element
+        //                    });
+        //                    window.originalElements = null; // Clear the reference to the original elements
+        //                }
+        //            };
+
+        //            // Cleanup on touch end (when the user finishes the drag)
+        //            var cleanupOnTouchEnd = function() {
+        //                console.log('Drag row: touch end');
+        //                window.removeDragPreview(); // Call the cleanup function
+
+        //                document.removeEventListener('touchmove', movePreview);
+        //                document.removeEventListener('touchend', cleanupOnTouchEnd);
+        //            };
+
+        //            document.addEventListener('touchend', cleanupOnTouchEnd);
+        //        };
+        //    }
+        //");
+        //    }
 
 
 
@@ -1945,7 +2134,7 @@ namespace CMS.Components.Pages.WebPages
 
 
         // This method will poll for the condition to be met 3 times with 15ms delay.
-        private async Task PollConditionAsync()
+        private async Task PollConditionHoveredCellAsync()
         {
             int retries = 3;  // The number of times we will poll
             int delayMs = 15;  // The delay between each poll in milliseconds
@@ -1967,9 +2156,10 @@ namespace CMS.Components.Pages.WebPages
             Console.WriteLine("Condition not met after polling.");
         }
 
+        //Method dependency: InitializeTouchDrag() with javaScript and SetDraggedCell() methods  for fetching data of hoveredCell
         private async Task OnTouchEndAsync()
         {
-            await PollConditionAsync();
+            await PollConditionHoveredCellAsync();
 
             if (hoveredCellIsSet)
             {
@@ -2023,6 +2213,10 @@ namespace CMS.Components.Pages.WebPages
                     }
                 }
                 hoveredCellIsSet = false;
+            }
+            else
+            {
+                UserInformationMessage("Failed moving with the use of touch, contact us if problem persists,");
             }
         }
 
@@ -2405,43 +2599,6 @@ namespace CMS.Components.Pages.WebPages
 
         }
 
-        //private void AdjustCellPosition(LayoutCell cellForAdjustments)
-        //{
-        //    var destinatedRow = layout.LayoutCells.Where(c => c.Row == cellForAdjustments.Row);
-        //    int? availableColumn = null;
-
-        //    //Count columns until free column is found.
-        //    foreach (var cell in destinatedRow)
-        //    {
-        //        if (cell != null)
-        //        {
-        //            // If free column is found stop the evaluation.
-        //            if (cell.ContentId==null && cell.Column != cellForAdjustments.Column)
-        //            {
-        //                cellForAdjustments.Column = (int)availableColumn;
-        //                break;
-        //            }
-        //            else
-        //            //Count occupied space until free column is found.
-        //            { 
-        //                availableColumn = availableColumn + cell.ColumnSpan;
-        //            }
-
-        //        }
-
-        //    }
-        //    // Assign updated cell to layout
-        //    layout.LayoutCells = layout.LayoutCells
-        //        .Select((cell, ContentId) =>
-        //        {
-        //            if (ContentId == cellForAdjustments.ContentId.Value)
-        //                return cellForAdjustments;
-        //            else
-        //                return cell;
-        //        })
-        //        .ToList(); // Rebuild the list to ensure the setter is triggered.
-        //}
-
         private void ReinsertCellInLayout(int? cellIndex, LayoutCell insertCell)
         {
             // Reassign the LayoutCell property at new index.
@@ -2531,6 +2688,78 @@ namespace CMS.Components.Pages.WebPages
                 Console.WriteLine("No row selected for moving");
             }
             
+        }
+
+        // This method will poll for the condition to be met 3 times with 15ms delay.
+        private async Task PollConditionHoveredRowAsync()
+        {
+            int retries = 3;  // The number of times we will poll
+            int delayMs = 15;  // The delay between each poll in milliseconds
+
+            for (int i = 0; i < retries; i++)
+            {
+                // Check the condition
+                if (hoveredRowIsSet)
+                {
+                    Console.WriteLine("Condition met!");
+                    return;  // Exit early if the condition is met
+                }
+
+                // If not met, wait for the specified delay before retrying
+                await Task.Delay(delayMs);
+            }
+
+            // If the loop finishes, it means the condition wasn't met within the retry limit
+            Console.WriteLine("Condition not met after polling.");
+        }
+        //Dependency: Relies on js for fetching data for hoveredRow by the use of DragTouchPreview() and SetDragedRow()
+        private async Task OnTouchEndRowAsync()
+        {
+            
+            await PollConditionHoveredRowAsync();
+
+            if (hoveredRowIsSet)
+            {
+                // RestoreScrollPosition();
+                if (draggedRow != null)
+                {
+                    if (hoveredRow != null)
+                    {
+                        if (draggedRow != hoveredRow)
+                        {
+                            TransitionCoverDiv(70, 70, webPageBackgroundColor);
+                            Console.WriteLine("Drag ended.");
+                            List<LayoutCell> draggedLayoutCells = layout.LayoutCells.Where(c => c.Row == draggedRow).ToList();
+                            InsertRowInLayout(draggedLayoutCells, draggedRow, (int)hoveredRow, true);
+                            // Save the new layout order
+                            await SaveLayoutChangesAsync();
+                            hoveredRowIsSet = false;
+                            hoveredCell = null;
+                            StateHasChanged();  // To refresh the UI
+
+                        }
+                        else
+                        {
+                            Console.WriteLine("Dropped same row, no updates are applied");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("No suitable row for moving selected row was found.");
+                    }
+
+                }
+                else
+                {
+                    Console.WriteLine("No row selected for moving");
+                }
+                
+            }
+            else
+            {
+                UserInformationMessage("Failed drag row with touch, contact us if the issue persists.");
+            }
+
         }
 
         private async Task MoveRowByClickAsync(int? newRowNumber)
